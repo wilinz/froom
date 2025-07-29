@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.4
+
+### Changes
+* Update README.md
+
 ## 2.0.3
 
 ### Fix
