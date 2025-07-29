@@ -1,0 +1,110 @@
+# Froom Package Publisher
+
+一个用于管理 froom 相关包发布的 Dart 脚本工具。
+
+## 功能
+
+- 从 `version.txt` 读取版本号
+- 检查根目录 `CHANGELOG.md` 中是否包含对应版本的更新日志
+- 自动同步 CHANGELOG 条目到各个子项目
+- 按照发布顺序更新各个包的版本号：`froom_annotation` -> `froom_generator` -> `froom_common` -> `froom`
+- 将组件间的 path 依赖更新为版本依赖
+- 创建 release 分支并提交更改
+- 按顺序发布包到 pub.dev
+- 自动等待依赖包在 pub.dev 上可用后再发布下一个包
+- 支持 dry-run 模式用于测试
+
+## 使用方法
+
+### 安装依赖
+
+```bash
+cd publish-kit
+dart pub get
+```
+
+### 运行命令
+
+```bash
+# 显示帮助
+dart bin/publish_kit.dart -h
+
+# 更新版本号（dry-run 模式）
+dart bin/publish_kit.dart -c update-version --dry-run
+
+# 更新依赖关系（dry-run 模式）
+dart bin/publish_kit.dart -c update-deps --dry-run
+
+# 创建 release 分支并提交
+dart bin/publish_kit.dart -c commit --dry-run
+
+# 发布包到 pub.dev
+dart bin/publish_kit.dart -c publish --dry-run
+
+# 执行完整流程
+dart bin/publish_kit.dart -c all --dry-run
+
+# 实际运行（移除 --dry-run）
+dart bin/publish_kit.dart -c all
+```
+
+## 发布顺序
+
+脚本会按照以下顺序发布包：
+
+1. `froom_annotation` - 注解包，无依赖
+2. `froom_generator` - 代码生成器，依赖 froom_annotation
+3. `froom_common` - 通用库，依赖 froom_annotation 和 froom_generator
+4. `froom` - 主包，依赖前面所有包
+
+## 分步执行
+
+- `dart bin/publish_kit.dart -c update-version` - 仅更新包版本号
+- `dart bin/publish_kit.dart -c update-deps` - 仅更新组件间依赖关系
+- `dart bin/publish_kit.dart -c commit` - 仅创建 release 分支并提交  
+- `dart bin/publish_kit.dart -c publish` - 仅发布包到 pub.dev
+
+## 发布机制
+
+脚本会自动处理包的依赖关系：
+
+1. **发布顺序控制**：按照依赖关系顺序发布包
+2. **依赖等待机制**：发布一个包后，会通过 `dart pub get` 循环检测下一个包的依赖是否在 pub.dev 上可用
+3. **超时保护**：最长等待 15 分钟（30 次尝试 × 30 秒），避免无限等待
+4. **实时反馈**：显示等待进度和尝试次数
+
+## CHANGELOG 管理
+
+脚本会自动管理 CHANGELOG.md：
+
+1. **版本检查**：检查根目录 `CHANGELOG.md` 中是否包含要发布的版本条目
+2. **自动同步**：将根目录的 CHANGELOG 条目复制到各个子项目的 CHANGELOG.md
+3. **格式保持**：保持原有的 Markdown 格式和结构
+4. **重复检测**：如果子项目已包含该版本条目，则跳过
+
+### CHANGELOG 格式要求
+
+根目录的 `CHANGELOG.md` 应包含如下格式：
+
+```markdown
+# Changelog
+
+## 2.0.2
+
+### Changes
+
+* Bug fixes and improvements
+* Updated dependencies
+
+## 2.0.1
+...
+```
+
+## 注意事项
+
+- 确保在运行前已经更新了 `version.txt` 文件
+- **必须在根目录 `CHANGELOG.md` 中添加对应版本的条目**，否则脚本会报错
+- 建议先使用 `--dry-run` 模式测试
+- 发布前确保所有测试通过
+- 发布包需要有 pub.dev 的发布权限
+- 发布过程可能需要较长时间，请耐心等待依赖包在 pub.dev 上同步
