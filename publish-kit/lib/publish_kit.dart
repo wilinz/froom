@@ -202,10 +202,27 @@ class PublishKit {
       return;
     }
 
-    // Create and checkout release branch
-    final result1 = await _runGitCommand(['checkout', '-b', branchName]);
-    if (result1.exitCode != 0) {
-      throw Exception('Failed to create release branch: ${result1.stderr}');
+    // Check if release branch already exists
+    final branchCheck = await _runGitCommand(['branch', '--list', branchName]);
+    if (branchCheck.stdout.toString().trim().isNotEmpty) {
+      print('Release branch $branchName already exists, switching to it...');
+      final result = await _runGitCommand(['checkout', branchName]);
+      if (result.exitCode != 0) {
+        throw Exception('Failed to checkout existing release branch: ${result.stderr}');
+      }
+    } else {
+      // Create and checkout release branch
+      final result1 = await _runGitCommand(['checkout', '-b', branchName]);
+      if (result1.exitCode != 0) {
+        throw Exception('Failed to create release branch: ${result1.stderr}');
+      }
+    }
+
+    // Check if there are any changes to commit
+    final statusResult = await _runGitCommand(['status', '--porcelain']);
+    if (statusResult.stdout.toString().trim().isEmpty) {
+      print('No changes to commit');
+      return;
     }
 
     // Add all changes
@@ -217,42 +234,120 @@ class PublishKit {
     // Commit changes
     final result3 = await _runGitCommand(['commit', '-m', commitMessage]);
     if (result3.exitCode != 0) {
-      throw Exception('Failed to commit changes: ${result3.stderr}');
+      // Check if it's because there's nothing to commit
+      final errorMsg = result3.stderr.toString();
+      if (errorMsg.contains('nothing to commit')) {
+        print('No changes to commit');
+        return;
+      }
+      throw Exception('Failed to commit changes: $errorMsg');
     }
 
     print('Created release branch: $branchName');
   }
 
   Future<void> publishPackages() async {
-    print('Publishing packages to pub.dev...');
+    // Remember current branch to restore later
+    final originalBranch = await _getCurrentBranch();
+    
+    try {
+      print('Publishing packages to pub.dev...');
+      final version = await readVersionFile();
 
-    for (int i = 0; i < publishOrder.length; i++) {
-      final packageName = publishOrder[i];
-      final packagePath = path.join(rootPath, packageName);
+      for (int i = 0; i < publishOrder.length; i++) {
+        final packageName = publishOrder[i];
+        final packagePath = path.join(rootPath, packageName);
 
-      print('Publishing $packageName...');
+        // Check if package is already published
+        if (await _isPackageAlreadyPublished(packageName, version)) {
+          print('✓ $packageName version $version already published, skipping...');
+          continue;
+        }
 
-      final result = await Process.run('dart', [
-        'pub',
-        'publish',
-        dryRun ? '--dry-run' : '--force',
-      ], workingDirectory: packagePath);
+        print('Publishing $packageName...');
 
-      if (result.exitCode != 0) {
-        throw Exception('Failed to publish $packageName: ${result.stderr}');
+        final result = await Process.run('dart', [
+          'pub',
+          'publish',
+          dryRun ? '--dry-run' : '--force',
+        ], workingDirectory: packagePath);
+
+        if (result.exitCode != 0) {
+          final errorMsg = result.stderr.toString();
+          
+          // Check if it's already published error
+          if (errorMsg.contains('already exists')) {
+            print('✓ $packageName version $version already published, skipping...');
+            continue;
+          }
+          
+          throw Exception('Failed to publish $packageName: $errorMsg');
+        }
+
+        print('${dryRun ? "[DRY RUN] " : ""}Successfully published $packageName');
+
+        // Wait for dependencies to be available before publishing next package
+        if (!dryRun && i < publishOrder.length - 1) {
+          final nextPackage = publishOrder[i + 1];
+          final version = await readVersionFile();
+          final targetBranch = 'release/$version';
+          await _waitForDependencies(nextPackage, targetBranch);
+        }
       }
-
-      print('${dryRun ? "[DRY RUN] " : ""}Successfully published $packageName');
-
-      // Wait for dependencies to be available before publishing next package
-      if (!dryRun && i < publishOrder.length - 1) {
-        final nextPackage = publishOrder[i + 1];
-        await _waitForDependencies(nextPackage);
+    } finally {
+      // Restore original branch if changed
+      await _restoreBranch(originalBranch);
+    }
+  }
+  
+  Future<String> _getCurrentBranch() async {
+    final result = await Process.run('git', ['branch', '--show-current'], workingDirectory: rootPath);
+    if (result.exitCode == 0) {
+      return result.stdout.toString().trim();
+    }
+    return 'main'; // fallback
+  }
+  
+  Future<void> _restoreBranch(String originalBranch) async {
+    if (dryRun) return;
+    
+    final currentBranch = await _getCurrentBranch();
+    if (currentBranch != originalBranch) {
+      print('Restoring to original branch: $originalBranch');
+      final result = await Process.run('git', ['checkout', originalBranch], workingDirectory: rootPath);
+      if (result.exitCode != 0) {
+        print('Warning: Failed to restore original branch: ${result.stderr}');
       }
     }
   }
   
-  Future<void> _waitForDependencies(String packageName) async {
+  Future<bool> _isPackageAlreadyPublished(String packageName, String version) async {
+    if (dryRun) return false;
+    
+    try {
+      // Try to publish with --dry-run to check if version already exists
+      final result = await Process.run('dart', [
+        'pub',
+        'publish',
+        '--dry-run'
+      ], workingDirectory: path.join(rootPath, packageName));
+      
+      // If dry-run fails with "already exists" message, the package is published
+      if (result.exitCode != 0) {
+        final errorMsg = result.stderr.toString();
+        if (errorMsg.contains('already exists') || 
+            errorMsg.contains('Version $version of package $packageName already exists')) {
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  Future<void> _waitForDependencies(String packageName, String targetBranch) async {
     final dependencyMap = {
       'froom_generator': ['froom_annotation'],
       'froom_common': ['froom_annotation', 'froom_generator'], 
@@ -270,6 +365,10 @@ class PublishKit {
     
     while (attempts < maxAttempts) {
       attempts++;
+      
+      // Check and ensure we're on the correct branch before each attempt
+      await _ensureCorrectBranch(targetBranch);
+      
       print('Attempt $attempts/$maxAttempts: Running dart pub get for $packageName...');
       
       final result = await Process.run(
@@ -290,6 +389,22 @@ class PublishKit {
     throw Exception(
       'Timeout waiting for dependencies to be available for $packageName after ${maxAttempts * 30} seconds'
     );
+  }
+  
+  Future<void> _ensureCorrectBranch(String targetBranch) async {
+    final currentBranch = await _getCurrentBranch();
+    
+    if (currentBranch != targetBranch) {
+      print('⚠️ Branch changed to $currentBranch, switching back to $targetBranch...');
+      
+      final result = await _runGitCommand(['checkout', targetBranch]);
+      if (result.exitCode != 0) {
+        print('Warning: Failed to switch back to $targetBranch: ${result.stderr}');
+        print('Please manually switch to the correct branch if needed.');
+      } else {
+        print('✓ Switched back to $targetBranch');
+      }
+    }
   }
 
   Future<ProcessResult> _runGitCommand(List<String> args) async {
