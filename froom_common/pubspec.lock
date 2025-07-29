@@ -231,14 +231,14 @@ packages:
       path: "../froom_annotation"
       relative: true
     source: path
-    version: "1.4.2"
+    version: "2.0.0"
   froom_generator:
     dependency: "direct dev"
     description:
       path: "../froom_generator"
       relative: true
     source: path
-    version: "1.4.1"
+    version: "2.0.0"
   glob:
     dependency: transitive
     description:
