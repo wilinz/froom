@@ -6,7 +6,6 @@ version: 2.0.0
 homepage: https://wilinz.github.io/froom/
 repository: https://github.com/wilinz/froom
 issue_tracker: https://github.com/wilinz/froom/issues
-publish_to: none
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -17,11 +16,13 @@ dependencies:
   build_config: ^1.1.2
   code_builder: ^4.10.1
   collection: ^1.19.1
+#  froom_annotation: ^2.0.0
   froom_annotation:
     path: ../froom_annotation/
   meta: ^1.16.0
   source_gen: ^2.0.0
   strings: ^4.0.0
+  pub_semver: ^2.2.0
 
 dev_dependencies:
   build_test: ^2.2.3
