@@ -228,16 +228,18 @@ packages:
   froom_annotation:
     dependency: "direct main"
     description:
-      path: "../froom_annotation"
-      relative: true
-    source: path
+      name: froom_annotation
+      sha256: e06dd1e9bb55373971d540c2d60eff65717165d32f5327f5b68ac3fb82cc8782
+      url: "https://pub.dev"
+    source: hosted
     version: "2.0.0"
   froom_generator:
     dependency: "direct dev"
     description:
-      path: "../froom_generator"
-      relative: true
-    source: path
+      name: froom_generator
+      sha256: d7823c0e22e5aa18e700d7cc74520030215d9bc8a509f83123b948af182a4027
+      url: "https://pub.dev"
+    source: hosted
     version: "2.0.0"
   glob:
     dependency: transitive
