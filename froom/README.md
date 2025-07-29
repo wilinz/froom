@@ -1,10 +1,12 @@
-![Froom](https://raw.githubusercontent.com/wilinz/froom/develop/img/froom.png)
+# Froom
 
-**See the [project's website](https://wilinz.github.io/froom/) for the full documentation.**
+English | [中文](../README_zh.md)
 
-Froom provides a neat SQLite abstraction for your Flutter applications inspired by the [Room persistence library](https://developer.android.com/topic/libraries/architecture/room).
-It comes with automatic mapping between in-memory objects and database rows while still offering full control of the database with the use of SQL.
-As a consequence, it's necessary to have an understanding of SQL and SQLite in order to harvest Froom's full potential.
+**See the [project's website](https://wilinz.github.io/froom/) or [floor website](https://pinchbv.github.io/floor/) for the full documentation.**
+
+Froom is a modern, lightweight SQLite abstraction for Flutter applications, inspired by the [Room persistence library](https://developer.android.com/topic/libraries/architecture/room) and developed as an evolution of the popular [Floor ORM](https://github.com/vitusortner/floor) library. Froom is built on top of **Floor 1.5.0**, which was discontinued and is no longer maintained, while Froom extends its capabilities to meet the needs of modern Flutter applications.
+
+Froom provides automatic mapping between in-memory objects and database rows, while still offering full control of the database through SQL queries. To make the most of Froom's features, having a basic understanding of SQL and SQLite is necessary, but the library's API simplifies the process of interacting with databases.
 
 - null-safe
 - typesafe
@@ -17,6 +19,28 @@ As a consequence, it's necessary to have an understanding of SQL and SQLite in o
 
 ⚠️ The library is open to contributions!
 Refer to [GitHub Discussions](https://github.com/wilinz/froom/discussions) for questions, ideas, and discussions.
+
+## Why Froom?
+
+Froom is built as a **modern** and **feature-rich replacement** for the `floor` library, which itself was inspired by the Room persistence library used in Android development. While Floor served as a lightweight solution for SQLite in Flutter, Froom enhances and extends its capabilities to meet the needs of modern Flutter applications.
+
+Froom is based on **Floor 1.5.0**, as Floor is no longer actively maintained. **Froom** aims to continue where Floor left off by providing better support for modern Flutter versions and adding new features such as automatic migrations, improved error handling, and more complex data type support.
+
+- **Room**: The Android library that inspired Floor and Froom, provides a powerful SQLite abstraction with support for data persistence and querying.
+- **Floor**: A Flutter-specific implementation of Room’s ideas, offering a simplified ORM solution for SQLite in Flutter. However, it has been discontinued and is no longer maintained.
+- **Froom**: An evolution of Floor, Froom incorporates lessons learned from both Room and Floor, while adding new features such as automatic SQL migration, better error handling, and support for more complex data types.
+
+> **Froom** was designed to provide everything that Floor could not, by addressing its limitations and offering better compatibility with newer versions of Flutter.
+
+## Planned Features
+
+The following features are planned for future releases of **Froom** to enhance its capabilities and address user feedback:
+
+- **Automatic SQL Migration**: Plan to add automatic database migrations to handle schema changes smoothly.
+- **Improved Error Handling**: Enhance error reporting and debugging capabilities, ensuring that developers get more actionable insights during development.
+
+> These features are under **active planning** and will be added based on community contributions and ongoing development.
+
 
 [![pub package](https://img.shields.io/pub/v/froom.svg)](https://pub.dartlang.org/packages/froom)
 [![build status](https://github.com/wilinz/froom/workflows/CI/badge.svg)](https://github.com/wilinz/froom/actions)
@@ -33,15 +57,20 @@ The third dependency is `build_runner` which has to be included as a dev depende
 - `froom_generator` includes the code for generating the database classes.
 - `build_runner` enables a concrete way of generating source code files.
 
+
+```shell
+dart pub add froom dev:froom_generator
+```
+or
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  froom: ^1.4.2
+  froom: 
 
 dev_dependencies:
-  froom_generator: ^1.4.2
-  build_runner: ^2.1.2
+  froom_generator: 
+  build_runner:
 ```
 
 ### 2. Create an Entity
@@ -167,13 +196,13 @@ For questions, ideas, and discussions use [GitHub Discussions](https://github.co
 
 ## License
     Copyright 2023 The Froom Project Authors
-
+    
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-
+    
     http://www.apache.org/licenses/LICENSE-2.0
-
+    
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
