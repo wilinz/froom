@@ -17,8 +17,7 @@ dependencies:
   code_builder: ^4.10.1
   collection: ^1.19.1
 #  froom_annotation: ^2.0.0
-  froom_annotation:
-    path: ../froom_annotation/
+  froom_annotation: ^2.0.2
   meta: ^1.16.0
   source_gen: ^2.0.0
   strings: ^4.0.0
