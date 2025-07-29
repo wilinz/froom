@@ -34,11 +34,14 @@ dart bin/publish_kit.dart -h
 # 更新版本号（dry-run 模式）
 dart bin/publish_kit.dart -c update-version --dry-run
 
+# 创建版本标签并合并到主分支（dry-run 模式）
+dart bin/publish_kit.dart -c tag --dry-run
+
 # 更新依赖关系（dry-run 模式）
 dart bin/publish_kit.dart -c update-deps --dry-run
 
 # 创建 release 分支并提交
-dart bin/publish_kit.dart -c commit --dry-run
+dart bin/publish_kit.dart -c commit-release --dry-run
 
 # 发布包到 pub.dev
 dart bin/publish_kit.dart -c publish --dry-run
@@ -50,9 +53,31 @@ dart bin/publish_kit.dart -c all --dry-run
 dart bin/publish_kit.dart -c all
 ```
 
-## 发布顺序
+## 执行顺序
 
-脚本会按照以下顺序发布包：
+脚本的完整流程按照以下顺序执行：
+
+1. **update-version** - 更新包版本号并同步CHANGELOG
+2. **tag** - 提交更改、合并到main分支并创建版本标签 
+3. **update-deps** - 更新组件间依赖关系
+4. **commit-release** - 创建release分支并提交
+5. **publish** - 按顺序发布包到pub.dev
+
+## Tag 命令功能
+
+`tag` 命令会执行以下操作：
+
+1. **提交当前更改** - 如果有未提交的更改，自动提交
+2. **切换到main分支** - 自动切换到main分支
+3. **合并当前分支** - 如果不在main分支，将当前分支合并到main
+4. **创建版本标签** - 创建格式为 `v{version}` 的标签（如 `v2.0.3`）
+5. **推送到远程** - 推送main分支和新创建的标签到远程仓库
+
+这确保了版本标签总是基于main分支的最新状态创建。
+
+## 包发布顺序
+
+发布包时会按照以下顺序：
 
 1. `froom_annotation` - 注解包，无依赖
 2. `froom_generator` - 代码生成器，依赖 froom_annotation
@@ -62,8 +87,9 @@ dart bin/publish_kit.dart -c all
 ## 分步执行
 
 - `dart bin/publish_kit.dart -c update-version` - 仅更新包版本号
+- `dart bin/publish_kit.dart -c tag` - 仅提交更改、合并到main并创建版本标签
 - `dart bin/publish_kit.dart -c update-deps` - 仅更新组件间依赖关系
-- `dart bin/publish_kit.dart -c commit` - 仅创建 release 分支并提交  
+- `dart bin/publish_kit.dart -c commit-release` - 仅创建 release 分支并提交  
 - `dart bin/publish_kit.dart -c publish` - 仅发布包到 pub.dev
 
 ## 发布机制

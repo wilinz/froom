@@ -5,7 +5,7 @@ import 'package:publish_kit/publish_kit.dart';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
-    ..addOption('command', abbr: 'c', help: 'Command to run: update-version, update-deps, commit, publish, or all')
+    ..addOption('command', abbr: 'c', help: 'Command to run: update-version, tag, update-deps, commit-release, publish, or all')
     ..addFlag('dry-run', abbr: 'd', help: 'Perform a dry run without making changes')
     ..addFlag('help', abbr: 'h', help: 'Show help');
 
@@ -24,8 +24,9 @@ void main(List<String> arguments) async {
     print('');
     print('Commands:');
     print('  update-version - Update package versions from version.txt');
+    print('  tag            - Commit changes, merge to main, and create version tag');
     print('  update-deps    - Update inter-package dependencies to version format');
-    print('  commit         - Create release branch and commit changes');
+    print('  commit-release - Create release branch and commit changes');
     print('  publish        - Publish packages to pub.dev');
     print('  all            - Run all commands in sequence');
     print('');
@@ -53,10 +54,13 @@ void main(List<String> arguments) async {
       case 'update-version':
         await runUpdateVersion(publishKit);
         break;
+      case 'tag':
+        await runTag(publishKit);
+        break;
       case 'update-deps':
         await runUpdateDeps(publishKit);
         break;
-      case 'commit':
+      case 'commit-release':
         await runCommit(publishKit);
         break;
       case 'publish':
@@ -100,8 +104,14 @@ Future<void> runPublish(PublishKit publishKit) async {
   await publishKit.publishPackages();
 }
 
+Future<void> runTag(PublishKit publishKit) async {
+  final version = await publishKit.readVersionFile();
+  await publishKit.createTagAndMergeToMain(version);
+}
+
 Future<void> runAll(PublishKit publishKit) async {
   await runUpdateVersion(publishKit);
+  await runTag(publishKit);
   await runUpdateDeps(publishKit);
   await runCommit(publishKit);
   await runPublish(publishKit);

@@ -407,6 +407,90 @@ class PublishKit {
     }
   }
 
+  Future<void> createTagAndMergeToMain(String version) async {
+    print('Creating tag and merging to main...');
+    
+    if (dryRun) {
+      print('[DRY RUN] Would commit current changes');
+      print('[DRY RUN] Would merge to main branch');
+      print('[DRY RUN] Would switch to main branch');
+      print('[DRY RUN] Would create tag: v$version');
+      return;
+    }
+
+    // Get current branch
+    final currentBranch = await _getCurrentBranch();
+    
+    // Check if there are any changes to commit
+    final statusResult = await _runGitCommand(['status', '--porcelain']);
+    if (statusResult.stdout.toString().trim().isNotEmpty) {
+      // Add and commit current changes
+      print('Committing current changes...');
+      final addResult = await _runGitCommand(['add', '.']);
+      if (addResult.exitCode != 0) {
+        throw Exception('Failed to add changes: ${addResult.stderr}');
+      }
+      
+      final commitResult = await _runGitCommand(['commit', '-m', 'chore: update versions and dependencies for v$version']);
+      if (commitResult.exitCode != 0) {
+        final errorMsg = commitResult.stderr.toString();
+        if (!errorMsg.contains('nothing to commit')) {
+          throw Exception('Failed to commit changes: $errorMsg');
+        }
+      }
+      print('✓ Changes committed');
+    }
+
+    // Switch to main branch
+    print('Switching to main branch...');
+    final checkoutMainResult = await _runGitCommand(['checkout', 'main']);
+    if (checkoutMainResult.exitCode != 0) {
+      throw Exception('Failed to checkout main branch: ${checkoutMainResult.stderr}');
+    }
+    print('✓ Switched to main branch');
+
+    // Merge current branch to main (if not already on main)
+    if (currentBranch != 'main') {
+      print('Merging $currentBranch to main...');
+      final mergeResult = await _runGitCommand(['merge', currentBranch]);
+      if (mergeResult.exitCode != 0) {
+        throw Exception('Failed to merge $currentBranch to main: ${mergeResult.stderr}');
+      }
+      print('✓ Merged $currentBranch to main');
+    }
+
+    // Create and push tag
+    final tagName = 'v$version';
+    print('Creating tag $tagName...');
+    
+    // Check if tag already exists
+    final tagCheckResult = await _runGitCommand(['tag', '-l', tagName]);
+    if (tagCheckResult.stdout.toString().trim().isNotEmpty) {
+      print('Tag $tagName already exists, deleting and recreating...');
+      await _runGitCommand(['tag', '-d', tagName]);
+    }
+    
+    final tagResult = await _runGitCommand(['tag', '-a', tagName, '-m', 'Release version $version']);
+    if (tagResult.exitCode != 0) {
+      throw Exception('Failed to create tag: ${tagResult.stderr}');
+    }
+    print('✓ Created tag $tagName');
+
+    // Push main branch and tag
+    print('Pushing main branch and tag...');
+    final pushResult = await _runGitCommand(['push', 'origin', 'main']);
+    if (pushResult.exitCode != 0) {
+      print('Warning: Failed to push main branch: ${pushResult.stderr}');
+    }
+    
+    final pushTagResult = await _runGitCommand(['push', 'origin', tagName]);
+    if (pushTagResult.exitCode != 0) {
+      print('Warning: Failed to push tag: ${pushTagResult.stderr}');
+    } else {
+      print('✓ Pushed main branch and tag');
+    }
+  }
+
   Future<ProcessResult> _runGitCommand(List<String> args) async {
     return await Process.run('git', args, workingDirectory: rootPath);
   }
