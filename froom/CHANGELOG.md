@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1
+
+### Changes
+
+* Initial release of froom_common package
+
 ## 1.5.0
 
 ### Changes

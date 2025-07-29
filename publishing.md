@@ -2,6 +2,8 @@
 
 This document describes step-by-step how to release a new version of the library to pub.
 
+froom_annotation -> froom_generator -> froom_common -> froom
+
 1. **froom_annotation**
     1. Update CHANGELOG
     1. Update version

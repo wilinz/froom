@@ -56,14 +56,19 @@ Froom 基于 **Floor 1.5.0**，因为 Floor 不再积极维护。**Froom** 旨�
 - `froom_generator` 包含生成数据库类的代码。
 - `build_runner` 提供生成源代码文件的具体方式。
 
+
+```shell
+dart pub add froom dev:froom_generator
+```
+或者
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  froom: ^2.0.0
+  froom: 
 
 dev_dependencies:
-  froom_generator: ^2.0.0
+  froom_generator: 
   build_runner:
 ```
 

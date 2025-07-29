@@ -57,14 +57,19 @@ The third dependency is `build_runner` which has to be included as a dev depende
 - `froom_generator` includes the code for generating the database classes.
 - `build_runner` enables a concrete way of generating source code files.
 
+
+```shell
+dart pub add froom dev:froom_generator
+```
+or
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  froom: ^2.0.0
+  froom: 
 
 dev_dependencies:
-  froom_generator: ^2.0.0
+  froom_generator: 
   build_runner:
 ```
 
