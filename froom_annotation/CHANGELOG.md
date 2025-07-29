@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.2
+
+### Changes
+
+* 增加 publish-kit
+
 ## 1.5.0
 
 ### Changes
