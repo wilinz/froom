@@ -54,7 +54,7 @@ All credits for this release go to mqus.
 
 * Update deps
 * Increase test coverage
-* Bump locked floor_generator version to 1.0.1
+* Bump locked froom_generator version to 1.0.1
 
 ### 🚀 Features
 
@@ -83,13 +83,13 @@ All credits for this release go to mqus.
 
 ### 🚀 Features
 
-* Make floor null-safe
+* Make froom null-safe
 
 ## 0.19.1
 
 ### Changes
 
-* Remove floor example to pass static analysis
+* Remove froom example to pass static analysis
 
 ## 0.19.0
 
@@ -107,7 +107,7 @@ All credits for this release go to mqus.
 * Add isolates section to README
 * Run CI only on pushes to develop
 * Use GitHub Discussions for ideas and feedback
-* Add example to floor package
+* Add example to froom package
 
 ### 🚀 Features
 
@@ -176,7 +176,7 @@ case to camel case.**
 
 ### Changes
 
-* Mention SQL centricity of Floor in README
+* Mention SQL centricity of Froom in README
 * Add banner to README
 * Update the description of the library
 * Migrate OnConflictStrategy to enum
@@ -185,7 +185,7 @@ case to camel case.**
 * Fix database and DAO usage example in the README
 * Update README.md
 * Assert example app's behavior
-* Mention that floor uses first constructor found in entity class
+* Mention that froom uses first constructor found in entity class
 * Remove snapshot version instructions from README
 
 ### 🚀 Features
@@ -339,7 +339,7 @@ case to camel case.**
 ### Changes
 
 * Add database adapters
-* Run floor Flutter tests
+* Run froom Flutter tests
 * Move value objects to value_objects directory
 * Map source elements into value objects in processors
 * Use GeneratorForAnnotation and TypeChecker to verify annotations

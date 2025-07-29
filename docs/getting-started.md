@@ -2,21 +2,21 @@
 
 ## 1. Setup Dependencies
 
-Add the runtime dependency `floor` as well as the generator `floor_generator` to your `pubspec.yaml`.
+Add the runtime dependency `froom` as well as the generator `froom_generator` to your `pubspec.yaml`.
 The third dependency is `build_runner` which has to be included as a dev dependency just like the generator.
 
-- `floor` holds all the code you are going to use in your application.
-- `floor_generator` includes the code for generating the database classes.
+- `froom` holds all the code you are going to use in your application.
+- `froom_generator` includes the code for generating the database classes.
 - `build_runner` enables a concrete way of generating source code files.
 
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  floor: ^1.4.0
+  froom: ^1.4.0
 
 dev_dependencies:
-  floor_generator: ^1.4.0
+  froom_generator: ^1.4.0
   build_runner: ^2.1.2
 ```
 
@@ -31,7 +31,7 @@ There is no restriction on where you put the file containing the entity.
 ```dart
 // entity/person.dart
 
-import 'package:floor/floor.dart';
+import 'package:froom/froom.dart';
 
 @entity
 class Person {
@@ -57,7 +57,7 @@ The abstract class contains the method signatures for querying the database whic
 ```dart
 // dao/person_dao.dart
 
-import 'package:floor/floor.dart';
+import 'package:froom/froom.dart';
 
 @dao
 abstract class PersonDao {
@@ -74,7 +74,7 @@ abstract class PersonDao {
 
 ## 4. Create the Database
 
-It has to be an abstract class which extends `FloorDatabase`.
+It has to be an abstract class which extends `FroomDatabase`.
 Furthermore, it's required to add `@Database()` to the signature of the class.
 Make sure to add the created entity to the `entities` attribute of the `@Database` annotation.
 In order to make the generated code work, it's required to also add the listed imports.
@@ -88,7 +88,7 @@ In this case, the file is named `database.dart`.
 
 // required package imports
 import 'dart:async';
-import 'package:floor/floor.dart';
+import 'package:froom/froom.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 import 'dao/person_dao.dart';
@@ -97,7 +97,7 @@ import 'entity/person.dart';
 part 'database.g.dart'; // the generated code will be there
 
 @Database(version: 1, entities: [Person])
-abstract class AppDatabase extends FloorDatabase {
+abstract class AppDatabase extends FroomDatabase {
   PersonDao get personDao;
 }
 ```
@@ -109,8 +109,8 @@ To automatically run it, whenever a file changes, use `flutter packages pub run 
 
 ## 6. Use the Generated Code
 
-For obtaining an instance of the database, use the generated `$FloorAppDatabase` class, which allows access to a database builder.
-The name is being composed by `$Floor` and the database class name.
+For obtaining an instance of the database, use the generated `$FroomAppDatabase` class, which allows access to a database builder.
+The name is being composed by `$Froom` and the database class name.
 The string passed to `databaseBuilder()` will be the database file name.
 For initializing the database, call `build()` and make sure to `await` the result.
 
@@ -118,7 +118,7 @@ In order to retrieve the `PersonDao` instance, invoking the `persoDao` getter on
 Its functions can be used as shown in the following snippet.
 
 ```dart
-final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+final database = await $FroomAppDatabase.databaseBuilder('app_database.db').build();
 
 final personDao = database.personDao;
 final person = Person(1, 'Frank');
@@ -127,4 +127,4 @@ await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
 
-For further examples take a look at the [example](https://github.com/vitusortner/floor/tree/develop/example) and [test](https://github.com/vitusortner/floor/tree/develop/floor/test/integration) directories.
+For further examples take a look at the [example](https://github.com/vitusortner/froom/tree/develop/example) and [test](https://github.com/vitusortner/froom/tree/develop/froom/test/integration) directories.

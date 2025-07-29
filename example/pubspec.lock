@@ -225,34 +225,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
-  floor:
-    dependency: "direct main"
-    description:
-      path: "../floor"
-      relative: true
-    source: path
-    version: "1.5.0"
-  floor_annotation:
-    dependency: transitive
-    description:
-      path: "../floor_annotation"
-      relative: true
-    source: path
-    version: "1.4.2"
-  floor_common:
-    dependency: transitive
-    description:
-      path: "../floor_common"
-      relative: true
-    source: path
-    version: "1.2.0"
-  floor_generator:
-    dependency: "direct dev"
-    description:
-      path: "../floor_generator"
-      relative: true
-    source: path
-    version: "1.4.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -279,6 +251,34 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  froom:
+    dependency: "direct main"
+    description:
+      path: "../froom"
+      relative: true
+    source: path
+    version: "1.5.0"
+  froom_annotation:
+    dependency: transitive
+    description:
+      path: "../froom_annotation"
+      relative: true
+    source: path
+    version: "1.4.2"
+  froom_common:
+    dependency: transitive
+    description:
+      path: "../froom_common"
+      relative: true
+    source: path
+    version: "1.2.0"
+  froom_generator:
+    dependency: "direct dev"
+    description:
+      path: "../froom_generator"
+      relative: true
+    source: path
+    version: "1.4.1"
   glob:
     dependency: transitive
     description:

@@ -12,11 +12,11 @@ fi
 # All Flutter module folders
 folders=(
   example
-  floor
-  floor_annotation
-  floor_common
-  floor_ffi
-  floor_generator
+  froom
+  froom_annotation
+  froom_common
+  froom_ffi
+  froom_generator
 )
 
 # Navigate up one level from where this script lives

@@ -1,4 +1,4 @@
-import 'package:floor/floor.dart';
+import 'package:froom/froom.dart';
 
 enum TaskStatus {
   open('Open'),

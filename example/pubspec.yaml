@@ -3,15 +3,15 @@ description: >
   The typesafe, reactive and lightweight SQLite abstraction for your Flutter applications.
   This is an example on how to use the library.
 version: 1.0.0
-homepage: https://pinchbv.github.io/floor/
+homepage: https://wilinz.github.io/froom/
 publish_to: none
 
 environment:
   sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-  floor:
-    path: ../floor/
+  froom:
+    path: ../froom/
   flutter:
     sdk: flutter
   sqflite: any # This dependency is needed to solve the problem with warning about transitive dependencies
@@ -19,8 +19,8 @@ dependencies:
 dev_dependencies:
   analyzer: ^7.4.0
   build_runner: ^2.4.8
-  floor_generator:
-    path: ../floor_generator/
+  froom_generator:
+    path: ../froom_generator/
   flutter_lints: ^3.0.1
   flutter_test:
     sdk: flutter

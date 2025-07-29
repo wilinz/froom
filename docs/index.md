@@ -1,8 +1,8 @@
-# Welcome to Floor
+# Welcome to Froom
 
-Floor provides a neat SQLite abstraction for your Flutter applications inspired by the [Room persistence library](https://developer.android.com/topic/libraries/architecture/room).
+Froom provides a neat SQLite abstraction for your Flutter applications inspired by the [Room persistence library](https://developer.android.com/topic/libraries/architecture/room).
 It comes with automatic mapping between in-memory objects and database rows while still offering full control of the database with the use of SQL.
-As a consequence, it's necessary to have an understanding of SQL and SQLite in order to harvest Floor's full potential.
+As a consequence, it's necessary to have an understanding of SQL and SQLite in order to harvest Froom's full potential.
 
 - null-safe
 - typesafe
@@ -15,8 +15,8 @@ As a consequence, it's necessary to have an understanding of SQL and SQLite in o
 
 !!! important
     The library is open to contributions!
-    Refer to [GitHub Discussions](https://github.com/vitusortner/floor/discussions) for questions, ideas, and discussions.
+    Refer to [GitHub Discussions](https://github.com/vitusortner/froom/discussions) for questions, ideas, and discussions.
 
-[![pub package](https://img.shields.io/pub/v/floor.svg)](https://pub.dartlang.org/packages/floor)
-[![build status](https://github.com/vitusortner/floor/workflows/Continuous%20integration/badge.svg)](https://github.com/vitusortner/floor/actions)
-[![codecov](https://codecov.io/gh/vitusortner/floor/branch/develop/graph/badge.svg)](https://codecov.io/gh/vitusortner/floor)
+[![pub package](https://img.shields.io/pub/v/froom.svg)](https://pub.dartlang.org/packages/froom)
+[![build status](https://github.com/vitusortner/froom/workflows/Continuous%20integration/badge.svg)](https://github.com/vitusortner/froom/actions)
+[![codecov](https://codecov.io/gh/vitusortner/froom/branch/develop/graph/badge.svg)](https://codecov.io/gh/vitusortner/froom)

@@ -1,5 +1,5 @@
 # Miscellaneous
-floor_common/**/*.g.dart
+froom_common/**/*.g.dart
 *.class
 *.log
 *.pyc

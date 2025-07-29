@@ -1,0 +1,19 @@
+name: froom_ffi
+description: >
+  The typesafe, reactive, and lightweight SQLite abstraction for your Flutter applications.
+  This library is the runtime dependency.
+version: 1.2.0
+homepage: https://froom.codes
+publish_to: none
+
+environment:
+  sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+  froom_annotation:
+    path: ../froom_annotation/
+  froom_common:
+    path: ../froom_common/
+  meta:
+  path: ^1.9.0
+  sqflite_common_ffi: ^2.3.2+1

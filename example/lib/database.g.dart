@@ -3,7 +3,7 @@
 part of 'database.dart';
 
 // **************************************************************************
-// FloorGenerator
+// FroomGenerator
 // **************************************************************************
 
 abstract class $FlutterDatabaseBuilderContract {
@@ -18,7 +18,7 @@ abstract class $FlutterDatabaseBuilderContract {
 }
 
 // ignore: avoid_classes_with_only_static_members
-class $FloorFlutterDatabase {
+class $FroomFlutterDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
   static $FlutterDatabaseBuilderContract databaseBuilder(String name) =>

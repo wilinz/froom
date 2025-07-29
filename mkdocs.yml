@@ -1,8 +1,8 @@
-site_name: Floor SQLite
-site_description: "Floor - The typesafe, reactive, and lightweight SQLite abstraction for your Flutter applications"
-site_url: https://pinchbv.github.io/floor/
-repo_name: floor
-repo_url: https://github.com/pinchbv/floor
+site_name: Froom SQLite
+site_description: "Froom - The typesafe, reactive, and lightweight SQLite abstraction for your Flutter applications"
+site_url: https://wilinz.github.io/froom/
+repo_name: froom
+repo_url: https://github.com/wilinz/froom
 edit_uri: edit/develop/docs/
 
 markdown_extensions:

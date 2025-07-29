@@ -6,26 +6,26 @@ import 'package:flutter/material.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final database = await $FloorFlutterDatabase
+  final database = await $FroomFlutterDatabase
       .databaseBuilder('flutter_database.db')
       .build();
   final dao = database.taskDao;
 
-  runApp(FloorApp(dao));
+  runApp(FroomApp(dao));
 }
 
-class FloorApp extends StatelessWidget {
+class FroomApp extends StatelessWidget {
   final TaskDao dao;
 
-  const FloorApp(this.dao, {super.key});
+  const FroomApp(this.dao, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Floor Demo',
+      title: 'Froom Demo',
       theme: ThemeData(primarySwatch: Colors.blueGrey),
       home: TasksWidget(
-        title: 'Floor Demo',
+        title: 'Froom Demo',
         dao: dao,
       ),
     );
