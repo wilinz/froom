@@ -491,6 +491,51 @@ class PublishKit {
     }
   }
 
+  Future<void> copyReadme() async {
+    print('Copying README.md to sub-projects...');
+    
+    final rootReadmePath = path.join(rootPath, 'README.md');
+    final rootReadmeFile = File(rootReadmePath);
+    
+    if (!await rootReadmeFile.exists()) {
+      throw Exception('Root README.md not found');
+    }
+    
+    final rootContent = await rootReadmeFile.readAsString();
+    
+    for (final packageName in publishOrder) {
+      final packageReadmePath = path.join(rootPath, packageName, 'README.md');
+      final packageReadmeFile = File(packageReadmePath);
+      
+      // Update language links to point to root directory
+      String modifiedContent = _updateLanguageLinks(rootContent);
+      
+      if (!dryRun) {
+        await packageReadmeFile.writeAsString(modifiedContent);
+      }
+      
+      print('${dryRun ? "[DRY RUN] " : ""}Copied README.md to $packageName (with updated language links)');
+    }
+    
+    print('${dryRun ? "[DRY RUN] " : ""}README.md copying completed');
+  }
+  
+  String _updateLanguageLinks(String content) {
+    // Pattern to match language links like [中文](README_zh.md), [Español](README_es.md), etc.
+    // This regex captures:
+    // - Text in square brackets (language name)
+    // - Parentheses with README_xx.md pattern (where xx is language code)
+    final languageLinkPattern = RegExp(r'\[([^\]]+)\]\((README_[a-z]{2}(?:_[A-Z]{2})?\.md)\)');
+    
+    return content.replaceAllMapped(languageLinkPattern, (match) {
+      final languageName = match.group(1)!; // e.g., "中文", "Español"
+      final filename = match.group(2)!; // e.g., "README_zh.md", "README_es.md"
+      
+      // Update the path to point to root directory
+      return '[$languageName](../$filename)';
+    });
+  }
+
   Future<ProcessResult> _runGitCommand(List<String> args) async {
     return await Process.run('git', args, workingDirectory: rootPath);
   }

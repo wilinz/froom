@@ -5,7 +5,7 @@ import 'package:publish_kit/publish_kit.dart';
 
 void main(List<String> arguments) async {
   final parser = ArgParser()
-    ..addOption('command', abbr: 'c', help: 'Command to run: update-version, tag, update-deps, commit-release, publish, or all')
+    ..addOption('command', abbr: 'c', help: 'Command to run: update-version, copy-readme, tag, update-deps, commit-release, publish, or all')
     ..addFlag('dry-run', abbr: 'd', help: 'Perform a dry run without making changes')
     ..addFlag('help', abbr: 'h', help: 'Show help');
 
@@ -24,6 +24,7 @@ void main(List<String> arguments) async {
     print('');
     print('Commands:');
     print('  update-version - Update package versions from version.txt');
+    print('  copy-readme    - Copy README.md from root to sub-projects');
     print('  tag            - Commit changes, merge to main, and create version tag');
     print('  update-deps    - Update inter-package dependencies to version format');
     print('  commit-release - Create release branch and commit changes');
@@ -53,6 +54,9 @@ void main(List<String> arguments) async {
     switch (command) {
       case 'update-version':
         await runUpdateVersion(publishKit);
+        break;
+      case 'copy-readme':
+        await runCopyReadme(publishKit);
         break;
       case 'tag':
         await runTag(publishKit);
@@ -109,8 +113,13 @@ Future<void> runTag(PublishKit publishKit) async {
   await publishKit.createTagAndMergeToMain(version);
 }
 
+Future<void> runCopyReadme(PublishKit publishKit) async {
+  await publishKit.copyReadme();
+}
+
 Future<void> runAll(PublishKit publishKit) async {
   await runUpdateVersion(publishKit);
+  await runCopyReadme(publishKit);
   await runTag(publishKit);
   await runUpdateDeps(publishKit);
   await runCommit(publishKit);

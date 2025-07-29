@@ -34,6 +34,9 @@ dart bin/publish_kit.dart -h
 # 更新版本号（dry-run 模式）
 dart bin/publish_kit.dart -c update-version --dry-run
 
+# 拷贝README.md到子项目（dry-run 模式）
+dart bin/publish_kit.dart -c copy-readme --dry-run
+
 # 创建版本标签并合并到主分支（dry-run 模式）
 dart bin/publish_kit.dart -c tag --dry-run
 
@@ -58,10 +61,11 @@ dart bin/publish_kit.dart -c all
 脚本的完整流程按照以下顺序执行：
 
 1. **update-version** - 更新包版本号并同步CHANGELOG
-2. **tag** - 提交更改、合并到main分支并创建版本标签 
-3. **update-deps** - 更新组件间依赖关系
-4. **commit-release** - 创建release分支并提交
-5. **publish** - 按顺序发布包到pub.dev
+2. **copy-readme** - 拷贝根目录README.md到子项目
+3. **tag** - 提交更改、合并到main分支并创建版本标签 
+4. **update-deps** - 更新组件间依赖关系
+5. **commit-release** - 创建release分支并提交
+6. **publish** - 按顺序发布包到pub.dev
 
 ## Tag 命令功能
 
@@ -75,6 +79,25 @@ dart bin/publish_kit.dart -c all
 
 这确保了版本标签总是基于main分支的最新状态创建。
 
+## Copy-Readme 命令功能
+
+`copy-readme` 命令会执行以下操作：
+
+1. **读取根目录README.md** - 从项目根目录读取README.md文件
+2. **更新语言链接路径** - 自动将语言链接（如 `[中文](README_zh.md)`）更新为指向根目录的相对路径（如 `[中文](../README_zh.md)`）
+3. **复制到子项目** - 将处理后的README.md内容复制到所有子项目目录
+4. **覆盖现有文件** - 如果子项目已存在README.md，会被完全替换
+
+### 语言链接自动处理
+
+脚本会自动识别并处理以下格式的语言链接：
+- `[中文](README_zh.md)` → `[中文](../README_zh.md)`
+- `[Español](README_es.md)` → `[Español](../README_es.md)`
+- `[Français](README_fr.md)` → `[Français](../README_fr.md)`
+- 支持任何 `README_xx.md` 或 `README_xx_XX.md` 格式的语言文件
+
+这确保了所有子项目的README.md与根目录保持一致，同时语言链接能正确指向根目录的对应文件，便于包发布时提供统一的多语言文档。
+
 ## 包发布顺序
 
 发布包时会按照以下顺序：
@@ -87,6 +110,7 @@ dart bin/publish_kit.dart -c all
 ## 分步执行
 
 - `dart bin/publish_kit.dart -c update-version` - 仅更新包版本号
+- `dart bin/publish_kit.dart -c copy-readme` - 仅拷贝根目录README.md到子项目
 - `dart bin/publish_kit.dart -c tag` - 仅提交更改、合并到main并创建版本标签
 - `dart bin/publish_kit.dart -c update-deps` - 仅更新组件间依赖关系
 - `dart bin/publish_kit.dart -c commit-release` - 仅创建 release 分支并提交  
