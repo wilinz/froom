@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 
 class TransactionMethod {
   final MethodElement2 methodElement;
@@ -26,7 +27,7 @@ class TransactionMethod {
           methodElement == other.methodElement &&
           name == other.name &&
           returnType == other.returnType &&
-          parameterElements == other.parameterElements &&
+          const DeepCollectionEquality().equals(parameterElements, other.parameterElements) &&
           daoFieldName == other.daoFieldName &&
           databaseName == other.databaseName;
 

@@ -72,7 +72,7 @@ Future<DartType> getDartTypeWithPerson(String value) async {
   }
   ''');
 
-  return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
+  return (libraryReader.allElements.elementAt(2) as GetterElement).type.returnType;
 }
 
 Future<DartType> getDartTypeWithName(String value) async {
@@ -91,7 +91,7 @@ Future<DartType> getDartTypeWithName(String value) async {
   }
   ''');
 
-  return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
+  return (libraryReader.allElements.elementAt(2) as GetterElement).type.returnType;
 }
 
 Future<DartType> getDartTypeFromDeclaration(final String declaration) async {
@@ -102,7 +102,7 @@ Future<DartType> getDartTypeFromDeclaration(final String declaration) async {
   $declaration;
   ''');
 
-  return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
+  return (libraryReader.allElements.elementAt(1) as GetterElement).type.returnType;
 }
 
 final _dartfmt = DartFormatter(languageVersion: targetLanguageVersion);
