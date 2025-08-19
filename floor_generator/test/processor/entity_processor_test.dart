@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:build_test/build_test.dart';
 import 'package:floor_annotation/floor_annotation.dart' as annotations;
 import 'package:floor_generator/processor/entity_processor.dart';
 import 'package:floor_generator/processor/error/entity_processor_error.dart';
@@ -10,7 +9,6 @@ import 'package:floor_generator/value_object/foreign_key.dart';
 import 'package:floor_generator/value_object/fts.dart';
 import 'package:floor_generator/value_object/index.dart';
 import 'package:floor_generator/value_object/primary_key.dart';
-import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
 
 import '../test_utils.dart';
@@ -715,18 +713,13 @@ void main() {
 }
 
 Future<List<ClassElement2>> _createClassElements(final String classes) async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
       
       $classes
-      ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+      ''');
 
   return library.classes.toList();
 }

@@ -44,8 +44,17 @@ Future<DartType> getDartTypeFromString(final String value) {
   return getDartType(value);
 }
 
+Future<LibraryReader> getLibraryReader(String source) async => resolveSource(
+      source,
+      readAllSourcesFromFilesystem: true,
+      (resolver) async => resolver
+          .findLibraryByName('test')
+          .then((value) => ArgumentError.checkNotNull(value))
+          .then((value) => LibraryReader(value)),
+    );
+
 Future<DartType> getDartTypeWithPerson(String value) async {
-  final source = '''
+  final libraryReader = await getLibraryReader('''
   library test;
   
   import 'package:floor_annotation/floor_annotation.dart';
@@ -61,18 +70,13 @@ Future<DartType> getDartTypeWithPerson(String value) async {
   
     Person(this.id, this.name);
   }
-  ''';
-  return resolveSource(source, (item) async {
-    final libraryReader = await item
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
-  });
+  ''');
+
+  return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
 }
 
 Future<DartType> getDartTypeWithName(String value) async {
-  final source = '''
+  final libraryReader = await getLibraryReader('''
   library test;
   
   import 'package:floor_annotation/floor_annotation.dart';
@@ -85,27 +89,20 @@ Future<DartType> getDartTypeWithName(String value) async {
   
     Name(this.name);
   }
-  ''';
-  return resolveSource(source, (item) async {
-    final libraryReader = await item
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
-  });
+  ''');
+
+  return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
 }
 
 Future<DartType> getDartTypeFromDeclaration(final String declaration) async {
-  final source = '''
+  final libraryReader = await getLibraryReader('''
   library test;
   import 'dart:typed_data';
   
   $declaration;
-  ''';
-  return resolveSource(source, (item) async {
-    final libraryReader = LibraryReader((await item.findLibraryByName('test'))!);
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
-  });
+  ''');
+
+  return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
 }
 
 final _dartfmt = DartFormatter(languageVersion: targetLanguageVersion);
@@ -158,7 +155,7 @@ Matcher throwsUnresolvedAnnotationException() {
 }
 
 Future<Dao> createDao(final String methodSignature) async {
-  final library = await resolveSource('''
+  final libraryReader = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
@@ -174,21 +171,16 @@ Future<Dao> createDao(final String methodSignature) async {
       $_personEntity
       
       $_nameView
-      ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+      ''');
 
   final daoClass =
-      library.classes.firstWhere((classElement) => classElement.hasAnnotation(annotations.dao.runtimeType));
+      libraryReader.classes.firstWhere((classElement) => classElement.hasAnnotation(annotations.dao.runtimeType));
 
-  final entities = library.classes
+  final entities = libraryReader.classes
       .where((classElement) => classElement.hasAnnotation(annotations.Entity))
       .map((classElement) => EntityProcessor(classElement, {}).process())
       .toList();
-  final views = library.classes
+  final views = libraryReader.classes
       .where((classElement) => classElement.hasAnnotation(annotations.DatabaseView))
       .map((classElement) => ViewProcessor(classElement, {}).process())
       .toList();
@@ -197,21 +189,16 @@ Future<Dao> createDao(final String methodSignature) async {
 }
 
 Future<ClassElement2> createClassElement(final String clazz) async {
-  final library = await resolveSource('''
+  final libraryReader = await getLibraryReader('''
       library test;
       
       import 'dart:typed_data';
       import 'package:floor_annotation/floor_annotation.dart';
       
       $clazz
-      ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+      ''');
 
-  return library.classes.first;
+  return libraryReader.classes.first;
 }
 
 extension StringTestExtension on String {
@@ -220,37 +207,27 @@ extension StringTestExtension on String {
   }
 
   Future<ClassElement2> asClassElement() async {
-    final library = await resolveSource('''
+    final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
       
       $this
-      ''', (resolver) async {
-      return resolver
-          .findLibraryByName('test')
-          .then((value) => ArgumentError.checkNotNull(value))
-          .then((value) => LibraryReader(value));
-    });
+      ''');
 
     return library.classes.first;
   }
 }
 
 Future<Entity> getPersonEntity() async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
       import 'dart:typed_data';
       
       $_personEntity
-    ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+    ''');
 
   return library.classes
       .where((classElement) => classElement.hasAnnotation(annotations.Entity))
@@ -260,7 +237,7 @@ Future<Entity> getPersonEntity() async {
 
 extension StringExtension on String {
   Future<MethodElement2> asDaoMethodElement() async {
-    final library = await resolveSource('''
+    final library = await getLibraryReader('''
       library test;
             
       import 'package:floor_annotation/floor_annotation.dart';
@@ -272,12 +249,7 @@ extension StringExtension on String {
       }
       
       $_personEntity
-    ''', (resolver) async {
-      return resolver
-          .findLibraryByName('test')
-          .then((value) => ArgumentError.checkNotNull(value))
-          .then((value) => LibraryReader(value));
-    });
+    ''');
 
     return library.classes.first.methods2.first;
   }

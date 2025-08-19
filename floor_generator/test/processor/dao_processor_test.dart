@@ -1,6 +1,5 @@
 // ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:build_test/build_test.dart';
 import 'package:floor_annotation/floor_annotation.dart' as annotations;
 import 'package:floor_generator/misc/type_utils.dart';
 import 'package:floor_generator/processor/dao_processor.dart';
@@ -9,8 +8,9 @@ import 'package:floor_generator/processor/view_processor.dart';
 import 'package:floor_generator/value_object/dao.dart';
 import 'package:floor_generator/value_object/entity.dart';
 import 'package:floor_generator/value_object/view.dart';
-import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
+
+import '../test_utils.dart';
 
 void main() {
   late List<Entity> entities;
@@ -156,7 +156,7 @@ extension on Dao {
 }
 
 Future<ClassElement2> _createDao(final String dao) async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
@@ -180,18 +180,13 @@ Future<ClassElement2> _createDao(final String dao) async {
         Person(this.name);
       }
 
-      ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+      ''');
 
   return library.classes.first;
 }
 
 Future<List<Entity>> _getEntities() async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
@@ -205,12 +200,7 @@ Future<List<Entity>> _getEntities() async {
       
         Person(this.id, this.name);
       }
-    ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+    ''');
 
   return library.classes
       .where((classElement) => classElement.hasAnnotation(annotations.Entity))
@@ -219,7 +209,7 @@ Future<List<Entity>> _getEntities() async {
 }
 
 Future<List<View>> _getViews() async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
@@ -230,12 +220,7 @@ Future<List<View>> _getViews() async {
       
         Person(this.name);
       }
-    ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+    ''');
 
   return library.classes
       .where((classElement) => classElement.hasAnnotation(annotations.DatabaseView))

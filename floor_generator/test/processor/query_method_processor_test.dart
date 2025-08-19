@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:build_test/build_test.dart';
 import 'package:floor_annotation/floor_annotation.dart' as annotations;
 import 'package:floor_generator/misc/type_utils.dart';
 import 'package:floor_generator/processor/entity_processor.dart';
@@ -11,7 +10,6 @@ import 'package:floor_generator/value_object/entity.dart';
 import 'package:floor_generator/value_object/query.dart';
 import 'package:floor_generator/value_object/query_method.dart';
 import 'package:floor_generator/value_object/view.dart';
-import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
 
 import '../test_utils.dart';
@@ -394,7 +392,7 @@ void main() {
 Future<MethodElement2> _createQueryMethodElement(
   final String method,
 ) async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
@@ -420,18 +418,13 @@ Future<MethodElement2> _createQueryMethodElement(
       
         Name(this.name);
       }
-    ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+    ''');
 
   return library.classes.first.methods2.first;
 }
 
 Future<List<Entity>> _getEntities() async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
@@ -445,12 +438,7 @@ Future<List<Entity>> _getEntities() async {
       
         Person(this.id, this.name);
       }
-    ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+    ''');
 
   return library.classes
       .where((classElement) => classElement.hasAnnotation(annotations.Entity))
@@ -459,7 +447,7 @@ Future<List<Entity>> _getEntities() async {
 }
 
 Future<List<View>> _getViews() async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
@@ -470,12 +458,7 @@ Future<List<View>> _getViews() async {
       
         Name(this.name);
       }
-    ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+    ''');
 
   return library.classes
       .where((classElement) => classElement.hasAnnotation(annotations.DatabaseView))

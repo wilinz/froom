@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:build_test/build_test.dart';
 import 'package:floor_generator/misc/constants.dart';
 import 'package:floor_generator/processor/field_processor.dart';
 import 'package:floor_generator/value_object/field.dart';
@@ -185,7 +184,7 @@ void main() {
 }
 
 Future<FieldElement2> _generateFieldElement(final String field) async {
-  final library = await resolveSource('''
+  final library = await getLibraryReader('''
       library test;
       
       import 'package:floor_annotation/floor_annotation.dart';
@@ -206,12 +205,7 @@ Future<FieldElement2> _generateFieldElement(final String field) async {
           return value.millisecondsSinceEpoch;
         }
       }
-      ''', (resolver) async {
-    return resolver
-        .findLibraryByName('test')
-        .then((value) => ArgumentError.checkNotNull(value))
-        .then((value) => LibraryReader(value));
-  });
+      ''');
 
   return library.classes.first.fields2.first;
 }
