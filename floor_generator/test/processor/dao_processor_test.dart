@@ -1,5 +1,5 @@
 // ignore_for_file: import_of_legacy_library_into_null_safe
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:floor_annotation/floor_annotation.dart' as annotations;
 import 'package:floor_generator/misc/type_utils.dart';
@@ -35,15 +35,12 @@ void main() {
       }
     ''');
 
-    final actual = DaoProcessor(classElement, '', '', entities, views, {})
-        .process()
-        .methodsLength;
+    final actual = DaoProcessor(classElement, '', '', entities, views, {}).process().methodsLength;
 
     expect(actual, equals(2));
   });
 
-  test("Includes methods from abstract parent's abstract parent class",
-      () async {
+  test("Includes methods from abstract parent's abstract parent class", () async {
     final classElement = await _createDao('''
       @dao
       abstract class PersonDao extends AbstractDao<Person> {
@@ -62,9 +59,7 @@ void main() {
       }
     ''');
 
-    final actual = DaoProcessor(classElement, '', '', entities, views, {})
-        .process()
-        .methodsLength;
+    final actual = DaoProcessor(classElement, '', '', entities, views, {}).process().methodsLength;
 
     expect(actual, equals(3));
   });
@@ -83,9 +78,7 @@ void main() {
       }
     ''');
 
-    final actual = DaoProcessor(classElement, '', '', entities, views, {})
-        .process()
-        .methodsLength;
+    final actual = DaoProcessor(classElement, '', '', entities, views, {}).process().methodsLength;
 
     expect(actual, equals(2));
   });
@@ -104,9 +97,7 @@ void main() {
       }
     ''');
 
-    final actual = DaoProcessor(classElement, '', '', entities, views, {})
-        .process()
-        .methodsLength;
+    final actual = DaoProcessor(classElement, '', '', entities, views, {}).process().methodsLength;
 
     expect(actual, equals(2));
   });
@@ -125,9 +116,7 @@ void main() {
       }
     ''');
 
-    final actual = DaoProcessor(classElement, '', '', entities, views, {})
-        .process()
-        .methodsLength;
+    final actual = DaoProcessor(classElement, '', '', entities, views, {}).process().methodsLength;
 
     expect(actual, equals(2));
   });
@@ -152,8 +141,7 @@ void main() {
         }
       ''');
 
-    final processedDao =
-        DaoProcessor(classElement, '', '', entities, views, {}).process();
+    final processedDao = DaoProcessor(classElement, '', '', entities, views, {}).process();
 
     expect(processedDao.methodsLength, equals(4));
     expect(processedDao.streamViews, equals(views));
@@ -163,17 +151,11 @@ void main() {
 
 extension on Dao {
   int get methodsLength {
-    return [
-      ...queryMethods,
-      ...insertionMethods,
-      ...updateMethods,
-      ...deletionMethods,
-      ...transactionMethods
-    ].length;
+    return [...queryMethods, ...insertionMethods, ...updateMethods, ...deletionMethods, ...transactionMethods].length;
   }
 }
 
-Future<ClassElement> _createDao(final String dao) async {
+Future<ClassElement2> _createDao(final String dao) async {
   final library = await resolveSource('''
       library test;
       
@@ -256,8 +238,7 @@ Future<List<View>> _getViews() async {
   });
 
   return library.classes
-      .where((classElement) =>
-          classElement.hasAnnotation(annotations.DatabaseView))
+      .where((classElement) => classElement.hasAnnotation(annotations.DatabaseView))
       .map((classElement) => ViewProcessor(classElement, {}).process())
       .toList();
 }

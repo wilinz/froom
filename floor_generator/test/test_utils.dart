@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
@@ -25,8 +25,8 @@ final targetLanguageVersion = Version(3, 7, 0);
 Future<LibraryReader> resolveCompilationUnit(final String sourceFile) async {
   final files = [File(sourceFile)];
 
-  final fileMap = Map<String, String>.fromEntries(files.map((file) =>
-      MapEntry('a|lib/${path.basename(file.path)}', file.readAsStringSync())));
+  final fileMap = Map<String, String>.fromEntries(
+      files.map((file) => MapEntry('a|lib/${path.basename(file.path)}', file.readAsStringSync())));
 
   final library = await resolveSources(fileMap, (item) async {
     final assetId = AssetId.parse(fileMap.keys.first);
@@ -67,9 +67,7 @@ Future<DartType> getDartTypeWithPerson(String value) async {
         .findLibraryByName('test')
         .then((value) => ArgumentError.checkNotNull(value))
         .then((value) => LibraryReader(value));
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement)
-        .type
-        .returnType;
+    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
   });
 }
 
@@ -93,9 +91,7 @@ Future<DartType> getDartTypeWithName(String value) async {
         .findLibraryByName('test')
         .then((value) => ArgumentError.checkNotNull(value))
         .then((value) => LibraryReader(value));
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement)
-        .type
-        .returnType;
+    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
   });
 }
 
@@ -107,11 +103,8 @@ Future<DartType> getDartTypeFromDeclaration(final String declaration) async {
   $declaration;
   ''';
   return resolveSource(source, (item) async {
-    final libraryReader =
-        LibraryReader((await item.findLibraryByName('test'))!);
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement)
-        .type
-        .returnType;
+    final libraryReader = LibraryReader((await item.findLibraryByName('test'))!);
+    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2).type.returnType;
   });
 }
 
@@ -188,24 +181,22 @@ Future<Dao> createDao(final String methodSignature) async {
         .then((value) => LibraryReader(value));
   });
 
-  final daoClass = library.classes.firstWhere((classElement) =>
-      classElement.hasAnnotation(annotations.dao.runtimeType));
+  final daoClass =
+      library.classes.firstWhere((classElement) => classElement.hasAnnotation(annotations.dao.runtimeType));
 
   final entities = library.classes
       .where((classElement) => classElement.hasAnnotation(annotations.Entity))
       .map((classElement) => EntityProcessor(classElement, {}).process())
       .toList();
   final views = library.classes
-      .where((classElement) =>
-          classElement.hasAnnotation(annotations.DatabaseView))
+      .where((classElement) => classElement.hasAnnotation(annotations.DatabaseView))
       .map((classElement) => ViewProcessor(classElement, {}).process())
       .toList();
 
-  return DaoProcessor(
-      daoClass, 'personDao', 'TestDatabase', entities, views, {}).process();
+  return DaoProcessor(daoClass, 'personDao', 'TestDatabase', entities, views, {}).process();
 }
 
-Future<ClassElement> createClassElement(final String clazz) async {
+Future<ClassElement2> createClassElement(final String clazz) async {
   final library = await resolveSource('''
       library test;
       
@@ -228,7 +219,7 @@ extension StringTestExtension on String {
     return getDartTypeFromString(this);
   }
 
-  Future<ClassElement> asClassElement() async {
+  Future<ClassElement2> asClassElement() async {
     final library = await resolveSource('''
       library test;
       
@@ -268,7 +259,7 @@ Future<Entity> getPersonEntity() async {
 }
 
 extension StringExtension on String {
-  Future<MethodElement> asDaoMethodElement() async {
+  Future<MethodElement2> asDaoMethodElement() async {
     final library = await resolveSource('''
       library test;
             
@@ -288,7 +279,7 @@ extension StringExtension on String {
           .then((value) => LibraryReader(value));
     });
 
-    return library.classes.first.methods.first;
+    return library.classes.first.methods2.first;
   }
 }
 

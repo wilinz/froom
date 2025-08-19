@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:floor_generator/processor/database_processor.dart';
 import 'package:floor_generator/processor/error/database_processor_error.dart';
@@ -30,8 +30,7 @@ void main() {
       }
     ''');
 
-      final actual =
-          DatabaseProcessor(classElement).process().databaseTypeConverters;
+      final actual = DatabaseProcessor(classElement).process().databaseTypeConverters;
 
       final expected = TypeConverter(
         'DateTimeConverter',
@@ -66,8 +65,7 @@ void main() {
       }
     ''');
 
-      final actual =
-          DatabaseProcessor(classElement).process().allTypeConverters;
+      final actual = DatabaseProcessor(classElement).process().allTypeConverters;
 
       final expected = TypeConverter(
         'DateTimeConverter',
@@ -131,7 +129,7 @@ void main() {
   });
 }
 
-Future<ClassElement> _createDatabaseClassElement(
+Future<ClassElement2> _createDatabaseClassElement(
   final String database,
 ) async {
   final library = await resolveSource('''

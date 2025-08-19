@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:floor_annotation/floor_annotation.dart' as annotations;
 import 'package:floor_generator/processor/entity_processor.dart';
@@ -32,9 +32,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
-        .map((fieldElement) => FieldProcessor(fieldElement, null).process())
-        .toList();
+    final fields = classElement.fields2.map((fieldElement) => FieldProcessor(fieldElement, null).process()).toList();
     final primaryKey = PrimaryKey([fields[0]], false);
     const foreignKeys = <ForeignKey>[];
     const indices = <Index>[];
@@ -55,9 +53,7 @@ void main() {
     expect(actual, equals(expected));
   });
 
-  test(
-      'Process entity with null fields falls back to defaults (should be prevented by non-nullable types)',
-      () async {
+  test('Process entity with null fields falls back to defaults (should be prevented by non-nullable types)', () async {
     final classElement = await createClassElement('''
       @Entity(
       tableName:null,
@@ -80,9 +76,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
-        .map((fieldElement) => FieldProcessor(fieldElement, null).process())
-        .toList();
+    final fields = classElement.fields2.map((fieldElement) => FieldProcessor(fieldElement, null).process()).toList();
     final primaryKey = PrimaryKey([fields[0]], false);
     const foreignKeys = <ForeignKey>[];
     const indices = <Index>[];
@@ -118,9 +112,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
-        .map((fieldElement) => FieldProcessor(fieldElement, null).process())
-        .toList();
+    final fields = classElement.fields2.map((fieldElement) => FieldProcessor(fieldElement, null).process()).toList();
     final primaryKey = PrimaryKey(fields, false);
     const foreignKeys = <ForeignKey>[];
     const indices = <Index>[];
@@ -157,9 +149,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
-        .map((fieldElement) => FieldProcessor(fieldElement, null).process())
-        .toList();
+    final fields = classElement.fields2.map((fieldElement) => FieldProcessor(fieldElement, null).process()).toList();
     final primaryKey = PrimaryKey(fields.sublist(0, 1), false);
     const foreignKeys = <ForeignKey>[];
     final indices = [
@@ -183,9 +173,7 @@ void main() {
     expect(actual, equals(expected));
   });
 
-  test(
-      'Process entity with named constructor declarations first, before unnamed ones.',
-      () async {
+  test('Process entity with named constructor declarations first, before unnamed ones.', () async {
     final classElement = await createClassElement('''
       @entity
       class Person {
@@ -205,9 +193,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
-        .map((fieldElement) => FieldProcessor(fieldElement, null).process())
-        .toList();
+    final fields = classElement.fields2.map((fieldElement) => FieldProcessor(fieldElement, null).process()).toList();
     final primaryKey = PrimaryKey([fields[0]], false);
     const foreignKeys = <ForeignKey>[];
     const indices = <Index>[];
@@ -265,8 +251,7 @@ void main() {
         }
     ''');
 
-      final actual =
-          EntityProcessor(classElements[1], {}).process().foreignKeys[0];
+      final actual = EntityProcessor(classElements[1], {}).process().foreignKeys[0];
 
       final expected = ForeignKey(
         'Person',
@@ -345,9 +330,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
-        .map((fieldElement) => FieldProcessor(fieldElement, null).process())
-        .toList();
+    final fields = classElement.fields2.map((fieldElement) => FieldProcessor(fieldElement, null).process()).toList();
     final primaryKey = PrimaryKey([fields[0]], false);
     const foreignKeys = <ForeignKey>[];
     const indices = <Index>[];
@@ -478,9 +461,7 @@ void main() {
 
       final processor = EntityProcessor(classElements, {});
       expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements).missingPrimaryKey));
+          processor.process, throwsInvalidGenerationSourceError(EntityProcessorError(classElements).missingPrimaryKey));
     });
     test('compound primary key mismatch', () async {
       final classElements = await createClassElement('''
@@ -498,9 +479,7 @@ void main() {
 
       final processor = EntityProcessor(classElements, {});
       expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements).missingPrimaryKey));
+          processor.process, throwsInvalidGenerationSourceError(EntityProcessorError(classElements).missingPrimaryKey));
     });
     test('missing parent columns', () async {
       final classElements = await _createClassElements('''
@@ -538,10 +517,8 @@ void main() {
       ''');
 
       final processor = EntityProcessor(classElements[1], {});
-      expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements[1]).missingParentColumns));
+      expect(processor.process,
+          throwsInvalidGenerationSourceError(EntityProcessorError(classElements[1]).missingParentColumns));
     });
     test('missing child columns', () async {
       final classElements = await _createClassElements('''
@@ -579,10 +556,8 @@ void main() {
       ''');
 
       final processor = EntityProcessor(classElements[1], {});
-      expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements[1]).missingChildColumns));
+      expect(processor.process,
+          throwsInvalidGenerationSourceError(EntityProcessorError(classElements[1]).missingChildColumns));
     });
     test('foreignKey does not reference entity', () async {
       final classElements = await _createClassElements('''
@@ -613,11 +588,8 @@ void main() {
       ''');
 
       final processor = EntityProcessor(classElements[0], {});
-      expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements[0])
-                  .foreignKeyDoesNotReferenceEntity));
+      expect(processor.process,
+          throwsInvalidGenerationSourceError(EntityProcessorError(classElements[0]).foreignKeyDoesNotReferenceEntity));
     }, skip: 'Can not reproduce error case');
     test('foreign key reference does not exist', () async {
       final classElements = await createClassElement('''
@@ -645,10 +617,8 @@ void main() {
       ''');
 
       final processor = EntityProcessor(classElements, {});
-      expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements).foreignKeyNoEntity));
+      expect(processor.process,
+          throwsInvalidGenerationSourceError(EntityProcessorError(classElements).foreignKeyNoEntity));
     });
     test('missing index column name', () async {
       final classElement = await createClassElement('''
@@ -669,10 +639,8 @@ void main() {
       ''');
 
       final processor = EntityProcessor(classElement, {});
-      expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElement).missingIndexColumnName));
+      expect(processor.process,
+          throwsInvalidGenerationSourceError(EntityProcessorError(classElement).missingIndexColumnName));
     });
     test('no matching index column', () async {
       final classElement = await createClassElement('''
@@ -693,10 +661,8 @@ void main() {
       ''');
 
       final processor = EntityProcessor(classElement, {});
-      expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(EntityProcessorError(classElement)
-              .noMatchingColumn('notAColumn')));
+      expect(processor.process,
+          throwsInvalidGenerationSourceError(EntityProcessorError(classElement).noMatchingColumn('notAColumn')));
     });
     test('auto-increment not usable with `WITHOUT ROWID`', () async {
       final classElement = await createClassElement('''
@@ -717,10 +683,8 @@ void main() {
       ''');
 
       final processor = EntityProcessor(classElement, {});
-      expect(
-          processor.process,
-          throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElement).autoIncrementInWithoutRowid));
+      expect(processor.process,
+          throwsInvalidGenerationSourceError(EntityProcessorError(classElement).autoIncrementInWithoutRowid));
     });
 
     test('missing unnamed constructor.', () async {
@@ -750,7 +714,7 @@ void main() {
   });
 }
 
-Future<List<ClassElement>> _createClassElements(final String classes) async {
+Future<List<ClassElement2>> _createClassElements(final String classes) async {
   final library = await resolveSource('''
       library test;
       

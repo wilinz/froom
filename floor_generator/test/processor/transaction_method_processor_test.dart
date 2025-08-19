@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:floor_generator/processor/error/transaction_method_processor_error.dart';
 import 'package:floor_generator/processor/transaction_method_processor.dart';
@@ -17,12 +17,10 @@ void main() {
       }
     ''');
 
-    final actual =
-        TransactionMethodProcessor(methodElement, daoGetterName, databaseName)
-            .process();
+    final actual = TransactionMethodProcessor(methodElement, daoGetterName, databaseName).process();
 
     final returnType = methodElement.returnType;
-    final parameterElements = methodElement.parameters;
+    final parameterElements = methodElement.formalParameters;
     expect(
         actual,
         equals(TransactionMethod(
@@ -35,8 +33,7 @@ void main() {
         )));
   });
 
-  test('throw error while processing transaction method with wrong return type',
-      () async {
+  test('throw error while processing transaction method with wrong return type', () async {
     const daoGetterName = 'foo';
     const databaseName = 'bar';
     final methodElement = await _generateMethodElement('''
@@ -44,18 +41,14 @@ void main() {
       }
     ''');
 
-    final actual = () =>
-        TransactionMethodProcessor(methodElement, daoGetterName, databaseName)
-            .process();
+    final actual = () => TransactionMethodProcessor(methodElement, daoGetterName, databaseName).process();
 
     expect(
-        actual,
-        throwsInvalidGenerationSourceError(
-            TransactionMethodProcessorError(methodElement).shouldReturnFuture));
+        actual, throwsInvalidGenerationSourceError(TransactionMethodProcessorError(methodElement).shouldReturnFuture));
   });
 }
 
-Future<MethodElement> _generateMethodElement(final String method) async {
+Future<MethodElement2> _generateMethodElement(final String method) async {
   final library = await resolveSource('''
       library test;
       
@@ -69,5 +62,5 @@ Future<MethodElement> _generateMethodElement(final String method) async {
         .then((value) => LibraryReader(value));
   });
 
-  return library.classes.first.methods.first;
+  return library.classes.first.methods2.first;
 }

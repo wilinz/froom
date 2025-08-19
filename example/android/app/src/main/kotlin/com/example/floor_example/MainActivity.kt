@@ -1,4 +1,4 @@
-package com.example.updated_example
+package com.example.floor_example
 
 import io.flutter.embedding.android.FlutterActivity
 
