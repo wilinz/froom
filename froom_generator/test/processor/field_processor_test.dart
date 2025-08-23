@@ -187,7 +187,8 @@ void main() {
 }
 
 Future<FieldElement2> _generateFieldElement(final String field) async {
-  final library = await resolveSource('''
+  final library = await resolveSource(
+      readAllSourcesFromFilesystem: true,'''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';

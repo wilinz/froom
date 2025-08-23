@@ -62,25 +62,46 @@ class QueryMethod {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is QueryMethod &&
-          runtimeType == other.runtimeType &&
-          methodElement == other.methodElement &&
-          name == other.name &&
-          query == other.query &&
-          rawReturnType == other.rawReturnType &&
-          flattenedReturnType == other.flattenedReturnType &&
-          parameters.equals(other.parameters) &&
-          queryable == other.queryable &&
-          typeConverters.equals(other.typeConverters);
+          other is QueryMethod &&
+              runtimeType == other.runtimeType &&
+              // 比较方法名而不是元素实例
+              methodElement.name3 == other.methodElement.name3 &&
+              name == other.name &&
+              query == other.query &&
+              // 比较类型的字符串表示
+              rawReturnType.getDisplayString() ==
+                  other.rawReturnType.getDisplayString() &&
+              flattenedReturnType.getDisplayString() ==
+                  other.flattenedReturnType.getDisplayString() &&
+              // 使用自定义的参数比较
+              _parametersEqual(parameters, other.parameters) &&
+              queryable == other.queryable &&
+              typeConverters.equals(other.typeConverters);
+
+  bool _parametersEqual(
+      List<FormalParameterElement> a,
+      List<FormalParameterElement> b,
+      ) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].name3 != b[i].name3 ||
+          a[i].type.getDisplayString() != b[i].type.getDisplayString()) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   int get hashCode =>
-      methodElement.hashCode ^
+      methodElement.name3.hashCode ^
       name.hashCode ^
       query.hashCode ^
-      rawReturnType.hashCode ^
-      flattenedReturnType.hashCode ^
-      parameters.hashCode ^
+      rawReturnType.getDisplayString().hashCode ^
+      flattenedReturnType.getDisplayString().hashCode ^
+      // 对参数列表生成 hashCode
+      Object.hashAll(parameters.map((p) =>
+          Object.hash(p.name3, p.type.getDisplayString()))) ^
       queryable.hashCode ^
       typeConverters.hashCode;
 

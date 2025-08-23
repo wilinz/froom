@@ -134,7 +134,8 @@ void main() {
 Future<ClassElement2> _createDatabaseClassElement(
   final String database,
 ) async {
-  final library = await resolveSource('''
+  final library = await resolveSource(
+      readAllSourcesFromFilesystem: true,'''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';

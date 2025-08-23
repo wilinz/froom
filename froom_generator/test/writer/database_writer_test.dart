@@ -269,7 +269,8 @@ void main() {
 }
 
 Future<Database> _createDatabase(final String definition) async {
-  final library = await resolveSource('''
+  final library = await resolveSource(
+      readAllSourcesFromFilesystem: true,'''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';

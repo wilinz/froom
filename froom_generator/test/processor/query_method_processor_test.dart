@@ -451,7 +451,7 @@ void main() {
 Future<MethodElement2> _createQueryMethodElement(
   final String method,
 ) async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -488,7 +488,7 @@ Future<MethodElement2> _createQueryMethodElement(
 }
 
 Future<List<Entity>> _getEntities() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -516,7 +516,7 @@ Future<List<Entity>> _getEntities() async {
 }
 
 Future<List<View>> _getViews() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';

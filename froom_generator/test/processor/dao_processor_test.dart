@@ -174,7 +174,9 @@ extension on Dao {
 }
 
 Future<ClassElement2> _createDao(final String dao) async {
-  final library = await resolveSource('''
+  final library = await resolveSource(
+      readAllSourcesFromFilesystem: true,
+      '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -209,7 +211,8 @@ Future<ClassElement2> _createDao(final String dao) async {
 }
 
 Future<List<Entity>> _getEntities() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(
+      readAllSourcesFromFilesystem: true,'''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -237,7 +240,8 @@ Future<List<Entity>> _getEntities() async {
 }
 
 Future<List<View>> _getViews() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(
+      readAllSourcesFromFilesystem: true,'''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
