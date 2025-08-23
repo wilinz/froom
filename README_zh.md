@@ -45,6 +45,15 @@ Froom 基于 **Floor 1.5.0**，因为 Floor 不再积极维护。**Froom** 旨�
 [![build status](https://github.com/wilinz/froom/workflows/CI/badge.svg)](https://github.com/wilinz/froom/actions)
 [![codecov](https://codecov.io/gh/wilinz/froom/branch/develop/graph/badge.svg)](https://codecov.io/gh/wilinz/froom)
 
+## 版本兼容性
+
+请根据您的 `source_gen` 依赖选择合适的版本：
+
+| source_gen 版本 | Froom 版本 |
+|----------------|------------|
+| 3.x.x 及以上   | 3.x.x      |
+| 2.x.x          | 2.0.4      |
+
 ## 快速开始
 
 ### 1. 设置依赖

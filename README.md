@@ -46,6 +46,15 @@ The following features are planned for future releases of **Froom** to enhance i
 [![build status](https://github.com/wilinz/froom/workflows/CI/badge.svg)](https://github.com/wilinz/froom/actions)
 [![codecov](https://codecov.io/gh/wilinz/froom/branch/develop/graph/badge.svg)](https://codecov.io/gh/wilinz/froom)
 
+## Version Compatibility
+
+Please choose the appropriate version based on your `source_gen` dependency:
+
+| source_gen Version | Froom Version |
+|--------------------|---------------|
+| 3.x.x and above   | 3.x.x         |
+| 2.x.x             | 2.0.4         |
+
 ## Getting Started
 
 ### 1. Setup Dependencies

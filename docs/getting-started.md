@@ -1,5 +1,14 @@
 # Getting Started
 
+## Version Compatibility
+
+Please choose the appropriate version based on your `source_gen` dependency:
+
+| source_gen Version | Froom Version |
+|--------------------|---------------|
+| 3.x.x and above   | 3.x.x         |
+| 2.x.x             | 2.0.4         |
+
 ## 1. Setup Dependencies
 
 Add the runtime dependency `froom` as well as the generator `froom_generator` to your `pubspec.yaml`.
