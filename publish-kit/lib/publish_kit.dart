@@ -198,7 +198,11 @@ class PublishKit {
     }
   }
 
-  void removePublishToField(String content, YamlEditor yamlEditor, String packageName) {
+  void removePublishToField(
+    String content,
+    YamlEditor yamlEditor,
+    String packageName,
+  ) {
     try {
       if (content.contains('publish_to:')) {
         yamlEditor.remove(['publish_to']);
