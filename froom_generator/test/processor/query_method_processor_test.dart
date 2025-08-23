@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/type_utils.dart';
@@ -394,7 +394,7 @@ void main() {
           QueryMethodProcessor(methodElement, [...entities, ...views], {})
               .process();
 
-      final parameterElement = methodElement.parameters.first;
+      final parameterElement = methodElement.formalParameters.first;
       final error = QueryProcessorError(methodElement)
           .queryMethodParameterIsNullable(parameterElement);
       expect(actual, throwsProcessorError(error));
@@ -412,7 +412,7 @@ void main() {
               .process();
 
       final error = QueryProcessorError(methodElement)
-          .unusedQueryMethodParameter(methodElement.parameters[1]);
+          .unusedQueryMethodParameter(methodElement.formalParameters[1]);
       expect(actual, throwsProcessorError(error));
     });
 
@@ -448,10 +448,10 @@ void main() {
   });
 }
 
-Future<MethodElement> _createQueryMethodElement(
+Future<MethodElement2> _createQueryMethodElement(
   final String method,
 ) async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -484,11 +484,11 @@ Future<MethodElement> _createQueryMethodElement(
         .then((value) => LibraryReader(value));
   });
 
-  return library.classes.first.methods.first;
+  return library.classes.first.methods2.first;
 }
 
 Future<List<Entity>> _getEntities() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -516,7 +516,7 @@ Future<List<Entity>> _getEntities() async {
 }
 
 Future<List<View>> _getViews() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';

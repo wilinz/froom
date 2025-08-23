@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
@@ -7,7 +7,8 @@ import 'package:froom_generator/processor/error/processor_error.dart';
 import 'package:froom_generator/processor/type_converter_processor.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 
-extension TypeConverterElementExtension on Element {
+// The migration is complete
+extension TypeConverterElementExtension on Element2 {
   /// Returns a set of [TypeConverter]s found in the @TypeConverters
   /// annotation on this element
   Set<TypeConverter> getTypeConverters(final TypeConverterScope scope) {
@@ -15,7 +16,7 @@ extension TypeConverterElementExtension on Element {
       final typeConverterElements = getAnnotation(annotations.TypeConverters)
           ?.getField(AnnotationField.typeConverterValue)
           ?.toListValue()
-          ?.mapNotNull((object) => object.toTypeValue()?.element);
+          ?.mapNotNull((object) => object.toTypeValue()?.element3);
 
       if (typeConverterElements == null || typeConverterElements.isEmpty) {
         throw ProcessorError(
@@ -27,7 +28,7 @@ extension TypeConverterElementExtension on Element {
       }
 
       final typeConverterClassElements =
-          typeConverterElements.cast<ClassElement>();
+          typeConverterElements.cast<ClassElement2>();
 
       if (typeConverterClassElements
           .any((element) => !element.isTypeConverter)) {
@@ -48,6 +49,7 @@ extension TypeConverterElementExtension on Element {
   }
 }
 
-extension on ClassElement {
-  bool get isTypeConverter => supertype?.element.displayName == 'TypeConverter';
+extension on ClassElement2 {
+  bool get isTypeConverter =>
+      supertype?.element3.displayName == 'TypeConverter';
 }

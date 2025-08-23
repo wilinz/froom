@@ -12,4 +12,17 @@ extension DartTypeExtension on DartType {
         return false;
     }
   }
+
+  /// Enhanced getDisplayString method that handles the deprecated withNullability parameter
+  /// and provides backward compatibility for analyzer 7.x migration
+  String getDisplayStringCompat({bool withNullability = true}) {
+    final displayString = getDisplayString();
+    if (!withNullability) {
+      // Remove trailing ? if present when withNullability is false
+      return displayString.endsWith('?')
+          ? displayString.substring(0, displayString.length - 1)
+          : displayString;
+    }
+    return displayString;
+  }
 }

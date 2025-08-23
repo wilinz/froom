@@ -8,5 +8,8 @@ import 'package:source_gen/source_gen.dart';
 ///
 /// Use 'flutter packages pub run build_runner watch' to trigger
 /// code generation on changes.
-Builder froomBuilder(final BuilderOptions _) =>
-    SharedPartBuilder([FroomGenerator()], 'froom');
+Builder froomBuilder(final BuilderOptions _) {
+  final froom = FroomGenerator();
+  print(froom.hashCode); // enable debug
+  return SharedPartBuilder([froom], 'froom');
+}

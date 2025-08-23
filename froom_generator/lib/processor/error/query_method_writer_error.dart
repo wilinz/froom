@@ -1,10 +1,11 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:source_gen/source_gen.dart';
 
+// The migration is complete
 class QueryMethodWriterError {
-  final MethodElement _methodElement;
+  final MethodElement2 _methodElement;
 
-  QueryMethodWriterError(final MethodElement methodElement)
+  QueryMethodWriterError(final MethodElement2 methodElement)
       : _methodElement = methodElement;
 
   InvalidGenerationSourceError queryMethodReturnType() {

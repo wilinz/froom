@@ -1,11 +1,12 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:froom_generator/processor/error/processor_error.dart';
 import 'package:source_gen/source_gen.dart';
 
+// The migration is complete
 class QueryMethodProcessorError {
-  final MethodElement _methodElement;
+  final MethodElement2 _methodElement;
 
-  QueryMethodProcessorError(final MethodElement methodElement)
+  QueryMethodProcessorError(final MethodElement2 methodElement)
       : _methodElement = methodElement;
 
   InvalidGenerationSourceError get noQueryDefined {

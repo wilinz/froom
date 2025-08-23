@@ -4,10 +4,20 @@ import 'package:args/args.dart';
 import 'package:publish_kit/publish_kit.dart';
 
 void main(List<String> arguments) async {
-  final parser = ArgParser()
-    ..addOption('command', abbr: 'c', help: 'Command to run: update-version, copy-readme, tag, update-deps, commit-release, publish, or all')
-    ..addFlag('dry-run', abbr: 'd', help: 'Perform a dry run without making changes')
-    ..addFlag('help', abbr: 'h', help: 'Show help');
+  final parser =
+      ArgParser()
+        ..addOption(
+          'command',
+          abbr: 'c',
+          help:
+              'Command to run: update-version, copy-readme, tag, update-deps, commit-release, publish, or all',
+        )
+        ..addFlag(
+          'dry-run',
+          abbr: 'd',
+          help: 'Perform a dry run without making changes',
+        )
+        ..addFlag('help', abbr: 'h', help: 'Show help');
 
   late ArgResults results;
   try {
@@ -25,8 +35,12 @@ void main(List<String> arguments) async {
     print('Commands:');
     print('  update-version - Update package versions from version.txt');
     print('  copy-readme    - Copy README.md from root to sub-projects');
-    print('  tag            - Commit changes, merge to main, and create version tag');
-    print('  update-deps    - Update inter-package dependencies to version format');
+    print(
+      '  tag            - Commit changes, merge to main, and create version tag',
+    );
+    print(
+      '  update-deps    - Update inter-package dependencies to version format',
+    );
     print('  commit-release - Create release branch and commit changes');
     print('  publish        - Publish packages to pub.dev');
     print('  all            - Run all commands in sequence');
@@ -45,9 +59,10 @@ void main(List<String> arguments) async {
   }
 
   // Get the root directory (parent of publish-kit)
-  final currentDir = Directory.current.path;
-  final rootPath = path.dirname(currentDir);
-  
+  final scriptPath = Platform.script.toFilePath();
+  final publishKitDir = path.dirname(path.dirname(scriptPath));
+  final rootPath = path.dirname(publishKitDir);
+
   final publishKit = PublishKit(rootPath, dryRun: dryRun);
 
   try {
@@ -77,7 +92,7 @@ void main(List<String> arguments) async {
         print('Error: Unknown command "$command". Use -h for help.');
         exit(1);
     }
-    
+
     print('Command completed successfully!');
   } catch (e) {
     print('Error: $e');
@@ -88,14 +103,14 @@ void main(List<String> arguments) async {
 Future<void> runUpdateVersion(PublishKit publishKit) async {
   final version = await publishKit.readVersionFile();
   print('Read version: $version');
-  
+
   await publishKit.updatePackageVersions(version);
 }
 
 Future<void> runUpdateDeps(PublishKit publishKit) async {
   final version = await publishKit.readVersionFile();
   print('Read version: $version');
-  
+
   await publishKit.updateDependencies(version);
 }
 

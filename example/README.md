@@ -26,3 +26,7 @@ For bugs, questions and discussions please use [Github Issues](https://github.co
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
+```shell
+dart pub run build_runner build
+```

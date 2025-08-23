@@ -5,6 +5,7 @@ import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/value_object/deletion_method.dart';
 import 'package:froom_generator/writer/writer.dart';
 
+// The migration is complete
 class DeletionMethodWriter implements Writer {
   final DeletionMethod _method;
   final ChangeMethodWriterHelper _helper;
@@ -25,7 +26,7 @@ class DeletionMethodWriter implements Writer {
   String _generateMethodBody() {
     final entityClassName =
         _method.entity.classElement.displayName.decapitalize();
-    final methodSignatureParameterName = _method.parameterElement.name;
+    final methodSignatureParameterName = _method.parameterElement.name3!;
 
     if (_method.flattenedReturnType is VoidType) {
       return _generateVoidReturnMethodBody(
