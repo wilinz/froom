@@ -4,7 +4,7 @@
 
 **请查看[项目网站](https://wilinz.github.io/froom/) 获取完整文档。**
 
-Froom 是一个现代、轻量级的 Flutter 应用 SQLite 抽象库，灵感来源于 [Room 持久化库](https://developer.android.com/topic/libraries/architecture/room)，是流行的 [Floor ORM](https://github.com/wilinz/floor) 库的演进版本。Froom 基于 **Floor 1.5.0** 构建，Floor 已停止开发且不再维护，而 Froom 扩展了其功能以满足现代 Flutter 应用的需求。
+Froom 是一个现代、轻量级的 Flutter 应用 SQLite 抽象库，灵感来源于 [Room 持久化库](https://developer.android.com/topic/libraries/architecture/room)，是流行的 [Floor ORM](https://github.com/pinchbv/floor) 库的演进版本。Froom 基于 **Floor 1.5.0** 构建，Floor 已停止开发且不再维护，而 Froom 扩展了其功能以满足现代 Flutter 应用的需求。
 
 Froom 提供内存对象与数据库行之间的自动映射，同时仍然通过 SQL 查询提供对数据库的完全控制。要充分利用 Froom 的功能，需要对 SQL 和 SQLite 有基本了解，但该库的 API 简化了与数据库交互的过程。
 

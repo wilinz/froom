@@ -4,7 +4,7 @@ English | [中文](README_zh.md)
 
 **See the [project's website](https://wilinz.github.io/froom/) for the full documentation.**
 
-Froom is a modern, lightweight SQLite abstraction for Flutter applications, inspired by the [Room persistence library](https://developer.android.com/topic/libraries/architecture/room) and developed as an evolution of the popular [Floor ORM](https://github.com/wilinz/floor) library. Froom is built on top of **Floor 1.5.0**, which was discontinued and is no longer maintained, while Froom extends its capabilities to meet the needs of modern Flutter applications.
+Froom is a modern, lightweight SQLite abstraction for Flutter applications, inspired by the [Room persistence library](https://developer.android.com/topic/libraries/architecture/room) and developed as an evolution of the popular [Floor ORM](https://github.com/pinchbv/floor) library. Froom is built on top of **Floor 1.5.0**, which was discontinued and is no longer maintained, while Froom extends its capabilities to meet the needs of modern Flutter applications.
 
 Froom provides automatic mapping between in-memory objects and database rows, while still offering full control of the database through SQL queries. To make the most of Froom's features, having a basic understanding of SQL and SQLite is necessary, but the library's API simplifies the process of interacting with databases.
 
