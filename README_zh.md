@@ -73,18 +73,18 @@ Froom 基于 **Floor 1.5.0**，因为 Floor 不再积极维护。**Froom** 旨�
 
 
 ```shell
-dart pub add froom dev:froom_generator
+dart pub add froom dev:froom_generator 
 ```
 或者
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  froom: 
+  froom: ^x.x.x
 
 dev_dependencies:
-  froom_generator: 
-  build_runner:
+  froom_generator: ^x.x.x
+  build_runner: ^x.x.x
 ```
 
 ### 2. 创建实体

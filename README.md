@@ -81,11 +81,11 @@ or
 dependencies:
   flutter:
     sdk: flutter
-  froom: 
+  froom: ^x.x.x
 
 dev_dependencies:
-  froom_generator: 
-  build_runner:
+  froom_generator: ^x.x.x
+  build_runner: ^x.x.x
 ```
 
 ### 2. Create an Entity

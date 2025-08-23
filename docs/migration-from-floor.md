@@ -46,11 +46,11 @@ dev_dependencies:
 **After (Froom):**
 ```yaml
 dependencies:
-  froom:
+  froom: ^x.x.x
 
 dev_dependencies:
-  froom_generator:
-  build_runner:
+  froom_generator: ^x.x.x
+  build_runner: ^x.x.x
 ```
 
 **💡 Tip: Use command for easier installation:**
