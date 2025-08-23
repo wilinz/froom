@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/value_object/entity.dart';
 import 'package:source_gen/source_gen.dart';
@@ -46,7 +47,7 @@ class ChangeMethodProcessorHelper {
     return _entities.firstWhere(
         (entity) =>
             entity.classElement.displayName ==
-            flattenedParameterType.getDisplayString(),
+            flattenedParameterType.getDisplayStringCompat(withNullability: false),
         orElse: () => throw InvalidGenerationSourceError(
             'You are trying to change an object which is not an entity.',
             element: _methodElement));

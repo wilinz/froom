@@ -16,7 +16,9 @@ extension TypeConvertersExtension on Iterable<TypeConverter> {
   TypeConverter? getClosestOrNull(DartType dartType) {
     return sortedByDescending((typeConverter) => typeConverter.scope.index)
         .firstWhereOrNull(
-            (typeConverter) => typeConverter.fieldType == dartType);
+            (typeConverter) {
+              return typeConverter.fieldType == dartType;
+            });
   }
 
   /// Returns the [TypeConverter] in the closest [TypeConverterScope] for

@@ -3,6 +3,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/dart_object_extension.dart';
+import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converters_extension.dart';
@@ -77,7 +78,7 @@ class EntityProcessor extends QueryableProcessor<Entity> {
                       .getAnnotation(annotations.Entity)
                       ?.getField(AnnotationField.entityTableName)
                       ?.toStringValue() ??
-                  parentType.getDisplayString()
+                  parentType.getDisplayStringCompat(withNullability: false)
               : throw _processorError.foreignKeyDoesNotReferenceEntity;
 
           final childColumns =

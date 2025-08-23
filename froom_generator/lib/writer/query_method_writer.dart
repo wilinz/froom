@@ -3,6 +3,7 @@ import 'dart:core';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_generator/misc/annotation_expression.dart';
+import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converters_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -25,7 +26,7 @@ class QueryMethodWriter implements Writer {
   Method write() {
     final builder = MethodBuilder()
       ..annotations.add(overrideAnnotationExpression)
-      ..returns = refer(_queryMethod.rawReturnType.getDisplayString(
+      ..returns = refer(_queryMethod.rawReturnType.getDisplayStringCompat(
         withNullability: true,
       ))
       ..name = _queryMethod.name
@@ -42,7 +43,7 @@ class QueryMethodWriter implements Writer {
     return _queryMethod.parameters.map((parameter) {
       return Parameter((builder) => builder
         ..name = parameter.name3!
-        ..type = refer(parameter.type.getDisplayString(
+        ..type = refer(parameter.type.getDisplayStringCompat(
           // processor disallows nullable method parameters and throws if found,
           // still interested in nullability here to future-proof codebase
           withNullability: true,
@@ -199,6 +200,7 @@ class QueryMethodWriter implements Writer {
     } else if (returnType.isDefaultSqlType || returnType.isEnumType) {
       mapper = _generateDartCoreMapper(returnType);
     } else {
+      print("mapper: ${mapper}, queryable: ${queryable}");
       throw QueryMethodWriterError(_queryMethod.methodElement)
           .queryMethodReturnType();
     }
