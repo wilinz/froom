@@ -2,7 +2,7 @@ name: froom
 description: >
   The typesafe, reactive, and lightweight SQLite abstraction for your Flutter applications.
   This library is the runtime dependency.
-version: 3.0.0
+version: 3.0.1
 homepage: https://wilinz.github.io/froom/
 repository: https://github.com/wilinz/froom
 issue_tracker: https://github.com/wilinz/froom/issues
