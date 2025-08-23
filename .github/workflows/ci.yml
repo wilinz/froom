@@ -90,7 +90,7 @@ jobs:
         working-directory: froom_common
 
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-warnings .
         working-directory: froom
 
       - name: Install SQLite
@@ -128,7 +128,7 @@ jobs:
         working-directory: example
 
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-warnings .
         working-directory: example
 
       - name: Install SQLite

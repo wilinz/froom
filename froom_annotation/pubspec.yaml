@@ -2,13 +2,14 @@ name: froom_annotation
 description: >
   The typesafe, reactive, and lightweight SQLite abstraction for your Flutter applications.
   Don't use this package directly. Import the froom package instead.
-version: 3.0.1
+version: 3.0.2
 homepage: https://wilinz.github.io/froom/
 repository: https://github.com/wilinz/froom
+documentation: https://wilinz.github.io/froom
 issue_tracker: https://github.com/wilinz/froom/issues
 
 environment:
   sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
-  meta:
+
