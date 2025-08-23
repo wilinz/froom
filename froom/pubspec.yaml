@@ -29,3 +29,11 @@ dev_dependencies:
     path: ../froom_generator
   matcher: ^0.12.17
   mockito: ^5.5.0
+
+# This package supports all platforms listed below.
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  windows:
