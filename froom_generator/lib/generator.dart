@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
@@ -15,11 +15,12 @@ import 'package:froom_generator/writer/database_writer.dart';
 import 'package:froom_generator/writer/type_converter_field_writer.dart';
 import 'package:source_gen/source_gen.dart';
 
+// The migration is complete
 /// Froom generator that produces the implementation of the persistence code.
 class FroomGenerator extends GeneratorForAnnotation<annotations.Database> {
   @override
   FutureOr<String> generateForAnnotatedElement(
-    final Element element,
+    final Element2 element,
     final ConstantReader annotation,
     final BuildStep buildStep,
   ) {
@@ -56,8 +57,8 @@ class FroomGenerator extends GeneratorForAnnotation<annotations.Database> {
     return library.accept(DartEmitter()).toString();
   }
 
-  Database _getDatabase(final Element element) {
-    if (element is! ClassElement) {
+  Database _getDatabase(final Element2 element) {
+    if (element is! ClassElement2) {
       throw InvalidGenerationSourceError(
           'The element annotated with @Database is not a class.',
           element: element);

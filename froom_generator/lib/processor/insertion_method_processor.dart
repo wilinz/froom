@@ -1,7 +1,6 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:froom_annotation/froom_annotation.dart' as annotations
-    show Insert;
+import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/change_method_processor_helper.dart';
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/dart_object_extension.dart';
@@ -11,13 +10,14 @@ import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/value_object/entity.dart';
 import 'package:froom_generator/value_object/insertion_method.dart';
 
+// The migration is complete
 class InsertionMethodProcessor implements Processor<InsertionMethod> {
-  final MethodElement _methodElement;
+  final MethodElement2 _methodElement;
   final ChangeMethodProcessorHelper _helper;
   final ChangeMethodProcessorError _errors;
 
   InsertionMethodProcessor(
-    final MethodElement methodElement,
+    final MethodElement2 methodElement,
     final List<Entity> entities, [
     final ChangeMethodProcessorHelper? changeMethodProcessorHelper,
   ])  : _methodElement = methodElement,
@@ -27,7 +27,7 @@ class InsertionMethodProcessor implements Processor<InsertionMethod> {
 
   @override
   InsertionMethod process() {
-    final name = _methodElement.name;
+    final name = _methodElement.name3!;
     final returnType = _methodElement.returnType;
 
     _assertMethodReturnsFuture(returnType);
@@ -63,7 +63,7 @@ class InsertionMethodProcessor implements Processor<InsertionMethod> {
   }
 
   bool _getReturnsList(final DartType returnType) {
-    final type = _methodElement.library.typeSystem.flatten(returnType);
+    final type = _methodElement.library2.typeSystem.flatten(returnType);
     return type.isDartCoreList;
   }
 
@@ -71,7 +71,7 @@ class InsertionMethodProcessor implements Processor<InsertionMethod> {
     final DartType returnType,
     final bool returnsList,
   ) {
-    final type = _methodElement.library.typeSystem.flatten(returnType);
+    final type = _methodElement.library2.typeSystem.flatten(returnType);
     return returnsList ? type.flatten() : type;
   }
 

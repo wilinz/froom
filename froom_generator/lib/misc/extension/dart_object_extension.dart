@@ -1,13 +1,15 @@
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_annotation/froom_annotation.dart';
+import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 
 extension DartObjectExtension on DartObject {
   /// get the String representation of the enum value,
   /// or `null` if the enum was not valid
   String? toEnumValueString() {
     final interfaceType = type as InterfaceType;
-    final enumName = interfaceType.getDisplayString(withNullability: false);
+    final enumName =
+        interfaceType.getDisplayStringCompat(withNullability: false);
     final enumValue = getField('_name')?.toStringValue();
     if (enumValue == null) {
       return null;

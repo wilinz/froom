@@ -1,5 +1,14 @@
 # Getting Started
 
+## Version Compatibility
+
+Please choose the appropriate version based on your `source_gen` dependency:
+
+| source_gen Version | Froom Version |
+|--------------------|---------------|
+| 3.x.x and above   | 3.x.x         |
+| 2.x.x             | 2.0.4         |
+
 ## 1. Setup Dependencies
 
 Add the runtime dependency `froom` as well as the generator `froom_generator` to your `pubspec.yaml`.
@@ -13,11 +22,16 @@ The third dependency is `build_runner` which has to be included as a dev depende
 dependencies:
   flutter:
     sdk: flutter
-  froom: ^1.4.0
+  froom: ^x.x.x
 
 dev_dependencies:
-  froom_generator: ^1.4.0
-  build_runner: ^2.1.2
+  froom_generator: ^x.x.x
+  build_runner: ^x.x.x
+```
+
+**💡 Tip: Use command for easier installation:**
+```bash
+dart pub add froom dev:froom_generator dev:build_runner
 ```
 
 ## 2. Create an Entity

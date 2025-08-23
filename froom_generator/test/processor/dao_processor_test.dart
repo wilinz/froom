@@ -1,5 +1,5 @@
 // ignore_for_file: import_of_legacy_library_into_null_safe
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/type_utils.dart';
@@ -173,8 +173,8 @@ extension on Dao {
   }
 }
 
-Future<ClassElement> _createDao(final String dao) async {
-  final library = await resolveSource('''
+Future<ClassElement2> _createDao(final String dao) async {
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -209,7 +209,7 @@ Future<ClassElement> _createDao(final String dao) async {
 }
 
 Future<List<Entity>> _getEntities() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -237,7 +237,7 @@ Future<List<Entity>> _getEntities() async {
 }
 
 Future<List<View>> _getViews() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';

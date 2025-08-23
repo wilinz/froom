@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
@@ -18,6 +18,25 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
+
+DartType _findType(LibraryReader libraryReader, {String? variableName}) {
+  if (libraryReader.allElements.elementAt(1)
+      case final PropertyAccessorElement2 p) {
+    return p.type.returnType;
+  }
+
+  if (variableName == null) {
+    throw Exception(
+        'Either the element is not of type PropertyAccessorElement2, or the "variableName" parameter was not provided. '
+        'Please ensure that the element matches PropertyAccessorElement2 and provide a valid variable name if needed.');
+  }
+
+  final type = libraryReader.allElements
+      .whereType<TopLevelVariableElement2>()
+      .firstWhere((element) => element.displayName == variableName)
+      .type;
+  return type;
+}
 
 /// Creates a [LibraryReader] of the [sourceFile].
 Future<LibraryReader> resolveCompilationUnit(final String sourceFile) async {
@@ -60,14 +79,14 @@ Future<DartType> getDartTypeWithPerson(String value) async {
     Person(this.id, this.name);
   }
   ''';
-  return resolveSource(source, (item) async {
+  return resolveSource(readAllSourcesFromFilesystem: true, source,
+      (item) async {
     final libraryReader = await item
         .findLibraryByName('test')
         .then((value) => ArgumentError.checkNotNull(value))
         .then((value) => LibraryReader(value));
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement)
-        .type
-        .returnType;
+
+    return _findType(libraryReader, variableName: 'value');
   });
 }
 
@@ -86,14 +105,14 @@ Future<DartType> getDartTypeWithName(String value) async {
     Name(this.name);
   }
   ''';
-  return resolveSource(source, (item) async {
+  return resolveSource(readAllSourcesFromFilesystem: true, source,
+      (item) async {
     final libraryReader = await item
         .findLibraryByName('test')
         .then((value) => ArgumentError.checkNotNull(value))
         .then((value) => LibraryReader(value));
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement)
-        .type
-        .returnType;
+
+    return _findType(libraryReader, variableName: 'value');
   });
 }
 
@@ -104,12 +123,12 @@ Future<DartType> getDartTypeFromDeclaration(final String declaration) async {
   
   $declaration;
   ''';
-  return resolveSource(source, (item) async {
+  return resolveSource(readAllSourcesFromFilesystem: true, source,
+      (item) async {
     final libraryReader =
         LibraryReader((await item.findLibraryByName('test'))!);
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement)
-        .type
-        .returnType;
+
+    return _findType(libraryReader);
   });
 }
 
@@ -163,7 +182,7 @@ Matcher throwsUnresolvedAnnotationException() {
 }
 
 Future<Dao> createDao(final String methodSignature) async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -203,8 +222,8 @@ Future<Dao> createDao(final String methodSignature) async {
       daoClass, 'personDao', 'TestDatabase', entities, views, {}).process();
 }
 
-Future<ClassElement> createClassElement(final String clazz) async {
-  final library = await resolveSource('''
+Future<ClassElement2> createClassElement(final String clazz) async {
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'dart:typed_data';
@@ -226,8 +245,8 @@ extension StringTestExtension on String {
     return getDartTypeFromString(this);
   }
 
-  Future<ClassElement> asClassElement() async {
-    final library = await resolveSource('''
+  Future<ClassElement2> asClassElement() async {
+    final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -245,7 +264,7 @@ extension StringTestExtension on String {
 }
 
 Future<Entity> getPersonEntity() async {
-  final library = await resolveSource('''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -266,8 +285,8 @@ Future<Entity> getPersonEntity() async {
 }
 
 extension StringExtension on String {
-  Future<MethodElement> asDaoMethodElement() async {
-    final library = await resolveSource('''
+  Future<MethodElement2> asDaoMethodElement() async {
+    final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
             
       import 'package:froom_annotation/froom_annotation.dart';
@@ -286,7 +305,7 @@ extension StringExtension on String {
           .then((value) => LibraryReader(value));
     });
 
-    return library.classes.first.methods.first;
+    return library.classes.first.methods2.first;
   }
 }
 

@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/processor/field_processor.dart';
@@ -186,8 +186,8 @@ void main() {
   });
 }
 
-Future<FieldElement> _generateFieldElement(final String field) async {
-  final library = await resolveSource('''
+Future<FieldElement2> _generateFieldElement(final String field) async {
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';
@@ -215,5 +215,5 @@ Future<FieldElement> _generateFieldElement(final String field) async {
         .then((value) => LibraryReader(value));
   });
 
-  return library.classes.first.fields.first;
+  return library.classes.first.fields2.first;
 }

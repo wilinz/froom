@@ -1,15 +1,16 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_generator/value_object/change_method.dart';
 import 'package:froom_generator/value_object/entity.dart';
 
+// The migration is complete
 class DeletionMethod extends ChangeMethod {
   DeletionMethod(
-    final MethodElement methodElement,
+    final MethodElement2 methodElement,
     final String name,
     final DartType returnType,
     final DartType flattenedReturnType,
-    final ParameterElement parameterElement,
+    final FormalParameterElement parameterElement,
     final Entity entity,
   ) : super(
           methodElement,

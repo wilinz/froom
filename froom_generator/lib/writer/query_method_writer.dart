@@ -3,6 +3,7 @@ import 'dart:core';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_generator/misc/annotation_expression.dart';
+import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converters_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -15,6 +16,7 @@ import 'package:froom_generator/value_object/view.dart';
 import 'package:froom_generator/writer/writer.dart';
 import 'package:source_gen/source_gen.dart';
 
+// The migration is complete
 class QueryMethodWriter implements Writer {
   final QueryMethod _queryMethod;
 
@@ -24,7 +26,7 @@ class QueryMethodWriter implements Writer {
   Method write() {
     final builder = MethodBuilder()
       ..annotations.add(overrideAnnotationExpression)
-      ..returns = refer(_queryMethod.rawReturnType.getDisplayString(
+      ..returns = refer(_queryMethod.rawReturnType.getDisplayStringCompat(
         withNullability: true,
       ))
       ..name = _queryMethod.name
@@ -40,8 +42,8 @@ class QueryMethodWriter implements Writer {
   List<Parameter> _generateMethodParameters() {
     return _queryMethod.parameters.map((parameter) {
       return Parameter((builder) => builder
-        ..name = parameter.name
-        ..type = refer(parameter.type.getDisplayString(
+        ..name = parameter.name3!
+        ..type = refer(parameter.type.getDisplayStringCompat(
           // processor disallows nullable method parameters and throws if found,
           // still interested in nullability here to future-proof codebase
           withNullability: true,
@@ -198,6 +200,7 @@ class QueryMethodWriter implements Writer {
     } else if (returnType.isDefaultSqlType || returnType.isEnumType) {
       mapper = _generateDartCoreMapper(returnType);
     } else {
+      print("mapper: ${mapper}, queryable: ${queryable}");
       throw QueryMethodWriterError(_queryMethod.methodElement)
           .queryMethodReturnType();
     }
@@ -222,7 +225,7 @@ class QueryMethodWriter implements Writer {
   String _generateDartCoreMapper(final DartType returnType) {
     final castedDatabaseValue = 'row.values.first'.cast(
       returnType,
-      returnType.element,
+      returnType.element3,
       withNullability: false,
     );
     return '(Map<String, Object?> row) => $castedDatabaseValue';
@@ -231,7 +234,7 @@ class QueryMethodWriter implements Writer {
   String _generateConverterMapper(final TypeConverter typeConverter) {
     final castedDatabaseValue = 'row.values.first'.cast(
       typeConverter.databaseType,
-      typeConverter.fieldType.element,
+      typeConverter.fieldType.element3,
     );
     return '(Map<String, Object?> row) => _${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
   }

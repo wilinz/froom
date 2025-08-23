@@ -14,6 +14,6 @@ dependencies:
     path: ../froom_annotation/
   froom_common:
     path: ../froom_common/
-  meta:
-  path: ^1.9.0
-  sqflite_common_ffi: ^2.3.2+1
+  meta: ^1.16.0
+  path: ^1.9.1
+  sqflite_common_ffi: ^2.3.6

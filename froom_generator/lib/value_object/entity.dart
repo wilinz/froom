@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_generator/value_object/field.dart';
 import 'package:froom_generator/value_object/foreign_key.dart';
@@ -8,6 +8,7 @@ import 'package:froom_generator/value_object/queryable.dart';
 
 import 'fts.dart';
 
+// The migration is complete
 class Entity extends Queryable {
   final PrimaryKey primaryKey;
   final List<ForeignKey> foreignKeys;
@@ -17,7 +18,7 @@ class Entity extends Queryable {
   final Fts? fts;
 
   Entity(
-    ClassElement classElement,
+    ClassElement2 classElement,
     String name,
     List<Field> fields,
     this.primaryKey,

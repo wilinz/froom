@@ -1,9 +1,9 @@
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:collection/collection.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/dart_object_extension.dart';
+import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converters_extension.dart';
@@ -18,11 +18,12 @@ import 'package:froom_generator/value_object/index.dart';
 import 'package:froom_generator/value_object/primary_key.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 
+// The migration is complete
 class EntityProcessor extends QueryableProcessor<Entity> {
   final EntityProcessorError _processorError;
 
   EntityProcessor(
-    final ClassElement classElement,
+    final ClassElement2 classElement,
     final Set<TypeConverter> typeConverters,
   )   : _processorError = EntityProcessorError(classElement),
         super(classElement, typeConverters);
@@ -71,13 +72,13 @@ class EntityProcessor extends QueryableProcessor<Entity> {
                   ?.toTypeValue() ??
               (throw _processorError.foreignKeyNoEntity);
 
-          final parentElement = parentType.element;
-          final parentName = parentElement is ClassElement
+          final parentElement = parentType.element3;
+          final parentName = parentElement is ClassElement2
               ? parentElement
                       .getAnnotation(annotations.Entity)
                       ?.getField(AnnotationField.entityTableName)
                       ?.toStringValue() ??
-                  parentType.getDisplayString(withNullability: false)
+                  parentType.getDisplayStringCompat(withNullability: false)
               : throw _processorError.foreignKeyDoesNotReferenceEntity;
 
           final childColumns =
@@ -277,7 +278,7 @@ class EntityProcessor extends QueryableProcessor<Entity> {
     final parameterName = fieldElement.displayName;
     final fieldType = fieldElement.type;
     final typeConverter = [...queryableTypeConverters, field.typeConverter]
-        .whereNotNull()
+        .nonNulls
         .getClosestOrNull(fieldType);
     String attributeValue = 'item.$parameterName';
 
