@@ -168,7 +168,8 @@ class PublishKit {
       
       // Use yaml_edit to preserve formatting
       final yamlEditor = YamlEditor(content);
-      
+      yamlEditor.remove(['publish_to']);
+
       // Update dependencies
       for (final dep in deps) {
         final isDevDep = dep == 'froom_generator';

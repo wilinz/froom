@@ -45,8 +45,9 @@ void main(List<String> arguments) async {
   }
 
   // Get the root directory (parent of publish-kit)
-  final currentDir = Directory.current.path;
-  final rootPath = path.dirname(currentDir);
+  final scriptPath = Platform.script.toFilePath();
+  final publishKitDir = path.dirname(path.dirname(scriptPath));
+  final rootPath = path.dirname(publishKitDir);
   
   final publishKit = PublishKit(rootPath, dryRun: dryRun);
 
