@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## 3.0.0
+
 ### 🐛 Bug Fixes
 - **publish_kit**: Fix root path detection by resolving script location instead of current directory
 - **publish_kit**: Remove 'publish_to' field from pubspec using yaml_edit for proper field cleanup

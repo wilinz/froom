@@ -2,9 +2,9 @@
 
 English | [中文](../README_zh.md)
 
-**See the [project's website](https://wilinz.github.io/froom/) or [floor website](https://pinchbv.github.io/floor/) for the full documentation.**
+**See the [project's website](https://wilinz.github.io/froom/) for the full documentation.**
 
-Froom is a modern, lightweight SQLite abstraction for Flutter applications, inspired by the [Room persistence library](https://developer.android.com/topic/libraries/architecture/room) and developed as an evolution of the popular [Floor ORM](https://github.com/vitusortner/floor) library. Froom is built on top of **Floor 1.5.0**, which was discontinued and is no longer maintained, while Froom extends its capabilities to meet the needs of modern Flutter applications.
+Froom is a modern, lightweight SQLite abstraction for Flutter applications, inspired by the [Room persistence library](https://developer.android.com/topic/libraries/architecture/room) and developed as an evolution of the popular [Floor ORM](https://github.com/pinchbv/floor) library. Froom is built on top of **Floor 1.5.0**, which was discontinued and is no longer maintained, while Froom extends its capabilities to meet the needs of modern Flutter applications.
 
 Froom provides automatic mapping between in-memory objects and database rows, while still offering full control of the database through SQL queries. To make the most of Froom's features, having a basic understanding of SQL and SQLite is necessary, but the library's API simplifies the process of interacting with databases.
 
@@ -46,6 +46,21 @@ The following features are planned for future releases of **Froom** to enhance i
 [![build status](https://github.com/wilinz/froom/workflows/CI/badge.svg)](https://github.com/wilinz/froom/actions)
 [![codecov](https://codecov.io/gh/wilinz/froom/branch/develop/graph/badge.svg)](https://codecov.io/gh/wilinz/froom)
 
+## Version Compatibility
+
+Please choose the appropriate version based on your `source_gen` dependency:
+
+| source_gen Version | Froom Version |
+|--------------------|---------------|
+| 3.x.x and above   | 3.x.x         |
+| 2.x.x             | 2.0.4         |
+
+## Migrating from Floor
+
+If you're migrating from Floor to Froom, see our [Migration Guide](https://wilinz.github.io/froom/migration-from-floor) for detailed instructions and an automated migration script.
+
+**⚠️ Important: Always backup your project before migration!**
+
 ## Getting Started
 
 ### 1. Setup Dependencies
@@ -66,11 +81,11 @@ or
 dependencies:
   flutter:
     sdk: flutter
-  froom: 
+  froom: ^x.x.x
 
 dev_dependencies:
-  froom_generator: 
-  build_runner:
+  froom_generator: ^x.x.x
+  build_runner: ^x.x.x
 ```
 
 ### 2. Create an Entity

@@ -29,6 +29,8 @@ The automated migration script will also create a backup automatically, but it's
 
 ## Migration Steps
 
+> **💡 Recommended:** Use our [automated migration scripts](#automated-migration-scripts) to handle the migration process automatically. The manual steps below are for reference or custom migration needs.
+
 ### 1. Update Dependencies
 
 Replace Floor dependencies with Froom in your `pubspec.yaml`:
