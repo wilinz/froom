@@ -42,7 +42,7 @@ class PublishKit {
       // Update version
       final yamlEditor = YamlEditor(content);
       yamlEditor.update(['version'], version);
-      removePublishToField(yamlEditor, packageName);
+      removePublishToField(content, yamlEditor, packageName);
 
       final newContent = yamlEditor.toString();
       if (!dryRun) {
@@ -176,7 +176,7 @@ class PublishKit {
 
       // Use yaml_edit to preserve formatting
       final yamlEditor = YamlEditor(content);
-      removePublishToField(yamlEditor, packageName);
+      removePublishToField(content, yamlEditor, packageName);
 
       // Update dependencies
       for (final dep in deps) {
@@ -198,9 +198,15 @@ class PublishKit {
     }
   }
 
-  void removePublishToField(YamlEditor yamlEditor, String packageName) {
+  void removePublishToField(
+    String content,
+    YamlEditor yamlEditor,
+    String packageName,
+  ) {
     try {
-      yamlEditor.remove(['publish_to']);
+      if (content.contains('publish_to:')) {
+        yamlEditor.remove(['publish_to']);
+      }
     } catch (e) {
       print('Warning: Failed to remove publish_to from $packageName: $e');
     }

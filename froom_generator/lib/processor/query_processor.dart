@@ -53,16 +53,18 @@ class QueryProcessor extends Processor<Query> {
         throw _processorError.unknownQueryVariable(varToken.name);
       } else if (varIndexInMethod > 0) {
         //normal variable/parameter
-        if (varToken.isListVar)
+        if (varToken.isListVar) {
           throw _processorError
               .queryMethodParameterIsNormalButVariableIsList(varToken.name);
+        }
         newQuery.write('?');
         newQuery.write(varIndexInMethod);
       } else {
         //list variable/parameter
-        if (!varToken.isListVar)
+        if (!varToken.isListVar) {
           throw _processorError
               .queryMethodParameterIsListButVariableIsNot(varToken.name);
+        }
         listParameters
             .add(ListParameter(newQuery.length, varToken.name.substring(1)));
         newQuery.write(varlistPlaceholder);
