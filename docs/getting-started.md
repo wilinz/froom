@@ -9,6 +9,12 @@ Please choose the appropriate version based on your `source_gen` dependency:
 | 3.x.x and above   | 3.x.x         |
 | 2.x.x             | 2.0.4         |
 
+## Migrating from Floor
+
+If you're migrating from Floor to Froom, see our [Migration Guide](migration-from-floor.md) for detailed instructions and an automated migration script.
+
+**⚠️ Important: Always backup your project before migration!**
+
 ## 1. Setup Dependencies
 
 Add the runtime dependency `froom` as well as the generator `froom_generator` to your `pubspec.yaml`.
@@ -141,4 +147,4 @@ await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
 
-For further examples take a look at the [example](https://github.com/vitusortner/froom/tree/develop/example) and [test](https://github.com/vitusortner/froom/tree/develop/froom/test/integration) directories.
+For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom/test/integration) directories.

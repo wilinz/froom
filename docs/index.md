@@ -15,8 +15,8 @@ As a consequence, it's necessary to have an understanding of SQL and SQLite in o
 
 !!! important
     The library is open to contributions!
-    Refer to [GitHub Discussions](https://github.com/vitusortner/froom/discussions) for questions, ideas, and discussions.
+    Refer to [GitHub Discussions](https://github.com/wilinz/froom/discussions) for questions, ideas, and discussions.
 
 [![pub package](https://img.shields.io/pub/v/froom.svg)](https://pub.dartlang.org/packages/froom)
-[![build status](https://github.com/vitusortner/froom/workflows/Continuous%20integration/badge.svg)](https://github.com/vitusortner/froom/actions)
-[![codecov](https://codecov.io/gh/vitusortner/froom/branch/develop/graph/badge.svg)](https://codecov.io/gh/vitusortner/froom)
+[![build status](https://github.com/wilinz/froom/workflows/Continuous%20integration/badge.svg)](https://github.com/wilinz/froom/actions)
+[![codecov](https://codecov.io/gh/wilinz/froom/branch/develop/graph/badge.svg)](https://codecov.io/gh/wilinz/froom)

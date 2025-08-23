@@ -47,6 +47,7 @@ nav:
 
   - Documentation:
     - Getting Started: getting-started.md
+    - Migration from floor: migration-from-floor.md
     - Architecture: architecture.md
     - Entities: entities.md
     - Database Views: database-views.md

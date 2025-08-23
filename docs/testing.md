@@ -1,7 +1,7 @@
 # Testing
 
 Simply instantiate an in-memory database and run the database tests on your local development machine as shown in the following snippet.
-For more test references, check out the [project's tests](https://github.com/vitusortner/froom/tree/develop/froom/test/integration).
+For more test references, check out the [project's tests](https://github.com/wilinz/froom/tree/develop/froom/test/integration).
 
 In case you're running Linux, make sure to have sqlite3 and libsqlite3-dev installed.
 

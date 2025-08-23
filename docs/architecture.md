@@ -10,4 +10,4 @@ It holds the DAOs and, beyond that, takes care of initializing the database and 
 
 The figure shows the relationship between Entity, DAO and Database.
 
-![Froom Architecture](https://raw.githubusercontent.com/vitusortner/froom/develop/img/froom-architecture.png)
+![Froom Architecture](https://raw.githubusercontent.com/wilinz/froom/develop/img/froom-architecture.png)
