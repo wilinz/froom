@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## 3.0.0
+
 ### ⬆️ Dependencies & Breaking Changes
 - **source_gen**: Upgrade to source_gen 3.x.x with modern TypeChecker API migration
 - **analyzer**: Migrate to analyzer 7.x and element2 API throughout codebase
