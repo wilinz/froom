@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.2
+
+### 🔧 Improvements
+- **dependencies**: Remove unnecessary Flutter and flutter_test dependencies from pubspec.yaml
+
 ## 3.0.1
 
 ### 🔧 Improvements
