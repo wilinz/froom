@@ -1,0 +1,1668 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Froom - The typesafe, reactive, and lightweight SQLite abstraction for your Flutter applications">
+      
+      
+      
+        <link rel="canonical" href="https://wilinz.github.io/froom/migration-from-floor/">
+      
+      
+        <link rel="prev" href="../getting-started/">
+      
+      
+        <link rel="next" href="../architecture/">
+      
+      
+      <link rel="icon" href="../img/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Migration From Floor - Froom SQLite</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetbrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Jetbrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="purple" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#migration-from-floor-to-froom" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Froom SQLite" class="md-header__button md-logo" aria-label="Froom SQLite" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.25 12a.75.75 0 0 1-.22.53l-2.75 2.75a.75.75 0 0 1-1.06-1.06L7.44 12 5.22 9.78a.75.75 0 1 1 1.06-1.06l2.75 2.75c.141.14.22.331.22.53m2 2a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5z"/><path d="M0 4.75C0 3.784.784 3 1.75 3h20.5c.966 0 1.75.784 1.75 1.75v14.5A1.75 1.75 0 0 1 22.25 21H1.75A1.75 1.75 0 0 1 0 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h20.5a.25.25 0 0 0 .25-.25V4.75a.25.25 0 0 0-.25-.25Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Froom SQLite
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Migration From Floor
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="purple" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="purple" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wilinz/froom" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    froom
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+  Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Froom SQLite" class="md-nav__button md-logo" aria-label="Froom SQLite" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.25 12a.75.75 0 0 1-.22.53l-2.75 2.75a.75.75 0 0 1-1.06-1.06L7.44 12 5.22 9.78a.75.75 0 1 1 1.06-1.06l2.75 2.75c.141.14.22.331.22.53m2 2a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5z"/><path d="M0 4.75C0 3.784.784 3 1.75 3h20.5c.966 0 1.75.784 1.75 1.75v14.5A1.75 1.75 0 0 1 22.25 21H1.75A1.75 1.75 0 0 1 0 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h20.5a.25.25 0 0 0 .25-.25V4.75a.25.25 0 0 0-.25-.25Z"/></svg>
+
+    </a>
+    Froom SQLite
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wilinz/froom" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    froom
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Welcome
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../naming/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Naming
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feedback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Feedback
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Migration From Floor
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migration From Floor
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#version-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version Compatibility
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-backup-your-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚠️ Important: Backup Your Project
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Steps
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-update-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Update Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-update-import-statements" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Update Import Statements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-update-database-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Update Database Class
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-update-database-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Update Database Builder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-regenerate-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Regenerate Code
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-migration-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automated Migration Scripts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automated Migration Scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linuxmacos-bash" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linux/macOS (Bash)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows-powershell" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows (PowerShell)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows-batch-launcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows (Batch Launcher)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-script-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      What the Script Does
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manual-review-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manual Review Required
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-differences" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Differences
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Help
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Checklist
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Entities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-views/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Views
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../daos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Access Objects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-converters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Type Converters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../null-safety/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Null Safety
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Migrations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../in-memory-database/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    In Memory Database
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../initialization-callback/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Initialization Callback
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../platform-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Platform Support
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../isolates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Isolates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#version-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      Version Compatibility
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-backup-your-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚠️ Important: Backup Your Project
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Steps
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Steps">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-update-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Update Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-update-import-statements" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Update Import Statements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-update-database-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Update Database Class
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-update-database-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Update Database Builder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-regenerate-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Regenerate Code
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-migration-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automated Migration Scripts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automated Migration Scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linuxmacos-bash" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linux/macOS (Bash)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows-powershell" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows (PowerShell)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows-batch-launcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows (Batch Launcher)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-script-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      What the Script Does
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manual-review-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manual Review Required
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-differences" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Differences
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-help" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Help
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Checklist
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="migration-from-floor-to-froom">Migration from Floor to Froom<a class="headerlink" href="#migration-from-floor-to-froom" title="Permanent link">&para;</a></h1>
+<p>This guide will help you migrate your existing Floor project to Froom. Froom is built as a modern replacement for Floor, offering better compatibility with current Flutter versions and additional features.</p>
+<h2 id="version-compatibility">Version Compatibility<a class="headerlink" href="#version-compatibility" title="Permanent link">&para;</a></h2>
+<p>Before migrating, ensure you're using the correct Froom version based on your dependencies:</p>
+<table>
+<thead>
+<tr>
+<th>source_gen Version</th>
+<th>Froom Version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3.x.x and above</td>
+<td>3.x.x</td>
+</tr>
+<tr>
+<td>2.x.x</td>
+<td>2.0.4</td>
+</tr>
+</tbody>
+</table>
+<h2 id="important-backup-your-project">⚠️ Important: Backup Your Project<a class="headerlink" href="#important-backup-your-project" title="Permanent link">&para;</a></h2>
+<p><strong>Before starting the migration, always create a complete backup of your project!</strong></p>
+<p>You can create a backup by:
+<div class="highlight"><pre><span></span><code><span class="c1"># Create a backup directory</span>
+cp<span class="w"> </span>-r<span class="w"> </span>your_project_directory<span class="w"> </span>your_project_directory_backup
+
+<span class="c1"># Or use git to commit your current state</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Backup before Floor to Froom migration&quot;</span>
+</code></pre></div></p>
+<p>The automated migration script will also create a backup automatically, but it's always safer to have your own backup.</p>
+<h2 id="migration-steps">Migration Steps<a class="headerlink" href="#migration-steps" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>💡 Recommended:</strong> Use our <a href="#automated-migration-scripts">automated migration scripts</a> to handle the migration process automatically. The manual steps below are for reference or custom migration needs.</p>
+</blockquote>
+<h3 id="1-update-dependencies">1. Update Dependencies<a class="headerlink" href="#1-update-dependencies" title="Permanent link">&para;</a></h3>
+<p>Replace Floor dependencies with Froom in your <code>pubspec.yaml</code>:</p>
+<p><strong>Before (Floor):</strong>
+<div class="highlight"><pre><span></span><code><span class="nt">dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">floor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^1.4.2</span>
+
+<span class="nt">dev_dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">floor_generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^1.4.2</span>
+<span class="w">  </span><span class="nt">build_runner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^2.1.2</span>
+</code></pre></div></p>
+<p><strong>After (Froom):</strong>
+<div class="highlight"><pre><span></span><code><span class="nt">dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">froom</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^x.x.x</span>
+
+<span class="nt">dev_dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">froom_generator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^x.x.x</span>
+<span class="w">  </span><span class="nt">build_runner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^x.x.x</span>
+</code></pre></div></p>
+<p><strong>💡 Tip: Use command for easier installation:</strong>
+<div class="highlight"><pre><span></span><code>dart<span class="w"> </span>pub<span class="w"> </span>add<span class="w"> </span>froom<span class="w"> </span>dev:froom_generator<span class="w"> </span>dev:build_runner
+</code></pre></div>
+This command automatically adds the latest compatible versions without manually editing <code>pubspec.yaml</code>.</p>
+<h3 id="2-update-import-statements">2. Update Import Statements<a class="headerlink" href="#2-update-import-statements" title="Permanent link">&para;</a></h3>
+<p>Replace all Floor package imports with Froom imports:</p>
+<p><strong>Before:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="s1">&#39;package:floor/floor.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="s1">&#39;package:floor_annotation/floor_annotation.dart&#39;</span><span class="p">;</span>
+</code></pre></div></p>
+<p><strong>After:</strong>
+<div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="s1">&#39;package:froom/froom.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="s1">&#39;package:froom_annotation/froom_annotation.dart&#39;</span><span class="p">;</span>
+</code></pre></div></p>
+<h3 id="3-update-database-class">3. Update Database Class<a class="headerlink" href="#3-update-database-class" title="Permanent link">&para;</a></h3>
+<p>Update your database class to extend <code>FroomDatabase</code> instead of <code>FloorDatabase</code>:</p>
+<p><strong>Before:</strong>
+<div class="highlight"><pre><span></span><code><span class="nd">@Database</span><span class="p">(</span><span class="nl">version:</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="nl">entities:</span><span class="w"> </span><span class="p">[</span><span class="n">Person</span><span class="p">])</span>
+<span class="kd">abstract</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nc">AppDatabase</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">FloorDatabase</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">PersonDao</span><span class="w"> </span><span class="kd">get</span><span class="w"> </span><span class="n">personDao</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p><strong>After:</strong>
+<div class="highlight"><pre><span></span><code><span class="nd">@Database</span><span class="p">(</span><span class="nl">version:</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="nl">entities:</span><span class="w"> </span><span class="p">[</span><span class="n">Person</span><span class="p">])</span>
+<span class="kd">abstract</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nc">AppDatabase</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">FroomDatabase</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">PersonDao</span><span class="w"> </span><span class="kd">get</span><span class="w"> </span><span class="n">personDao</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<h3 id="4-update-database-builder">4. Update Database Builder<a class="headerlink" href="#4-update-database-builder" title="Permanent link">&para;</a></h3>
+<p>Update the database builder class name:</p>
+<p><strong>Before:</strong>
+<div class="highlight"><pre><span></span><code><span class="kd">final</span><span class="w"> </span><span class="n">database</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">$FloorAppDatabase</span><span class="p">.</span><span class="n">databaseBuilder</span><span class="p">(</span><span class="s1">&#39;app_database.db&#39;</span><span class="p">).</span><span class="n">build</span><span class="p">();</span>
+</code></pre></div></p>
+<p><strong>After:</strong>
+<div class="highlight"><pre><span></span><code><span class="kd">final</span><span class="w"> </span><span class="n">database</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">await</span><span class="w"> </span><span class="n">$FroomAppDatabase</span><span class="p">.</span><span class="n">databaseBuilder</span><span class="p">(</span><span class="s1">&#39;app_database.db&#39;</span><span class="p">).</span><span class="n">build</span><span class="p">();</span>
+</code></pre></div></p>
+<h3 id="5-regenerate-code">5. Regenerate Code<a class="headerlink" href="#5-regenerate-code" title="Permanent link">&para;</a></h3>
+<p>After making these changes, regenerate your database code:</p>
+<div class="highlight"><pre><span></span><code>flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w"> </span>run<span class="w"> </span>build_runner<span class="w"> </span>clean
+flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w"> </span>run<span class="w"> </span>build_runner<span class="w"> </span>build
+</code></pre></div>
+<h2 id="automated-migration-scripts">Automated Migration Scripts<a class="headerlink" href="#automated-migration-scripts" title="Permanent link">&para;</a></h2>
+<p>We provide migration scripts for different platforms to automate most of the migration process:</p>
+<p><strong>📁 Script Location:</strong> All migration scripts can be found in the <a href="https://github.com/wilinz/froom/tree/main/scripts">scripts directory</a> of this repository.</p>
+<h3 id="linuxmacos-bash">Linux/macOS (Bash)<a class="headerlink" href="#linuxmacos-bash" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Make script executable</span>
+chmod<span class="w"> </span>+x<span class="w"> </span>scripts/migrate_floor_to_froom.sh
+
+<span class="c1"># Interactive mode (default) - asks before creating backup</span>
+./scripts/migrate_floor_to_froom.sh
+
+<span class="c1"># Force create backup without asking</span>
+./scripts/migrate_floor_to_froom.sh<span class="w"> </span>--backup
+
+<span class="c1"># Skip all confirmations (no backup)</span>
+./scripts/migrate_floor_to_froom.sh<span class="w"> </span>--yes
+
+<span class="c1"># Create backup and skip confirmations</span>
+./scripts/migrate_floor_to_froom.sh<span class="w"> </span>--backup<span class="w"> </span>--yes
+
+<span class="c1"># Specify project path (multiple ways)</span>
+./scripts/migrate_floor_to_froom.sh<span class="w"> </span>/path/to/project<span class="w">              </span><span class="c1"># Positional argument</span>
+./scripts/migrate_floor_to_froom.sh<span class="w"> </span>--path<span class="w"> </span>/path/to/project<span class="w">       </span><span class="c1"># Named option</span>
+./scripts/migrate_floor_to_froom.sh<span class="w"> </span>-p<span class="w"> </span>/path/to/project<span class="w">           </span><span class="c1"># Short option</span>
+
+<span class="c1"># Combined options</span>
+./scripts/migrate_floor_to_froom.sh<span class="w"> </span>--path<span class="w"> </span>/path/to/project<span class="w"> </span>--backup<span class="w"> </span>--yes
+
+<span class="c1"># Show help</span>
+./scripts/migrate_floor_to_froom.sh<span class="w"> </span>--help
+</code></pre></div>
+<h3 id="windows-powershell">Windows (PowerShell)<a class="headerlink" href="#windows-powershell" title="Permanent link">&para;</a></h3>
+<p><strong>⚠️ PowerShell Execution Policy Notice:</strong></p>
+<p>Windows PowerShell may restrict script execution due to security policies. If you encounter execution policy errors, you have several options:</p>
+<p><strong>Option 1: Use the batch launcher (Recommended for most users)</strong>
+<div class="highlight"><pre><span></span><code># This automatically handles execution policy issues
+.\scripts\run_migration.bat
+</code></pre></div></p>
+<p><strong>Option 2: Temporarily bypass execution policy</strong>
+<div class="highlight"><pre><span></span><code><span class="c"># Run migration with bypassed policy (one-time)</span>
+<span class="n">PowerShell</span> <span class="n">-ExecutionPolicy</span> <span class="n">Bypass</span> <span class="o">-File</span> <span class="s2">&quot;.\scripts\migrate_floor_to_froom.ps1&quot;</span>
+</code></pre></div></p>
+<p><strong>Option 3: Change execution policy (Requires Administrator)</strong>
+<div class="highlight"><pre><span></span><code><span class="c"># Open PowerShell as Administrator and run:</span>
+<span class="nb">Set-ExecutionPolicy</span> <span class="n">RemoteSigned</span> <span class="n">-Scope</span> <span class="n">CurrentUser</span>
+
+<span class="c"># Or for system-wide (requires elevated permissions):</span>
+<span class="nb">Set-ExecutionPolicy</span> <span class="n">RemoteSigned</span> <span class="n">-Force</span>
+</code></pre></div></p>
+<p><strong>Option 4: Unrestricted execution (Less secure, not recommended)</strong>
+<div class="highlight"><pre><span></span><code><span class="c"># Temporarily allow all scripts (use with caution)</span>
+<span class="nb">Set-ExecutionPolicy</span> <span class="n">Unrestricted</span> <span class="n">-Scope</span> <span class="n">CurrentUser</span>
+
+<span class="c"># Remember to revert after migration:</span>
+<span class="nb">Set-ExecutionPolicy</span> <span class="n">Restricted</span> <span class="n">-Scope</span> <span class="n">CurrentUser</span>
+</code></pre></div></p>
+<p><strong>Regular Usage (after policy is configured):</strong>
+<div class="highlight"><pre><span></span><code><span class="c"># Interactive mode (default) - asks before creating backup</span>
+<span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">migrate_floor_to_froom</span><span class="p">.</span><span class="n">ps1</span>
+
+<span class="c"># Force create backup without asking</span>
+<span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">migrate_floor_to_froom</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Backup</span>
+
+<span class="c"># Skip all confirmations (no backup)</span>
+<span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">migrate_floor_to_froom</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Yes</span>
+
+<span class="c"># Create backup and skip confirmations</span>
+<span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">migrate_floor_to_froom</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Backup</span> <span class="n">-Yes</span>
+
+<span class="c"># Specify project path</span>
+<span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">migrate_floor_to_froom</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Path</span> <span class="s2">&quot;C:\path\to\project&quot;</span>
+
+<span class="c"># Combined options</span>
+<span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">migrate_floor_to_froom</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Path</span> <span class="s2">&quot;C:\path\to\project&quot;</span> <span class="n">-Backup</span> <span class="n">-Yes</span>
+
+<span class="c"># Show help</span>
+<span class="p">.\</span><span class="n">scripts</span><span class="p">\</span><span class="n">migrate_floor_to_froom</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Help</span>
+</code></pre></div></p>
+<h3 id="windows-batch-launcher">Windows (Batch Launcher)<a class="headerlink" href="#windows-batch-launcher" title="Permanent link">&para;</a></h3>
+<p>For Windows users who may have PowerShell execution policy restrictions:</p>
+<div class="highlight"><pre><span></span><code># GUI launcher that handles PowerShell execution policy automatically
+.\scripts\run_migration.bat
+</code></pre></div>
+<p>The batch launcher will:
+- Check PowerShell execution policy
+- Offer to bypass or change policy if needed
+- Provide an interactive menu to select migration scripts
+- Handle script arguments through prompts</p>
+<h3 id="available-options">Available Options<a class="headerlink" href="#available-options" title="Permanent link">&para;</a></h3>
+<p><strong>Bash Scripts:</strong>
+| Option | Short | Description |
+|--------|-------|-------------|
+| <code>--backup</code> | <code>-b</code> | Create backup before migration |
+| <code>--yes</code> | <code>-y</code> | Skip confirmation prompts |
+| <code>--path PATH</code> | <code>-p PATH</code> | Specify project path |
+| <code>--help</code> | <code>-h</code> | Show help message |</p>
+<p><strong>PowerShell Scripts:</strong>
+| Parameter | Description |
+|-----------|-------------|
+| <code>-Backup</code> | Create backup before migration |
+| <code>-Yes</code> | Skip confirmation prompts |
+| <code>-Path "PATH"</code> | Specify project path |
+| <code>-Help</code> | Show help message |</p>
+<h3 id="what-the-script-does">What the Script Does<a class="headerlink" href="#what-the-script-does" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Update all Floor imports to Froom imports</li>
+<li>Replace <code>FloorDatabase</code> with <code>FroomDatabase</code></li>
+<li>Replace <code>$Floor</code> prefixes with <code>$Froom</code></li>
+<li>Update your <code>pubspec.yaml</code> dependencies</li>
+<li>Clean old generated files</li>
+</ul>
+<p><strong>Note:</strong> The script can create automatic backups and provides interactive confirmations for safe migration.</p>
+<h2 id="manual-review-required">Manual Review Required<a class="headerlink" href="#manual-review-required" title="Permanent link">&para;</a></h2>
+<p>After running the automated migration, you should manually review:</p>
+<ol>
+<li><strong>pubspec.yaml</strong> - Ensure correct version numbers</li>
+<li><strong>Generated files</strong> - Delete old <code>.g.dart</code> files and regenerate</li>
+<li><strong>Custom code</strong> - Check any custom Floor-specific code that might need updates</li>
+<li><strong>Tests</strong> - Update any tests that reference Floor classes</li>
+</ol>
+<h2 id="key-differences">Key Differences<a class="headerlink" href="#key-differences" title="Permanent link">&para;</a></h2>
+<p>While Froom maintains API compatibility with Floor, there are some key improvements:</p>
+<ol>
+<li><strong>Better analyzer support</strong> - Compatible with analyzer 7.x</li>
+<li><strong>Modern dependencies</strong> - Updated to work with latest Flutter versions</li>
+<li><strong>Improved error handling</strong> - Better debugging experience</li>
+<li><strong>Active maintenance</strong> - Regular updates and bug fixes</li>
+</ol>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Build errors after migration</strong></li>
+<li>Clean and rebuild: <code>flutter packages pub run build_runner clean &amp;&amp; flutter packages pub run build_runner build</code></li>
+<li>
+<p>Delete existing <code>.g.dart</code> files manually if needed</p>
+</li>
+<li>
+<p><strong>Import errors</strong></p>
+</li>
+<li>Ensure all Floor imports are replaced with Froom imports</li>
+<li>
+<p>Check that you're using the correct Froom version</p>
+</li>
+<li>
+<p><strong>Database builder errors</strong></p>
+</li>
+<li>
+<p>Verify all <code>$Floor</code> prefixes are changed to <code>$Froom</code></p>
+</li>
+<li>
+<p><strong>PowerShell execution policy errors (Windows)</strong></p>
+</li>
+<li>Use the batch launcher: <code>.\scripts\run_migration.bat</code></li>
+<li>Or temporarily bypass: <code>PowerShell -ExecutionPolicy Bypass -File ".\scripts\migrate_floor_to_froom.ps1"</code></li>
+<li>Or check current policy: <code>Get-ExecutionPolicy</code></li>
+</ol>
+<h3 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h3>
+<p>If you encounter issues during migration:</p>
+<ul>
+<li>Check <a href="https://github.com/wilinz/froom/issues">GitHub Issues</a> for known issues</li>
+<li>Ask questions in <a href="https://github.com/wilinz/froom/discussions">GitHub Discussions</a></li>
+<li>Review the complete <a href="https://wilinz.github.io/froom/">Froom documentation</a></li>
+</ul>
+<h2 id="migration-checklist">Migration Checklist<a class="headerlink" href="#migration-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[ ] Update <code>pubspec.yaml</code> dependencies</li>
+<li>[ ] Replace all Floor imports with Froom imports</li>
+<li>[ ] Update database class to extend <code>FroomDatabase</code></li>
+<li>[ ] Update database builder class names</li>
+<li>[ ] Run migration script (optional)</li>
+<li>[ ] Clean and regenerate code</li>
+<li>[ ] Test your application thoroughly</li>
+<li>[ ] Update any documentation references</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>
