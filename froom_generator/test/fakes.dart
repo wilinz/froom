@@ -308,6 +308,7 @@ class FakeFieldElement implements FieldElement2{
   Expression? get constantInitializer => throw UnimplementedError();
 
   @override
+  // ignore: deprecated_member_use
   ConstantInitializer? get constantInitializer2 => throw UnimplementedError();
 
   @override
