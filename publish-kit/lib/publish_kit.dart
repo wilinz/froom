@@ -40,11 +40,11 @@ class PublishKit {
       final content = await pubspecFile.readAsString();
 
       // Update version
-      final newContent = content.replaceFirst(
-        RegExp(r'^version: .*$', multiLine: true),
-        'version: $version',
-      );
+      final yamlEditor = YamlEditor(content);
+      yamlEditor.update(['version'], version);
+      removePublishToField(yamlEditor, packageName);
 
+      final newContent = yamlEditor.toString();
       if (!dryRun) {
         await pubspecFile.writeAsString(newContent);
       }
@@ -176,7 +176,7 @@ class PublishKit {
 
       // Use yaml_edit to preserve formatting
       final yamlEditor = YamlEditor(content);
-      yamlEditor.remove(['publish_to']);
+      removePublishToField(yamlEditor, packageName);
 
       // Update dependencies
       for (final dep in deps) {
@@ -195,6 +195,14 @@ class PublishKit {
       print(
         '${dryRun ? "[DRY RUN] " : ""}Updated dependencies for $packageName',
       );
+    }
+  }
+
+  void removePublishToField(YamlEditor yamlEditor, String packageName) {
+    try {
+      yamlEditor.remove(['publish_to']);
+    } catch (e) {
+      print('Warning: Failed to remove publish_to from $packageName: $e');
     }
   }
 
