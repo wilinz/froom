@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## 3.0.1
+
+### 🔧 Improvements
+- **platform_detection**: Replace kIsWeb with custom _kIsWeb for better platform detection in sqflite database factory
+- **code_quality**: Add braces to single-line if statements for improved readability
+
+### 📝 Documentation
+- **pubspec**: Add supported platforms section (Android, iOS, Linux, macOS, Windows)
+- **dependencies**: Remove unnecessary Flutter and flutter_test dependencies from pubspec.yaml
+
+### 🛠 Maintenance  
+- **ci**: Disable fatal warnings in Dart analyze steps for froom_annotation and froom_generator
+- **formatting**: Format removePublishToField parameters for improved readability
+- **ci**: Remove --fatal-infos/warnings from analyze, fix publish_to removal signature
+
 ## 3.0.0
 
 ### ⬆️ Dependencies & Breaking Changes
