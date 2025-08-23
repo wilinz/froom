@@ -19,7 +19,7 @@ extension DartTypeExtension on DartType {
     final displayString = getDisplayString();
     if (!withNullability) {
       // Remove trailing ? if present when withNullability is false
-      return displayString.endsWith('?') 
+      return displayString.endsWith('?')
           ? displayString.substring(0, displayString.length - 1)
           : displayString;
     }

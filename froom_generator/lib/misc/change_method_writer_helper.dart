@@ -14,7 +14,8 @@ class ChangeMethodWriterHelper {
   void addChangeMethodSignature(final MethodBuilder methodBuilder) {
     methodBuilder
       ..annotations.add(overrideAnnotationExpression)
-      ..returns = refer(_changeMethod.returnType.getDisplayStringCompat(withNullability: false))
+      ..returns = refer(_changeMethod.returnType
+          .getDisplayStringCompat(withNullability: false))
       ..name = _changeMethod.name
       ..requiredParameters.add(_generateParameter());
 
@@ -28,6 +29,7 @@ class ChangeMethodWriterHelper {
 
     return Parameter((builder) => builder
       ..name = parameter.name3!
-      ..type = refer(parameter.type.getDisplayStringCompat(withNullability: false)));
+      ..type =
+          refer(parameter.type.getDisplayStringCompat(withNullability: false)));
   }
 }

@@ -854,8 +854,7 @@ Future<Dao> createOrderDao(
   final String methodSignature,
   final Set<TypeConverter> typeConverters,
 ) async {
-  final library = await resolveSource(
-      readAllSourcesFromFilesystem: true,'''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';

@@ -287,7 +287,7 @@ class FakeClassElement implements ClassElement2 {
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 }
 
-class FakeFieldElement implements FieldElement2{
+class FakeFieldElement implements FieldElement2 {
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     throw UnimplementedError();
@@ -315,7 +315,8 @@ class FakeFieldElement implements FieldElement2{
   String get displayName => throw UnimplementedError();
 
   @override
-  String displayString2({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString2(
+      {bool multiline = false, bool preferTypeAlias = false}) {
     throw UnimplementedError();
   }
 
@@ -430,7 +431,5 @@ class FakeFieldElement implements FieldElement2{
   DartType get type => throw UnimplementedError();
 
   @override
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    }
-  
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {}
 }

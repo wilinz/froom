@@ -50,7 +50,8 @@ class DaoProcessor extends Processor<Dao> {
       ..._classElement.allSupertypes.expand((type) => type.methods2)
     ];
 
-    final typeConverters = Set.of(_typeConverters)..addAll(_classElement.getTypeConverters(TypeConverterScope.dao));
+    final typeConverters = Set.of(_typeConverters)
+      ..addAll(_classElement.getTypeConverters(TypeConverterScope.dao));
 
     final queryMethods = _getQueryMethods(methods, typeConverters);
     final insertionMethods = _getInsertionMethods(methods);

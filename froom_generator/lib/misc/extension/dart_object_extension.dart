@@ -8,7 +8,8 @@ extension DartObjectExtension on DartObject {
   /// or `null` if the enum was not valid
   String? toEnumValueString() {
     final interfaceType = type as InterfaceType;
-    final enumName = interfaceType.getDisplayStringCompat(withNullability: false);
+    final enumName =
+        interfaceType.getDisplayStringCompat(withNullability: false);
     final enumValue = getField('_name')?.toStringValue();
     if (enumValue == null) {
       return null;

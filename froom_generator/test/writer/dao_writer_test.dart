@@ -410,10 +410,7 @@ void main() {
 }
 
 Future<Dao> _createDao(final String dao) async {
-
-  final library = await resolveSource(
-      readAllSourcesFromFilesystem: true,
-      '''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       import 'package:froom_annotation/froom_annotation.dart';

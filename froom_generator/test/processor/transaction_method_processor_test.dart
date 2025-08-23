@@ -56,8 +56,7 @@ void main() {
 }
 
 Future<MethodElement2> _generateMethodElement(final String method) async {
-  final library = await resolveSource(
-      readAllSourcesFromFilesystem: true,'''
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
       class Foo {

@@ -47,7 +47,8 @@ class ChangeMethodProcessorHelper {
     return _entities.firstWhere(
         (entity) =>
             entity.classElement.displayName ==
-            flattenedParameterType.getDisplayStringCompat(withNullability: false),
+            flattenedParameterType.getDisplayStringCompat(
+                withNullability: false),
         orElse: () => throw InvalidGenerationSourceError(
             'You are trying to change an object which is not an entity.',
             element: _methodElement));

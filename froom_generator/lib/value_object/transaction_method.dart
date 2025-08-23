@@ -22,22 +22,21 @@ class TransactionMethod {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is TransactionMethod &&
-              runtimeType == other.runtimeType &&
-              // 比较元素的名称而不是实例
-              methodElement.name3 == other.methodElement.name3 &&
-              name == other.name &&
-              // 比较类型的字符串表示
-              returnType.getDisplayString() == other.returnType.getDisplayString() &&
-              // 使用 ListEquality 或自定义比较
-              _parametersEqual(parameterElements, other.parameterElements) &&
-              daoFieldName == other.daoFieldName &&
-              databaseName == other.databaseName;
+      other is TransactionMethod &&
+          runtimeType == other.runtimeType &&
+          // 比较元素的名称而不是实例
+          methodElement.name3 == other.methodElement.name3 &&
+          name == other.name &&
+          // 比较类型的字符串表示
+          returnType.getDisplayString() ==
+              other.returnType.getDisplayString() &&
+          // 使用 ListEquality 或自定义比较
+          _parametersEqual(parameterElements, other.parameterElements) &&
+          daoFieldName == other.daoFieldName &&
+          databaseName == other.databaseName;
 
   bool _parametersEqual(
-      List<FormalParameterElement> a,
-      List<FormalParameterElement> b
-      ) {
+      List<FormalParameterElement> a, List<FormalParameterElement> b) {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {
       // 比较参数名和类型

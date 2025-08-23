@@ -50,5 +50,6 @@ extension TypeConverterElementExtension on Element2 {
 }
 
 extension on ClassElement2 {
-  bool get isTypeConverter => supertype?.element3.displayName == 'TypeConverter';
+  bool get isTypeConverter =>
+      supertype?.element3.displayName == 'TypeConverter';
 }

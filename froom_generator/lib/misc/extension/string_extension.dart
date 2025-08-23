@@ -74,7 +74,8 @@ extension CastStringExtension on String {
         return booleanDeserializer;
       }
     } else if (dartType.isEnumType) {
-      final typeString = dartType.getDisplayStringCompat(withNullability: false);
+      final typeString =
+          dartType.getDisplayStringCompat(withNullability: false);
       final enumDeserializer = '$typeString.values[$this as int]';
       if (dartType.isNullable && withNullability) {
         return '$this == null ? null : $enumDeserializer';
