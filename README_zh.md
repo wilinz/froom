@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-**请查看[项目网站](https://wilinz.github.io/froom/) 或 [floor website](https://pinchbv.github.io/floor/) 获取完整文档。**
+**请查看[项目网站](https://wilinz.github.io/froom/) 获取完整文档。**
 
 Froom 是一个现代、轻量级的 Flutter 应用 SQLite 抽象库，灵感来源于 [Room 持久化库](https://developer.android.com/topic/libraries/architecture/room)，是流行的 [Floor ORM](https://github.com/vitusortner/floor) 库的演进版本。Froom 基于 **Floor 1.5.0** 构建，Floor 已停止开发且不再维护，而 Froom 扩展了其功能以满足现代 Flutter 应用的需求。
 
@@ -53,6 +53,12 @@ Froom 基于 **Floor 1.5.0**，因为 Floor 不再积极维护。**Froom** 旨�
 |----------------|------------|
 | 3.x.x 及以上   | 3.x.x      |
 | 2.x.x          | 2.0.4      |
+
+## 从 Floor 迁移
+
+如果您正在从 Floor 迁移到 Froom，请查看我们的[迁移指南](https://wilinz.github.io/froom/migration-from-floor)以获取详细说明和自动迁移脚本。
+
+**⚠️ 重要提示：迁移前请务必备份您的项目！**
 
 ## 快速开始
 
