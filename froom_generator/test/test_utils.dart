@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
@@ -107,7 +108,7 @@ Future<DartType> getDartTypeFromDeclaration(final String declaration) async {
   return resolveSource(source, (item) async {
     final libraryReader =
         LibraryReader((await item.findLibraryByName('test'))!);
-    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement)
+    return (libraryReader.allElements.elementAt(1) as PropertyAccessorElement2)
         .type
         .returnType;
   });
@@ -203,7 +204,7 @@ Future<Dao> createDao(final String methodSignature) async {
       daoClass, 'personDao', 'TestDatabase', entities, views, {}).process();
 }
 
-Future<ClassElement> createClassElement(final String clazz) async {
+Future<ClassElement2> createClassElement(final String clazz) async {
   final library = await resolveSource('''
       library test;
       
@@ -226,7 +227,7 @@ extension StringTestExtension on String {
     return getDartTypeFromString(this);
   }
 
-  Future<ClassElement> asClassElement() async {
+  Future<ClassElement2> asClassElement() async {
     final library = await resolveSource('''
       library test;
       
@@ -266,7 +267,7 @@ Future<Entity> getPersonEntity() async {
 }
 
 extension StringExtension on String {
-  Future<MethodElement> asDaoMethodElement() async {
+  Future<MethodElement2> asDaoMethodElement() async {
     final library = await resolveSource('''
       library test;
             
@@ -286,7 +287,7 @@ extension StringExtension on String {
           .then((value) => LibraryReader(value));
     });
 
-    return library.classes.first.methods.first;
+    return library.classes.first.methods2.first;
   }
 }
 

@@ -1,14 +1,15 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_generator/value_object/entity.dart';
 
+// The migration is complete
 /// Base class for change methods (insert, update, delete).
 class ChangeMethod {
-  final MethodElement methodElement;
+  final MethodElement2 methodElement;
   final String name;
   final DartType returnType;
   final DartType flattenedReturnType;
-  final ParameterElement parameterElement;
+  final FormalParameterElement parameterElement;
   final Entity entity;
 
   ChangeMethod(

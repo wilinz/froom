@@ -1,10 +1,11 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:strings/strings.dart';
 
+// The migration is complete
 extension StringExtension on String {
   /// Returns a copy of this string having its first letter lowercased, or the
   /// original string, if it's empty or already starts with a lower case letter.
@@ -61,7 +62,7 @@ extension NullableStringExtension on String? {
 }
 
 extension CastStringExtension on String {
-  String cast(DartType dartType, Element? parameterElement,
+  String cast(DartType dartType, Element2? parameterElement,
       {bool withNullability = true}) {
     if (dartType.isDartCoreBool) {
       final booleanDeserializer = '($this as int) != 0';
@@ -73,7 +74,7 @@ extension CastStringExtension on String {
         return booleanDeserializer;
       }
     } else if (dartType.isEnumType) {
-      final typeString = dartType.getDisplayString(withNullability: false);
+      final typeString = dartType.getDisplayString();
       final enumDeserializer = '$typeString.values[$this as int]';
       if (dartType.isNullable && withNullability) {
         return '$this == null ? null : $enumDeserializer';

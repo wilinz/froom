@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:froom_generator/processor/database_processor.dart';
 import 'package:froom_generator/processor/error/database_processor_error.dart';
@@ -131,7 +131,7 @@ void main() {
   });
 }
 
-Future<ClassElement> _createDatabaseClassElement(
+Future<ClassElement2> _createDatabaseClassElement(
   final String database,
 ) async {
   final library = await resolveSource('''

@@ -5,6 +5,7 @@ import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/value_object/transaction_method.dart';
 import 'package:froom_generator/writer/writer.dart';
 
+// The migration is complete
 class TransactionMethodWriter implements Writer {
   final TransactionMethod method;
 
@@ -25,7 +26,7 @@ class TransactionMethodWriter implements Writer {
 
   String _generateMethodBody() {
     final parameters =
-        method.parameterElements.map((parameter) => parameter.name).join(', ');
+        method.parameterElements.map((parameter) => parameter.name3).join(', ');
     final methodCall = '${method.name}($parameters)';
     final innerType = method.returnType.flatten();
     final innerTypeName = innerType.getDisplayString(withNullability: false);
@@ -46,7 +47,7 @@ class TransactionMethodWriter implements Writer {
   List<Parameter> _generateParameters() {
     return method.parameterElements.map((parameter) {
       return Parameter((builder) => builder
-        ..name = parameter.name
+        ..name = parameter.name3!
         ..type = refer(parameter.type.getDisplayString(
           withNullability: true,
         )));

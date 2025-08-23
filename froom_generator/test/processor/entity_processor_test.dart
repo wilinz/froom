@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:build_test/build_test.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/processor/entity_processor.dart';
@@ -32,7 +32,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
+    final fields = classElement.fields2
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey([fields[0]], false);
@@ -80,7 +80,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
+    final fields = classElement.fields2
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey([fields[0]], false);
@@ -118,7 +118,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
+    final fields = classElement.fields2
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey(fields, false);
@@ -157,7 +157,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
+    final fields = classElement.fields2
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey(fields.sublist(0, 1), false);
@@ -205,7 +205,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
+    final fields = classElement.fields2
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey([fields[0]], false);
@@ -345,7 +345,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields
+    final fields = classElement.fields2
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey([fields[0]], false);
@@ -750,7 +750,7 @@ void main() {
   });
 }
 
-Future<List<ClassElement>> _createClassElements(final String classes) async {
+Future<List<ClassElement2>> _createClassElements(final String classes) async {
   final library = await resolveSource('''
       library test;
       

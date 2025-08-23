@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/extension/set_extension.dart';
@@ -15,11 +15,12 @@ import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:meta/meta.dart';
 import 'package:source_gen/source_gen.dart';
 
+// The migration is complete
 abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
   final QueryableProcessorError _queryableProcessorError;
 
   @protected
-  final ClassElement classElement;
+  final ClassElement2 classElement;
 
   final Set<TypeConverter> queryableTypeConverters;
 
@@ -37,8 +38,8 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
       throw _queryableProcessorError.prohibitedMixinUsage;
     }
     final fields = [
-      ...classElement.fields,
-      ...classElement.allSupertypes.expand((type) => type.element.fields),
+      ...classElement.fields2,
+      ...classElement.allSupertypes.expand((type) => type.element3.fields2),
     ];
 
     return fields
@@ -52,9 +53,9 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
 
   @protected
   String getConstructor(final List<Field> fields) {
-    final constructorParameters = classElement.constructors
+    final constructorParameters = classElement.constructors2
         .firstWhereOrNull((element) => element.isPublic && !element.isFactory)
-        ?.parameters;
+        ?.formalParameters;
 
     if (constructorParameters == null) {
       throw _queryableProcessorError.missingUnnamedConstructor;
@@ -71,7 +72,7 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
 
   /// Returns `null` whenever field is @ignored
   String? _getParameterValue(
-    final ParameterElement parameterElement,
+    final FormalParameterElement parameterElement,
     final List<Field> fields,
   ) {
     final parameterName = parameterElement.displayName;
@@ -84,7 +85,7 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
       String parameterValue;
 
       final typeConverter = [...queryableTypeConverters, field.typeConverter]
-          .whereNotNull()
+          .nonNulls
           .getClosestOrNull(parameterElement.type);
 
       if (typeConverter != null) {
@@ -119,7 +120,7 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
   }
 }
 
-extension on FieldElement {
+extension on FieldElement2 {
   bool shouldBeIncluded() {
     final isIgnored = hasAnnotation(annotations.ignore.runtimeType);
     return !(isStatic || isSynthetic || isIgnored);

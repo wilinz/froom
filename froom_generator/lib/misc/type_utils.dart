@@ -1,10 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:source_gen/source_gen.dart';
 
+// The migration is complete
 extension DartTypeChecker on DartType {
   /// Whether this [DartType] is either
   /// - String
@@ -22,7 +23,7 @@ extension DartTypeChecker on DartType {
     ]).isExactlyType(this);
   }
 
-  bool get isEnumType => element is EnumElement;
+  bool get isEnumType => element3 is EnumElement2;
 
   bool get isUint8List => _uint8ListTypeChecker.isExactlyType(this);
 }
@@ -38,7 +39,7 @@ extension FlattenUtil on DartType {
   }
 }
 
-extension AnnotationChecker on Element {
+extension AnnotationChecker on Element2 {
   bool hasAnnotation(final Type type) {
     return _typeChecker(type).hasAnnotationOfExact(this);
   }
@@ -50,7 +51,7 @@ extension AnnotationChecker on Element {
   }
 }
 
-TypeChecker _typeChecker(final Type type) => TypeChecker.fromRuntime(type);
+TypeChecker _typeChecker(final Type type) => TypeChecker.fromRuntime(type); // todo
 
 final _stringTypeChecker = _typeChecker(String);
 

@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -7,11 +7,12 @@ import 'package:froom_generator/processor/queryable_processor.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:froom_generator/value_object/view.dart';
 
+// The migration is complete
 class ViewProcessor extends QueryableProcessor<View> {
   final ViewProcessorError _processorError;
 
   ViewProcessor(
-    final ClassElement classElement,
+    final ClassElement2 classElement,
     final Set<TypeConverter> typeConverters,
   )   : _processorError = ViewProcessorError(classElement),
         super(classElement, typeConverters);

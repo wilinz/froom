@@ -1,10 +1,7 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
-import 'package:froom_generator/misc/extension/set_extension.dart';
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
-import 'package:froom_generator/processor/deletion_method_processor.dart';
-import 'package:froom_generator/processor/insertion_method_processor.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/processor/query_method_processor.dart';
 import 'package:froom_generator/processor/transaction_method_processor.dart';
@@ -19,8 +16,12 @@ import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:froom_generator/value_object/update_method.dart';
 import 'package:froom_generator/value_object/view.dart';
 
+import 'deletion_method_processor.dart';
+import 'insertion_method_processor.dart';
+
+// The migration is complete
 class DaoProcessor extends Processor<Dao> {
-  final ClassElement _classElement;
+  final ClassElement2 _classElement;
   final String _daoGetterName;
   final String _databaseName;
   final List<Entity> _entities;
@@ -28,7 +29,7 @@ class DaoProcessor extends Processor<Dao> {
   final Set<TypeConverter> _typeConverters;
 
   DaoProcessor(
-    final ClassElement classElement,
+    final ClassElement2 classElement,
     final String daoGetterName,
     final String databaseName,
     final List<Entity> entities,
@@ -45,12 +46,11 @@ class DaoProcessor extends Processor<Dao> {
   Dao process() {
     final name = _classElement.displayName;
     final methods = [
-      ..._classElement.methods,
-      ..._classElement.allSupertypes.expand((type) => type.methods)
+      ..._classElement.methods2,
+      ..._classElement.allSupertypes.expand((type) => type.methods2)
     ];
 
-    final typeConverters = _typeConverters +
-        _classElement.getTypeConverters(TypeConverterScope.dao);
+    final typeConverters = Set.of(_typeConverters)..addAll(_classElement.getTypeConverters(TypeConverterScope.dao));
 
     final queryMethods = _getQueryMethods(methods, typeConverters);
     final insertionMethods = _getInsertionMethods(methods);
@@ -79,7 +79,7 @@ class DaoProcessor extends Processor<Dao> {
   }
 
   List<QueryMethod> _getQueryMethods(
-    final List<MethodElement> methods,
+    final List<MethodElement2> methods,
     final Set<TypeConverter> typeConverters,
   ) {
     return methods
@@ -93,7 +93,7 @@ class DaoProcessor extends Processor<Dao> {
   }
 
   List<InsertionMethod> _getInsertionMethods(
-    final List<MethodElement> methodElements,
+    final List<MethodElement2> methodElements,
   ) {
     return methodElements
         .where(
@@ -103,7 +103,7 @@ class DaoProcessor extends Processor<Dao> {
   }
 
   List<UpdateMethod> _getUpdateMethods(
-    final List<MethodElement> methodElements,
+    final List<MethodElement2> methodElements,
   ) {
     return methodElements
         .where(
@@ -114,7 +114,7 @@ class DaoProcessor extends Processor<Dao> {
   }
 
   List<DeletionMethod> _getDeletionMethods(
-    final List<MethodElement> methodElements,
+    final List<MethodElement2> methodElements,
   ) {
     return methodElements
         .where((methodElement) =>
@@ -125,7 +125,7 @@ class DaoProcessor extends Processor<Dao> {
   }
 
   List<TransactionMethod> _getTransactionMethods(
-    final List<MethodElement> methodElements,
+    final List<MethodElement2> methodElements,
   ) {
     return methodElements
         .where((methodElement) =>

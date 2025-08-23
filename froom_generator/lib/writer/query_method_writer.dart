@@ -15,6 +15,7 @@ import 'package:froom_generator/value_object/view.dart';
 import 'package:froom_generator/writer/writer.dart';
 import 'package:source_gen/source_gen.dart';
 
+// The migration is complete
 class QueryMethodWriter implements Writer {
   final QueryMethod _queryMethod;
 
@@ -40,7 +41,7 @@ class QueryMethodWriter implements Writer {
   List<Parameter> _generateMethodParameters() {
     return _queryMethod.parameters.map((parameter) {
       return Parameter((builder) => builder
-        ..name = parameter.name
+        ..name = parameter.name3!
         ..type = refer(parameter.type.getDisplayString(
           // processor disallows nullable method parameters and throws if found,
           // still interested in nullability here to future-proof codebase
@@ -222,7 +223,7 @@ class QueryMethodWriter implements Writer {
   String _generateDartCoreMapper(final DartType returnType) {
     final castedDatabaseValue = 'row.values.first'.cast(
       returnType,
-      returnType.element,
+      returnType.element3,
       withNullability: false,
     );
     return '(Map<String, Object?> row) => $castedDatabaseValue';
@@ -231,7 +232,7 @@ class QueryMethodWriter implements Writer {
   String _generateConverterMapper(final TypeConverter typeConverter) {
     final castedDatabaseValue = 'row.values.first'.cast(
       typeConverter.databaseType,
-      typeConverter.fieldType.element,
+      typeConverter.fieldType.element3,
     );
     return '(Map<String, Object?> row) => _${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
   }

@@ -1,14 +1,15 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:froom_generator/processor/error/processor_error.dart';
 
+// The migration is complete
 class QueryProcessorError {
-  final MethodElement _methodElement;
+  final MethodElement2 _methodElement;
 
-  QueryProcessorError(final MethodElement methodElement)
+  QueryProcessorError(final MethodElement2 methodElement)
       : _methodElement = methodElement;
 
   ProcessorError unusedQueryMethodParameter(
-    final ParameterElement parameterElement,
+    final FormalParameterElement parameterElement,
   ) {
     return ProcessorError(
       message: 'Query method parameters have to be used.',
@@ -55,7 +56,7 @@ class QueryProcessorError {
   }
 
   ProcessorError queryMethodParameterIsNullable(
-    final ParameterElement parameterElement,
+    final FormalParameterElement parameterElement,
   ) {
     return ProcessorError(
       message: 'Query method parameters have to be non-nullable.',

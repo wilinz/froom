@@ -1,18 +1,19 @@
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/processor/error/query_processor_error.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/value_object/query.dart';
 
+// The migration is complete
 class QueryProcessor extends Processor<Query> {
   final QueryProcessorError _processorError;
 
   final String _query;
 
-  final List<ParameterElement> _parameters;
+  final List<FormalParameterElement> _parameters;
 
-  QueryProcessor(MethodElement methodElement, this._query)
-      : _parameters = methodElement.parameters,
+  QueryProcessor(MethodElement2 methodElement, this._query)
+      : _parameters = methodElement.formalParameters,
         _processorError = QueryProcessorError(methodElement);
 
   @override
@@ -25,10 +26,10 @@ class QueryProcessor extends Processor<Query> {
     int currentIndex = 1;
     for (final parameter in _parameters) {
       if (parameter.type.isDartCoreList) {
-        indices[':${parameter.name}'] = 0;
+        indices[':${parameter.name3}'] = 0;
       } else {
-        fixedParameters.add(parameter.name);
-        indices[':${parameter.name}'] = currentIndex++;
+        fixedParameters.add(parameter.name3!);
+        indices[':${parameter.name3!}'] = currentIndex++;
       }
     }
 
