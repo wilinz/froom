@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:collection/collection.dart';
 import 'package:froom_generator/misc/extension/set_equality_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/value_object/query.dart';
