@@ -1,13 +1,16 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
+const _kIsWeb = bool.hasEnvironment('dart.library.js_util')
+    ? bool.fromEnvironment('dart.library.js_util')
+    : identical(0, 0.0);
+
 // infers factory as nullable without explicit type definition
 final DatabaseFactory sqfliteDatabaseFactory = () {
-  if (kIsWeb) {
+  if (_kIsWeb) {
     return databaseFactoryFfiWeb;
   } else if (Platform.isAndroid || Platform.isIOS) {
     return databaseFactory;
