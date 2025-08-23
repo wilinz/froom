@@ -22,11 +22,16 @@ The third dependency is `build_runner` which has to be included as a dev depende
 dependencies:
   flutter:
     sdk: flutter
-  froom: ^1.4.0
+  froom: ^x.x.x
 
 dev_dependencies:
-  froom_generator: ^1.4.0
-  build_runner: ^2.1.2
+  froom_generator: ^x.x.x
+  build_runner: ^x.x.x
+```
+
+**💡 Tip: Use command for easier installation:**
+```bash
+dart pub add froom dev:froom_generator dev:build_runner
 ```
 
 ## 2. Create an Entity
