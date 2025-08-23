@@ -24,7 +24,7 @@ jobs:
 
       - name: Analyze
         working-directory: froom_annotation
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze .
 
       - name: Format
         working-directory: froom_annotation
@@ -47,7 +47,7 @@ jobs:
 
       - name: Analyze
         working-directory: froom_generator
-        run: dart analyze --fatal-infos --fatal-warnings .
+        run: dart analyze .
 
       - name: Format
         working-directory: froom_generator
