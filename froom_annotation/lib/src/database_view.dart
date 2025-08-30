@@ -7,8 +7,5 @@ class DatabaseView {
   final String query;
 
   /// Marks a class as a database view (a fixed select statement).
-  const DatabaseView(
-    this.query, {
-    this.viewName,
-  });
+  const DatabaseView(this.query, {this.viewName});
 }

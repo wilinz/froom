@@ -1,4 +1,3 @@
-
 /// Specifies additional type converters that Froom can use.
 /// The TypeConverter is added to the scope of the element so if you put it on
 /// a class, all methods/fields in that class will be able to use the

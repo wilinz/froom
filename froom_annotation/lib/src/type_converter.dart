@@ -1,4 +1,3 @@
-
 /// Base class for type converters which can be applied to:
 ///
 /// 1. databases
