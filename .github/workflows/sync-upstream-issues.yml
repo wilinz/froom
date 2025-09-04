@@ -28,82 +28,174 @@ jobs:
           UPSTREAM_REPO: 'pinchbv/floor'
           CURRENT_REPO: ${{ github.repository }}
         run: |
-          # GitHub CLI is pre-installed in GitHub Actions runners
-          # Set up authentication using environment variable (GH_TOKEN is automatically recognized)
-          gh --version
-          
           echo "Starting to sync issues from $UPSTREAM_REPO to $CURRENT_REPO"
           
-          # Create a temporary file to store existing issue titles for deduplication
-          echo "Fetching existing issues in current repository..."
-          gh issue list --repo "$CURRENT_REPO" --state open --limit 1000 --json title,number > existing_issues.json
-          
-          # Create a file to track which issues we've already processed
-          touch processed_issues.txt
-          
-          echo "Fetching open issues from upstream repository..."
-          gh issue list --repo "$UPSTREAM_REPO" --state open --limit 100 --json title,body,number,author,createdAt,labels > upstream_issues.json
-          
-          # Process each upstream issue
-          node -e "
-          const fs = require('fs');
+          # Create sync script
+          cat > sync_issues.js << 'EOF'
           const { execSync } = require('child_process');
+          const fs = require('fs');
           
+          function execCommand(command) {
+            try {
+              return execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+            } catch (error) {
+              console.error(`Command failed: ${command}`);
+              console.error(`Error: ${error.message}`);
+              return null;
+            }
+          }
+          
+          function escapeForShell(str) {
+            if (!str) return '""';
+            return JSON.stringify(str);
+          }
+          
+          function createLabelIfNotExists(labelName, color = '0366d6', description = '') {
+            const checkResult = execCommand(`gh label list --repo "${process.env.CURRENT_REPO}" --search "${labelName}" --limit 1 --json name`);
+            if (checkResult) {
+              const labels = JSON.parse(checkResult);
+              if (labels.length === 0) {
+                console.log(`    🏷️  Creating label: ${labelName}`);
+                const createResult = execCommand(`gh label create "${labelName}" --repo "${process.env.CURRENT_REPO}" --color "${color}" --description "${description}"`);
+                if (createResult) {
+                  console.log(`    ✅ Created label: ${labelName}`);
+                  return true;
+                } else {
+                  console.log(`    ⚠️  Failed to create label: ${labelName}`);
+                  return false;
+                }
+              } else {
+                return true; // Label exists
+              }
+            }
+            return false;
+          }
+
           async function syncIssues() {
-            const existingIssues = JSON.parse(fs.readFileSync('existing_issues.json', 'utf8'));
-            const upstreamIssues = JSON.parse(fs.readFileSync('upstream_issues.json', 'utf8'));
+            console.log('Fetching existing issues...');
+            const existingIssuesOutput = execCommand(`gh issue list --repo "${process.env.CURRENT_REPO}" --state all --limit 1000 --json title,body`);
+            if (!existingIssuesOutput) return;
             
-            // Create a set of existing issue titles for quick lookup
-            const existingTitles = new Set(existingIssues.map(issue => issue.title.toLowerCase().trim()));
+            const existingIssues = JSON.parse(existingIssuesOutput);
+            const existingBodies = new Set(existingIssues.map(issue => issue.body).filter(body => body && body.includes('Synced from upstream')));
             
+            // Ensure upstream-sync label exists
+            createLabelIfNotExists('upstream-sync', 'ff6b6b', 'Issues synced from upstream repository');
+            
+            console.log('Fetching upstream issues...');
+            const upstreamIssuesOutput = execCommand(`gh issue list --repo "${process.env.UPSTREAM_REPO}" --state open --limit 50 --json title,body,number,author,createdAt,labels,url`);
+            if (!upstreamIssuesOutput) return;
+            
+            const upstreamIssues = JSON.parse(upstreamIssuesOutput);
             let syncedCount = 0;
             
             for (const issue of upstreamIssues) {
-              const issueTitle = issue.title.toLowerCase().trim();
+              console.log(`Processing issue #${issue.number}: ${issue.title}`);
               
-              // Check for duplicates by title
-              if (existingTitles.has(issueTitle)) {
-                console.log(\`Skipping duplicate issue: \${issue.title}\`);
-                continue;
-              }
-              
-              // Prepare the issue body with upstream reference
-              const issueBody = \`**Synced from upstream:** https://github.com/\${process.env.UPSTREAM_REPO}/issues/\${issue.number}
-          **Original Author:** @\${issue.author.login}
-          **Created:** \${issue.createdAt}
+              // Create issue body with upstream reference
+              const upstreamRef = `https://github.com/${process.env.UPSTREAM_REPO}/issues/${issue.number}`;
+              const issueBody = `**🔗 Synced from upstream:** ${upstreamRef}
+          **👤 Original Author:** @${issue.author.login}
+          **📅 Created:** ${new Date(issue.createdAt).toLocaleDateString()}
           
           ---
           
-          \${issue.body || 'No description provided.'}\`.replace(/\"/g, '\\\"').replace(/\`/g, '\\\`');
+          ${issue.body || 'No description provided.'}`;
               
-              // Prepare labels
-              const labels = issue.labels.map(label => label.name).concat(['upstream-sync']);
-              const labelArgs = labels.map(label => \`--label \\\"\${label}\\\"\`).join(' ');
+              // Check if already synced by looking for the upstream reference in existing issues
+              const alreadySynced = existingBodies.has(issueBody) || 
+                                   existingIssues.some(existing => existing.body && existing.body.includes(upstreamRef));
+              
+              if (alreadySynced) {
+                console.log(`  ⏭️  Already synced, skipping...`);
+                continue;
+              }
               
               try {
-                // Create the issue using GitHub CLI
-                const command = \`gh issue create --repo \"\${process.env.CURRENT_REPO}\" --title \"\${issue.title.replace(/\"/g, '\\\"')}\" --body \"\${issueBody}\" \${labelArgs}\`;
-                console.log(\`Creating issue: \${issue.title}\`);
-                execSync(command, { stdio: 'inherit' });
+                // Write issue body to temporary file to handle special characters
+                fs.writeFileSync('temp_issue_body.txt', issueBody);
                 
-                // Add to existing titles set to prevent duplicates in this run
-                existingTitles.add(issueTitle);
-                syncedCount++;
+                // First, create the issue without labels to avoid label-related failures
+                const createCommand = `gh issue create --repo "${process.env.CURRENT_REPO}" --title ${escapeForShell(issue.title)} --body-file temp_issue_body.txt --label "upstream-sync"`;
+                console.log(`  🔄 Creating issue...`);
                 
-                // Add a small delay to avoid rate limiting
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                const result = execCommand(createCommand);
+                if (result) {
+                  console.log(`  ✅ Created successfully: ${result.trim()}`);
+                  const newIssueUrl = result.trim();
+                  const newIssueNumber = newIssueUrl.split('/').pop();
+                  
+                  // Add additional labels after issue creation
+                  if (issue.labels && issue.labels.length > 0) {
+                    console.log(`  🏷️  Adding labels...`);
+                    const upstreamPrefix = process.env.UPSTREAM_REPO.replace('/', '-');
+                    for (const label of issue.labels) {
+                      if (label.name && label.name !== 'upstream-sync') {
+                        // Add upstream prefix to avoid conflicts with existing labels
+                        const prefixedLabelName = `${upstreamPrefix}:${label.name}`;
+                        const labelColor = label.color || '0366d6';
+                        const labelDescription = `From ${process.env.UPSTREAM_REPO}: ${label.description || label.name}`;
+                        
+                        if (createLabelIfNotExists(prefixedLabelName, labelColor, labelDescription)) {
+                          const addLabelResult = execCommand(`gh issue edit ${newIssueNumber} --repo "${process.env.CURRENT_REPO}" --add-label ${escapeForShell(prefixedLabelName)}`);
+                          if (addLabelResult) {
+                            console.log(`    ✅ Added label: ${prefixedLabelName}`);
+                          } else {
+                            console.log(`    ⚠️  Could not add label: ${prefixedLabelName}`);
+                          }
+                        }
+                      }
+                    }
+                  }
+                  
+                  // Fetch and sync comments
+                  console.log(`  💬 Fetching comments for issue #${issue.number}...`);
+                  const commentsOutput = execCommand(`gh api repos/${process.env.UPSTREAM_REPO}/issues/${issue.number}/comments --jq '.[].body'`);
+                  
+                  if (commentsOutput && commentsOutput.trim()) {
+                    const comments = commentsOutput.trim().split('\n');
+                    for (let i = 0; i < comments.length; i++) {
+                      if (comments[i].trim()) {
+                        const commentBody = `💬 **Comment from upstream:**\n\n${comments[i]}`;
+                        fs.writeFileSync('temp_comment_body.txt', commentBody);
+                        const commentResult = execCommand(`gh issue comment ${newIssueNumber} --repo "${process.env.CURRENT_REPO}" --body-file temp_comment_body.txt`);
+                        if (commentResult) {
+                          console.log(`    💬 Added comment ${i + 1}`);
+                        }
+                      }
+                    }
+                  }
+                  
+                  syncedCount++;
+                  existingBodies.add(issueBody);
+                } else {
+                  console.log(`  ❌ Failed to create issue`);
+                }
+                
+                // Clean up temp file
+                fs.unlinkSync('temp_issue_body.txt');
+                if (fs.existsSync('temp_comment_body.txt')) {
+                  fs.unlinkSync('temp_comment_body.txt');
+                }
+                
               } catch (error) {
-                console.error(\`Failed to create issue '\${issue.title}': \${error.message}\`);
+                console.error(`  ❌ Error processing issue: ${error.message}`);
               }
+              
+              // Rate limiting
+              await new Promise(resolve => setTimeout(resolve, 2000));
             }
             
-            console.log(\`Sync completed. \${syncedCount} new issues created.\`);
+            console.log(`\n🎉 Sync completed! ${syncedCount} new issues created.`);
           }
           
           syncIssues().catch(console.error);
-          "
+          EOF
           
-          # Clean up temporary files
-          rm -f existing_issues.json upstream_issues.json processed_issues.txt
+          # Run the sync script
+          node sync_issues.js
           
-          echo "Issue sync completed successfully!"
+          # Clean up
+          rm -f sync_issues.js temp_issue_body.txt temp_comment_body.txt
+          
+          echo "Issue sync completed!"
