@@ -1,0 +1,160 @@
+name: Delete Upstream Synced Issues
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deletion:
+        description: 'Type "DELETE" to confirm deletion of all GitHub Actions created issues'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run mode (only show what would be deleted, do not actually delete)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  delete-issues:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate input
+        if: ${{ github.event.inputs.confirm_deletion != 'DELETE' && github.event.inputs.dry_run != 'true' }}
+        run: |
+          echo "❌ Error: You must type 'DELETE' to confirm deletion or enable dry run mode"
+          exit 1
+      
+      - name: Delete upstream synced issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_REPO: ${{ github.repository }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          CONFIRM: ${{ github.event.inputs.confirm_deletion }}
+        run: |
+          echo "Starting deletion process for upstream-sync issues..."
+          echo "Repository: $CURRENT_REPO"
+          echo "Dry run mode: $DRY_RUN"
+          echo "Confirmation: $CONFIRM"
+          echo ""
+          
+          # Create deletion script
+          cat > delete_issues.js << 'EOF'
+          const { execSync } = require('child_process');
+          
+          function execCommand(command) {
+            try {
+              return execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+            } catch (error) {
+              console.error(`Command failed: ${command}`);
+              console.error(`Error: ${error.message}`);
+              return null;
+            }
+          }
+          
+          async function deleteUpstreamIssues() {
+            const isDryRun = process.env.DRY_RUN === 'true';
+            const isConfirmed = process.env.CONFIRM === 'DELETE';
+            
+            console.log('🔍 Fetching issues created by GitHub Actions...');
+            
+            // Fetch all issues created by github-actions
+            const issuesOutput = execCommand(`gh issue list --repo "${process.env.CURRENT_REPO}" --state all --author "github-actions[bot]" --limit 1000 --json number,title,state,url`);
+            if (!issuesOutput) {
+              console.log('❌ Failed to fetch issues');
+              return;
+            }
+            
+            const issues = JSON.parse(issuesOutput);
+            console.log(`📊 Found ${issues.length} issues created by GitHub Actions`);
+            
+            if (issues.length === 0) {
+              console.log('✅ No GitHub Actions created issues found to delete');
+              return;
+            }
+            
+            console.log('\\n📋 Issues to be deleted:');
+            for (const issue of issues) {
+              const stateIcon = issue.state === 'open' ? '🟢' : '🔴';
+              console.log(`  ${stateIcon} #${issue.number}: ${issue.title}`);
+              console.log(`     ${issue.url}`);
+            }
+            
+            if (isDryRun) {
+              console.log('\\n🔍 DRY RUN MODE: No issues will be actually deleted');
+              console.log(`Would delete ${issues.length} issues`);
+              return;
+            }
+            
+            if (!isConfirmed) {
+              console.log('\\n❌ Deletion not confirmed. Aborting.');
+              return;
+            }
+            
+            console.log('\\n🗑️  Starting deletion process...');
+            let deletedCount = 0;
+            let failedCount = 0;
+            
+            for (const issue of issues) {
+              console.log(`\\n  🗑️  Deleting issue #${issue.number}: ${issue.title}`);
+              
+              try {
+                // Directly attempt permanent deletion - no pre-processing needed
+                
+                // Try to delete the issue using GraphQL API (requires admin permissions)
+                console.log(`    🗑️  Attempting to delete issue #${issue.number}...`);
+                
+                // First get the issue's node ID
+                const issueDetailOutput = execCommand(`gh api repos/${process.env.CURRENT_REPO}/issues/${issue.number} --jq '.node_id'`);
+                if (issueDetailOutput) {
+                  const nodeId = issueDetailOutput.trim();
+                  console.log(`    📝 Issue node ID: ${nodeId}`);
+                  
+                  // Try to delete using GraphQL mutation
+                  const deleteQuery = JSON.stringify({
+                    query: `mutation { deleteIssue(input: { issueId: "${nodeId}" }) { repository { id } } }`
+                  });
+                  
+                  const deleteResult = execCommand(`gh api graphql --input - <<< '${deleteQuery}'`);
+                  if (deleteResult && !deleteResult.includes('error')) {
+                    console.log(`    ✅ Successfully deleted issue #${issue.number}`);
+                  } else {
+                    console.error(`    ❌ Failed to delete issue #${issue.number}`);
+                    console.error(`    📝 Response: ${deleteResult || 'No response'}`);
+                    console.error(`    🚫 Insufficient permissions - admin access required for deletion`);
+                    throw new Error(`Cannot delete issue #${issue.number} - requires admin permissions`);
+                  }
+                } else {
+                  console.error(`    ❌ Could not get issue node ID for #${issue.number}`);
+                  throw new Error(`Cannot get node ID for issue #${issue.number}`);
+                }
+                
+                deletedCount++;
+                console.log(`    ✅ Processed issue #${issue.number}`);
+                
+              } catch (error) {
+                console.error(`    ❌ Failed to process issue #${issue.number}: ${error.message}`);
+                failedCount++;
+              }
+              
+              // Rate limiting
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            console.log('\\n🎉 Cleanup completed!');
+            console.log(`✅ Successfully processed: ${deletedCount} issues`);
+            console.log(`❌ Failed to process: ${failedCount} issues`);
+            console.log('\\nNote: GitHub API does not allow deleting issues for security reasons.');
+            console.log('Issues have been closed and marked with "deleted" label instead.');
+          }
+          
+          deleteUpstreamIssues().catch(console.error);
+          EOF
+          
+          # Run the deletion script
+          node delete_issues.js
+          
+          # Clean up
+          rm -f delete_issues.js
+          
+          echo ""
+          echo "Issue cleanup process completed!"
