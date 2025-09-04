@@ -83,10 +83,15 @@ jobs:
             createLabelIfNotExists('upstream-sync', 'ff6b6b', 'Issues synced from upstream repository');
             
             console.log('Fetching upstream issues...');
-            const upstreamIssuesOutput = execCommand(`gh issue list --repo "${process.env.UPSTREAM_REPO}" --state open --limit 50 --json title,body,number,author,createdAt,labels,url`);
+            const upstreamIssuesOutput = execCommand(`gh issue list --repo "${process.env.UPSTREAM_REPO}" --state open --limit 150 --json title,body,number,author,createdAt,labels,url --order created --sort created`);
             if (!upstreamIssuesOutput) return;
             
             const upstreamIssues = JSON.parse(upstreamIssuesOutput);
+            
+            // Sort issues by creation date (newest first)
+            upstreamIssues.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            console.log(`Found ${upstreamIssues.length} upstream issues (sorted by newest first)`);
+            
             let syncedCount = 0;
             
             for (const issue of upstreamIssues) {
