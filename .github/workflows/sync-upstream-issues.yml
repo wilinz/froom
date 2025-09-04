@@ -115,8 +115,8 @@ jobs:
                 // Write issue body to temporary file to handle special characters
                 fs.writeFileSync('temp_issue_body.txt', issueBody);
                 
-                // First, create the issue without labels to avoid label-related failures
-                const createCommand = `gh issue create --repo "${process.env.CURRENT_REPO}" --title ${escapeForShell(issue.title)} --body-file temp_issue_body.txt --label "upstream-sync"`;
+                // Create the issue without any labels first
+                const createCommand = `gh issue create --repo "${process.env.CURRENT_REPO}" --title ${escapeForShell(issue.title)} --body-file temp_issue_body.txt`;
                 console.log(`  🔄 Creating issue...`);
                 
                 const result = execCommand(createCommand);
@@ -124,6 +124,17 @@ jobs:
                   console.log(`  ✅ Created successfully: ${result.trim()}`);
                   const newIssueUrl = result.trim();
                   const newIssueNumber = newIssueUrl.split('/').pop();
+                  
+                  // First add the upstream-sync label
+                  console.log(`  🏷️  Adding upstream-sync label...`);
+                  if (createLabelIfNotExists('upstream-sync', 'ff6b6b', 'Issues synced from upstream repository')) {
+                    const addUpstreamLabelResult = execCommand(`gh issue edit ${newIssueNumber} --repo "${process.env.CURRENT_REPO}" --add-label "upstream-sync"`);
+                    if (addUpstreamLabelResult) {
+                      console.log(`    ✅ Added upstream-sync label`);
+                    } else {
+                      console.log(`    ⚠️  Could not add upstream-sync label`);
+                    }
+                  }
                   
                   // Add additional labels after issue creation
                   if (issue.labels && issue.labels.length > 0) {
