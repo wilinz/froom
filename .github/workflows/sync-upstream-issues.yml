@@ -88,9 +88,9 @@ jobs:
             
             const upstreamIssues = JSON.parse(upstreamIssuesOutput);
             
-            // Sort issues by creation date (newest first)
-            upstreamIssues.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            console.log(`Found ${upstreamIssues.length} upstream issues (sorted by newest first)`);
+            // Sort issues by creation date (oldest first)
+            upstreamIssues.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            console.log(`Found ${upstreamIssues.length} upstream issues (sorted by oldest first)`);
             
             let syncedCount = 0;
             
