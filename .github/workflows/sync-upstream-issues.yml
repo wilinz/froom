@@ -24,21 +24,13 @@ jobs:
       
       - name: Sync upstream issues
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           UPSTREAM_REPO: 'pinchbv/floor'
           CURRENT_REPO: ${{ github.repository }}
         run: |
-          # Install GitHub CLI if not available
-          if ! command -v gh &> /dev/null; then
-            echo "Installing GitHub CLI..."
-            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-            sudo apt update
-            sudo apt install gh
-          fi
-          
-          # Authenticate with GitHub CLI
-          echo "$GITHUB_TOKEN" | gh auth login --with-token
+          # GitHub CLI is pre-installed in GitHub Actions runners
+          # Set up authentication using environment variable (GH_TOKEN is automatically recognized)
+          gh --version
           
           echo "Starting to sync issues from $UPSTREAM_REPO to $CURRENT_REPO"
           
@@ -57,54 +49,58 @@ jobs:
           const fs = require('fs');
           const { execSync } = require('child_process');
           
-          const existingIssues = JSON.parse(fs.readFileSync('existing_issues.json', 'utf8'));
-          const upstreamIssues = JSON.parse(fs.readFileSync('upstream_issues.json', 'utf8'));
-          
-          // Create a set of existing issue titles for quick lookup
-          const existingTitles = new Set(existingIssues.map(issue => issue.title.toLowerCase().trim()));
-          
-          let syncedCount = 0;
-          
-          for (const issue of upstreamIssues) {
-            const issueTitle = issue.title.toLowerCase().trim();
+          async function syncIssues() {
+            const existingIssues = JSON.parse(fs.readFileSync('existing_issues.json', 'utf8'));
+            const upstreamIssues = JSON.parse(fs.readFileSync('upstream_issues.json', 'utf8'));
             
-            // Check for duplicates by title
-            if (existingTitles.has(issueTitle)) {
-              console.log(\`Skipping duplicate issue: \${issue.title}\`);
-              continue;
-            }
+            // Create a set of existing issue titles for quick lookup
+            const existingTitles = new Set(existingIssues.map(issue => issue.title.toLowerCase().trim()));
             
-            // Prepare the issue body with upstream reference
-            const issueBody = \`**Synced from upstream:** https://github.com/\${process.env.UPSTREAM_REPO}/issues/\${issue.number}
+            let syncedCount = 0;
+            
+            for (const issue of upstreamIssues) {
+              const issueTitle = issue.title.toLowerCase().trim();
+              
+              // Check for duplicates by title
+              if (existingTitles.has(issueTitle)) {
+                console.log(\`Skipping duplicate issue: \${issue.title}\`);
+                continue;
+              }
+              
+              // Prepare the issue body with upstream reference
+              const issueBody = \`**Synced from upstream:** https://github.com/\${process.env.UPSTREAM_REPO}/issues/\${issue.number}
           **Original Author:** @\${issue.author.login}
           **Created:** \${issue.createdAt}
           
           ---
           
-          \${issue.body || 'No description provided.'}\`;
-            
-            // Prepare labels
-            const labels = issue.labels.map(label => label.name).concat(['upstream-sync']);
-            const labelArgs = labels.map(label => \`--label \\\"\${label}\\\"\`).join(' ');
-            
-            try {
-              // Create the issue using GitHub CLI
-              const command = \`gh issue create --repo \"\${process.env.CURRENT_REPO}\" --title \"\${issue.title}\" --body \"\${issueBody}\" \${labelArgs}\`;
-              console.log(\`Creating issue: \${issue.title}\`);
-              execSync(command, { stdio: 'inherit' });
+          \${issue.body || 'No description provided.'}\`.replace(/\"/g, '\\\"').replace(/\`/g, '\\\`');
               
-              // Add to existing titles set to prevent duplicates in this run
-              existingTitles.add(issueTitle);
-              syncedCount++;
+              // Prepare labels
+              const labels = issue.labels.map(label => label.name).concat(['upstream-sync']);
+              const labelArgs = labels.map(label => \`--label \\\"\${label}\\\"\`).join(' ');
               
-              // Add a small delay to avoid rate limiting
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            } catch (error) {
-              console.error(\`Failed to create issue '\${issue.title}': \${error.message}\`);
+              try {
+                // Create the issue using GitHub CLI
+                const command = \`gh issue create --repo \"\${process.env.CURRENT_REPO}\" --title \"\${issue.title.replace(/\"/g, '\\\"')}\" --body \"\${issueBody}\" \${labelArgs}\`;
+                console.log(\`Creating issue: \${issue.title}\`);
+                execSync(command, { stdio: 'inherit' });
+                
+                // Add to existing titles set to prevent duplicates in this run
+                existingTitles.add(issueTitle);
+                syncedCount++;
+                
+                // Add a small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              } catch (error) {
+                console.error(\`Failed to create issue '\${issue.title}': \${error.message}\`);
+              }
             }
+            
+            console.log(\`Sync completed. \${syncedCount} new issues created.\`);
           }
           
-          console.log(\`Sync completed. \${syncedCount} new issues created.\`);
+          syncIssues().catch(console.error);
           "
           
           # Clean up temporary files
