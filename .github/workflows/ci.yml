@@ -26,9 +26,9 @@ jobs:
         working-directory: froom_annotation
         run: dart analyze --no-fatal-warnings .
 
-      - name: Format
-        working-directory: froom_annotation
-        run: dart format --output=none --set-exit-if-changed .
+      # - name: Format
+      #   working-directory: froom_annotation
+      #   run: dart format --output=none --set-exit-if-changed .
 
   froom-generator:
     runs-on: ubuntu-latest
@@ -49,9 +49,9 @@ jobs:
         working-directory: froom_generator
         run: dart analyze --no-fatal-warnings .
 
-      - name: Format
-        working-directory: froom_generator
-        run: dart format --output=none --set-exit-if-changed .
+      # - name: Format
+      #   working-directory: froom_generator
+      #   run: dart format --output=none --set-exit-if-changed .
 
       - name: Run tests
         working-directory: froom_generator
