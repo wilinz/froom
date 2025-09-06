@@ -1,9 +1,9 @@
 name: Sync Upstream Issues
 
 on:
-  schedule:
+#  schedule:
     # Run daily at 6:00 AM UTC
-    - cron: '0 6 * * *'
+#    - cron: '0 6 * * *'
   workflow_dispatch:
     # Allow manual triggering
 
@@ -125,10 +125,21 @@ jobs:
                 console.log(`  🔄 Creating issue...`);
                 
                 const result = execCommand(createCommand);
-                if (result) {
-                  console.log(`  ✅ Created successfully: ${result.trim()}`);
+                if (result && result.trim()) {
                   const newIssueUrl = result.trim();
-                  const newIssueNumber = newIssueUrl.split('/').pop();
+                  console.log(`  ✅ Created successfully: ${newIssueUrl}`);
+                  
+                  // Extract issue number from URL like "https://github.com/owner/repo/issues/123"
+                  const urlParts = newIssueUrl.split('/');
+                  const newIssueNumber = urlParts[urlParts.length - 1];
+                  
+                  if (!newIssueNumber || !/^\d+$/.test(newIssueNumber)) {
+                    console.log(`  ⚠️  Could not extract issue number from URL: ${newIssueUrl}`);
+                    console.log(`  🔍 Extracted value: '${newIssueNumber}'`);
+                    continue;
+                  }
+                  
+                  console.log(`  📝 Extracted issue number: ${newIssueNumber}`);
                   
                   // First add the upstream-sync label
                   console.log(`  🏷️  Adding upstream-sync label...`);
