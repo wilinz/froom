@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:source_gen/source_gen.dart';
 
 // The migration is complete
@@ -10,7 +10,7 @@ class ProcessorError extends Error {
   final String todo;
 
   /// The code element associated with this error.
-  final Element2 element;
+  final Element element;
 
   ProcessorError({
     required this.message,

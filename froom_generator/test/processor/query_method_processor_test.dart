@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build_test/build_test.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/type_utils.dart';
@@ -448,7 +448,7 @@ void main() {
   });
 }
 
-Future<MethodElement2> _createQueryMethodElement(
+Future<MethodElement> _createQueryMethodElement(
   final String method,
 ) async {
   final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
@@ -484,7 +484,7 @@ Future<MethodElement2> _createQueryMethodElement(
         .then((value) => LibraryReader(value));
   });
 
-  return library.classes.first.methods2.first;
+  return library.classes.first.methods.first;
 }
 
 Future<List<Entity>> _getEntities() async {

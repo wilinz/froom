@@ -28,7 +28,7 @@ class ChangeMethodWriterHelper {
     final parameter = _changeMethod.parameterElement;
 
     return Parameter((builder) => builder
-      ..name = parameter.name3!
+      ..name = parameter.name!
       ..type =
           refer(parameter.type.getDisplayStringCompat(withNullability: false)));
   }

@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_generator/misc/extension/set_equality_extension.dart';
 import 'package:froom_generator/value_object/dao_getter.dart';
@@ -9,7 +9,7 @@ import 'package:froom_generator/value_object/view.dart';
 // The migration is complete
 /// Representation of the database component.
 class Database {
-  final ClassElement2 classElement;
+  final ClassElement classElement;
   final String name;
   final List<Entity> entities;
   final List<View> views;

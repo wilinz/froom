@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_generator/value_object/field.dart';
 import 'package:froom_generator/value_object/queryable.dart';
@@ -8,7 +8,7 @@ class View extends Queryable {
   final String query;
 
   View(
-    ClassElement2 classElement,
+    ClassElement classElement,
     String name,
     List<Field> fields,
     this.query,
