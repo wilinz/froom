@@ -52,7 +52,8 @@ Please choose the appropriate version based on your `source_gen` dependency:
 
 | source_gen Version | Froom Version |
 |--------------------|---------------|
-| 3.x.x and above   | 3.x.x         |
+| 4.x.x             | 4.x.x         |
+| 3.x.x             | 3.x.x         |
 | 2.x.x             | 2.0.4         |
 
 ## Migrating from Floor

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## 4.0.0 - 2025-09-10
+
+### ⬆️ Breaking Changes & Dependencies
+- **froom_generator**: Migrated from analyzer element2 API to element API for improved compatibility
+- **analyzer**: Bumped to version 8.1.1 with comprehensive dependency updates
+- **build & source_gen**: Updated to latest versions across froom and froom_common packages
+
+### ✨ Features
+- **query_adapter**: Added custom SqlParseException for better error handling of invalid SQL statements
+
 ## 3.0.2
 
 ### 🔧 Improvements
