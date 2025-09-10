@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## 4.0.0 - 2025-09-10
+## 4.0.0
 
 ### ⬆️ Breaking Changes & Dependencies
 - **froom_generator**: Migrated from analyzer element2 API to element API for improved compatibility
