@@ -9,9 +9,9 @@ echo "🚀 Starting Froom migration to v3.0.0..."
 
 # Step 1: Update dependencies
 echo "📦 Updating dependencies..."
-flutter pub add froom:^3.0.0
-flutter pub add --dev froom_generator:^3.0.0
-flutter pub add --dev build_runner:^2.1.2
+flutter pub add froom
+flutter pub add --dev froom_generator
+flutter pub add --dev build_runner
 
 # Step 2: Clean and get dependencies
 echo "🧹 Cleaning and getting dependencies..."

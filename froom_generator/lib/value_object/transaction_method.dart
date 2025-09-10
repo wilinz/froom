@@ -1,9 +1,9 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 // The migration is complete
 class TransactionMethod {
-  final MethodElement2 methodElement;
+  final MethodElement methodElement;
   final String name;
   final DartType returnType;
   final List<FormalParameterElement> parameterElements;
@@ -25,7 +25,7 @@ class TransactionMethod {
       other is TransactionMethod &&
           runtimeType == other.runtimeType &&
           // 比较元素的名称而不是实例
-          methodElement.name3 == other.methodElement.name3 &&
+          methodElement.name == other.methodElement.name &&
           name == other.name &&
           // 比较类型的字符串表示
           returnType.getDisplayString() ==
@@ -40,7 +40,7 @@ class TransactionMethod {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {
       // 比较参数名和类型
-      if (a[i].name3 != b[i].name3 ||
+      if (a[i].name != b[i].name ||
           a[i].type.getDisplayString() != b[i].type.getDisplayString()) {
         return false;
       }
@@ -50,10 +50,10 @@ class TransactionMethod {
 
   @override
   int get hashCode =>
-      methodElement.name3.hashCode ^
+      methodElement.name.hashCode ^
       name.hashCode ^
       returnType.getDisplayString().hashCode ^
-      parameterElements.map((e) => e.name3).join(',').hashCode ^
+      parameterElements.map((e) => e.name).join(',').hashCode ^
       daoFieldName.hashCode ^
       databaseName.hashCode;
 

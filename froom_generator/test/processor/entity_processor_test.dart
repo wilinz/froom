@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build_test/build_test.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/processor/entity_processor.dart';
@@ -32,7 +32,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey([fields[0]], false);
@@ -80,7 +80,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey([fields[0]], false);
@@ -118,7 +118,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey(fields, false);
@@ -157,7 +157,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey(fields.sublist(0, 1), false);
@@ -205,7 +205,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey([fields[0]], false);
@@ -345,7 +345,7 @@ void main() {
     final actual = EntityProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     final primaryKey = PrimaryKey([fields[0]], false);
@@ -585,16 +585,15 @@ void main() {
               EntityProcessorError(classElements[1]).missingChildColumns));
     });
     test('foreignKey does not reference entity', () async {
-      final classElements = await _createClassElements('''
-          final Person = ()=>2;
+      final classElement = await createClassElement('''
+          enum Dummy { a, b }
           
           @Entity(
             foreignKeys: [
               ForeignKey(
                 childColumns: ['owner_id'],
                 parentColumns: ['id'],
-                entity: Entity(),
-                onUpdate: ForeignKeyAction.setNull
+                entity: Dummy,
                 onDelete: ForeignKeyAction.setNull,
               )
             ],
@@ -612,13 +611,13 @@ void main() {
           }
       ''');
 
-      final processor = EntityProcessor(classElements[0], {});
+      final processor = EntityProcessor(classElement, {});
       expect(
           processor.process,
           throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements[0])
+              EntityProcessorError(classElement)
                   .foreignKeyDoesNotReferenceEntity));
-    }, skip: 'Can not reproduce error case');
+    });
     test('foreign key reference does not exist', () async {
       final classElements = await createClassElement('''
           @Entity(
@@ -750,7 +749,7 @@ void main() {
   });
 }
 
-Future<List<ClassElement2>> _createClassElements(final String classes) async {
+Future<List<ClassElement>> _createClassElements(final String classes) async {
   final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       

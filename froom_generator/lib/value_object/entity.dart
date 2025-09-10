@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_generator/value_object/field.dart';
 import 'package:froom_generator/value_object/foreign_key.dart';
@@ -18,7 +18,7 @@ class Entity extends Queryable {
   final Fts? fts;
 
   Entity(
-    ClassElement2 classElement,
+    ClassElement classElement,
     String name,
     List<Field> fields,
     this.primaryKey,

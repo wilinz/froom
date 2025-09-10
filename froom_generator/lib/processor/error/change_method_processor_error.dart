@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations
     show OnConflictStrategy;
 import 'package:froom_generator/misc/constants.dart';
@@ -6,7 +6,7 @@ import 'package:source_gen/source_gen.dart';
 
 // The migration is complete
 class ChangeMethodProcessorError {
-  final MethodElement2 _methodElement;
+  final MethodElement _methodElement;
   final String _methodType;
 
   ChangeMethodProcessorError(this._methodElement, this._methodType);

@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_generator/misc/extension/set_equality_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -10,7 +10,7 @@ import 'package:froom_generator/value_object/type_converter.dart';
 /// Wraps a method annotated with Query
 /// to enable easy access to code generation relevant data.
 class QueryMethod {
-  final MethodElement2 methodElement;
+  final MethodElement methodElement;
 
   final String name;
 
@@ -49,7 +49,7 @@ class QueryMethod {
   bool get returnsList {
     final type = returnsStream
         ? rawReturnType.flatten()
-        : methodElement.library2.typeSystem.flatten(rawReturnType);
+        : methodElement.library.typeSystem.flatten(rawReturnType);
 
     return type.isDartCoreList;
   }
@@ -64,7 +64,7 @@ class QueryMethod {
       other is QueryMethod &&
           runtimeType == other.runtimeType &&
           // 比较方法名而不是元素实例
-          methodElement.name3 == other.methodElement.name3 &&
+          methodElement.name == other.methodElement.name &&
           name == other.name &&
           query == other.query &&
           // 比较类型的字符串表示
@@ -83,7 +83,7 @@ class QueryMethod {
   ) {
     if (a.length != b.length) return false;
     for (int i = 0; i < a.length; i++) {
-      if (a[i].name3 != b[i].name3 ||
+      if (a[i].name != b[i].name ||
           a[i].type.getDisplayString() != b[i].type.getDisplayString()) {
         return false;
       }
@@ -93,14 +93,14 @@ class QueryMethod {
 
   @override
   int get hashCode =>
-      methodElement.name3.hashCode ^
+      methodElement.name.hashCode ^
       name.hashCode ^
       query.hashCode ^
       rawReturnType.getDisplayString().hashCode ^
       flattenedReturnType.getDisplayString().hashCode ^
       // 对参数列表生成 hashCode
       Object.hashAll(parameters
-          .map((p) => Object.hash(p.name3, p.type.getDisplayString()))) ^
+          .map((p) => Object.hash(p.name, p.type.getDisplayString()))) ^
       queryable.hashCode ^
       typeConverters.hashCode;
 

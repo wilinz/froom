@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_generator/value_object/change_method.dart';
 import 'package:froom_generator/value_object/entity.dart';
@@ -8,7 +8,7 @@ class InsertionMethod extends ChangeMethod {
   final String onConflict;
 
   InsertionMethod(
-    final MethodElement2 methodElement,
+    final MethodElement methodElement,
     final String name,
     final DartType returnType,
     final DartType flattenedReturnType,

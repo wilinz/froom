@@ -21,7 +21,7 @@ void main() {
     final actual = ViewProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     const query = 'SELECT * from otherentity';
@@ -51,7 +51,7 @@ void main() {
     final actual = ViewProcessor(classElement, {}).process();
 
     const name = 'Person';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     const query =
@@ -178,7 +178,7 @@ void main() {
     final actual = ViewProcessor(classElement, {}).process();
 
     const name = 'personview';
-    final fields = classElement.fields2
+    final fields = classElement.fields
         .map((fieldElement) => FieldProcessor(fieldElement, null).process())
         .toList();
     const query = 'SELECT * from otherentity';

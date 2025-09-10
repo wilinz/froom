@@ -5,6 +5,7 @@ import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqlparser/sqlparser.dart';
 
 import '../util/constants.dart';
+import '../util/exceptions.dart';
 
 /// This class knows how to execute database queries.
 class QueryAdapter {
@@ -148,6 +149,10 @@ class QueryAdapter {
     } else if (rootNode is DeleteStatement) {
       result = await _database.rawDelete(sql, arguments).then(_mapResult);
       tableName = rootNode.table.tableName;
+    } else if (rootNode is InvalidStatement) {
+      throw SqlParseException(sql);
+    } else {
+      throw StateError('Unknown statement type: $rootNode');
     }
 
     _notifyIfChanged(tableName, result);

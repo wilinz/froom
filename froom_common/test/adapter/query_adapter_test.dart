@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:froom_common/src/adapter/query_adapter.dart';
+import 'package:froom_common/src/util/exceptions.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -22,6 +23,12 @@ void main() {
 
   group('queries (no stream)', () {
     final underTest = QueryAdapter(mockDatabaseExecutor);
+
+    test('exception because query can not be parsed', () async {
+      final deleteQueryFuture = underTest.queryNoReturn('DELETE * FROM foo');
+
+      expect(deleteQueryFuture, throwsA(isA<SqlParseException>()));
+    });
 
     group('query item', () {
       test('returns item without arguments', () async {
