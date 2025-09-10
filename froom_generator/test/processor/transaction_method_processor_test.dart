@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build_test/build_test.dart';
 import 'package:froom_generator/processor/error/transaction_method_processor_error.dart';
 import 'package:froom_generator/processor/transaction_method_processor.dart';
@@ -55,7 +55,7 @@ void main() {
   });
 }
 
-Future<MethodElement2> _generateMethodElement(final String method) async {
+Future<MethodElement> _generateMethodElement(final String method) async {
   final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
       library test;
       
@@ -69,5 +69,5 @@ Future<MethodElement2> _generateMethodElement(final String method) async {
         .then((value) => LibraryReader(value));
   });
 
-  return library.classes.first.methods2.first;
+  return library.classes.first.methods.first;
 }

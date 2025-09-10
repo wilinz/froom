@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/change_method_processor_helper.dart';
@@ -12,12 +12,12 @@ import 'package:froom_generator/value_object/update_method.dart';
 
 // The migration is complete
 class UpdateMethodProcessor implements Processor<UpdateMethod> {
-  final MethodElement2 _methodElement;
+  final MethodElement _methodElement;
   final ChangeMethodProcessorHelper _helper;
   final ChangeMethodProcessorError _errors;
 
   UpdateMethodProcessor(
-    final MethodElement2 methodElement,
+    final MethodElement methodElement,
     final List<Entity> entities, [
     final ChangeMethodProcessorHelper? changeMethodProcessorHelper,
   ])  : _methodElement = methodElement,
@@ -27,7 +27,7 @@ class UpdateMethodProcessor implements Processor<UpdateMethod> {
 
   @override
   UpdateMethod process() {
-    final name = _methodElement.name3!;
+    final name = _methodElement.name!;
     final returnType = _methodElement.returnType;
 
     _assertMethodReturnsFuture(returnType);
@@ -73,7 +73,7 @@ class UpdateMethodProcessor implements Processor<UpdateMethod> {
   }
 
   DartType _getFlattenedReturnType(final DartType returnType) {
-    return _methodElement.library2.typeSystem.flatten(returnType);
+    return _methodElement.library.typeSystem.flatten(returnType);
   }
 
   void _assertMethodReturnsNoList(final DartType flattenedReturnType) {

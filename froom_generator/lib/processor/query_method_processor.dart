@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
@@ -19,12 +19,12 @@ import 'package:froom_generator/value_object/type_converter.dart';
 class QueryMethodProcessor extends Processor<QueryMethod> {
   final QueryMethodProcessorError _processorError;
 
-  final MethodElement2 _methodElement;
+  final MethodElement _methodElement;
   final List<Queryable> _queryables;
   final Set<TypeConverter> _typeConverters;
 
   QueryMethodProcessor(
-    final MethodElement2 methodElement,
+    final MethodElement methodElement,
     final List<Queryable> queryables,
     final Set<TypeConverter> typeConverters,
   )   : _methodElement = methodElement,
@@ -106,14 +106,14 @@ class QueryMethodProcessor extends Processor<QueryMethod> {
   ) {
     final type = returnsStream
         ? _methodElement.returnType.flatten()
-        : _methodElement.library2.typeSystem.flatten(rawReturnType);
+        : _methodElement.library.typeSystem.flatten(rawReturnType);
     return returnsList ? type.flatten() : type;
   }
 
   bool _getReturnsList(final DartType returnType, final bool returnsStream) {
     final type = returnsStream
         ? returnType.flatten()
-        : _methodElement.library2.typeSystem.flatten(returnType);
+        : _methodElement.library.typeSystem.flatten(returnType);
 
     return type.isDartCoreList;
   }

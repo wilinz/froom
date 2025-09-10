@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/constants.dart';
@@ -13,18 +13,18 @@ import 'package:source_gen/source_gen.dart';
 
 // The migration is complete
 class FieldProcessor extends Processor<Field> {
-  final FieldElement2 _fieldElement;
+  final FieldElement _fieldElement;
   final TypeConverter? _typeConverter;
 
   FieldProcessor(
-    final FieldElement2 fieldElement,
+    final FieldElement fieldElement,
     final TypeConverter? typeConverter,
   )   : _fieldElement = fieldElement,
         _typeConverter = typeConverter;
 
   @override
   Field process() {
-    final name = _fieldElement.name3!;
+    final name = _fieldElement.name!;
     final columnName = _getColumnName(name);
     final isNullable = _fieldElement.type.isNullable;
     final typeConverter = {

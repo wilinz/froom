@@ -42,7 +42,7 @@ class QueryMethodWriter implements Writer {
   List<Parameter> _generateMethodParameters() {
     return _queryMethod.parameters.map((parameter) {
       return Parameter((builder) => builder
-        ..name = parameter.name3!
+        ..name = parameter.name!
         ..type = refer(parameter.type.getDisplayStringCompat(
           // processor disallows nullable method parameters and throws if found,
           // still interested in nullability here to future-proof codebase
@@ -200,7 +200,6 @@ class QueryMethodWriter implements Writer {
     } else if (returnType.isDefaultSqlType || returnType.isEnumType) {
       mapper = _generateDartCoreMapper(returnType);
     } else {
-      print("mapper: ${mapper}, queryable: ${queryable}");
       throw QueryMethodWriterError(_queryMethod.methodElement)
           .queryMethodReturnType();
     }
@@ -225,7 +224,7 @@ class QueryMethodWriter implements Writer {
   String _generateDartCoreMapper(final DartType returnType) {
     final castedDatabaseValue = 'row.values.first'.cast(
       returnType,
-      returnType.element3,
+      returnType.element,
       withNullability: false,
     );
     return '(Map<String, Object?> row) => $castedDatabaseValue';
@@ -234,7 +233,7 @@ class QueryMethodWriter implements Writer {
   String _generateConverterMapper(final TypeConverter typeConverter) {
     final castedDatabaseValue = 'row.values.first'.cast(
       typeConverter.databaseType,
-      typeConverter.fieldType.element3,
+      typeConverter.fieldType.element,
     );
     return '(Map<String, Object?> row) => _${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
   }

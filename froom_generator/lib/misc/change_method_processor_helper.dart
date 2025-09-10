@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -8,11 +8,11 @@ import 'package:source_gen/source_gen.dart';
 // The migration is complete
 /// Groups common functionality of change method processors.
 class ChangeMethodProcessorHelper {
-  final MethodElement2 _methodElement;
+  final MethodElement _methodElement;
   final List<Entity> _entities;
 
   const ChangeMethodProcessorHelper(
-    final MethodElement2 methodElement,
+    final MethodElement methodElement,
     final List<Entity> entities,
   )   : _methodElement = methodElement,
         _entities = entities;

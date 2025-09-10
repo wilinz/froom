@@ -1,4 +1,4 @@
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -62,7 +62,7 @@ extension NullableStringExtension on String? {
 }
 
 extension CastStringExtension on String {
-  String cast(DartType dartType, Element2? parameterElement,
+  String cast(DartType dartType, Element? parameterElement,
       {bool withNullability = true}) {
     if (dartType.isDartCoreBool) {
       final booleanDeserializer = '($this as int) != 0';
