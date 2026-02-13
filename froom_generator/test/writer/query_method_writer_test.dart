@@ -691,6 +691,22 @@ void main() {
     '''));
   });
 
+  test('query with backtick-quoted table name', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT id FROM `Person`')
+      Stream<List<int>> getPeopleIdListAsStream();
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+      @override
+      Stream<List<int>> getPeopleIdListAsStream() {
+        return _queryAdapter.queryListStream('SELECT id FROM `Person`', mapper: (Map<String, Object?> row) => row.values.first as int, queryableName: 'Person', isView: false);
+      }
+    '''));
+  });
+
   test('Query with IN clause', () async {
     final queryMethod = await _createQueryMethod('''
       @Query('SELECT * FROM Person WHERE id IN (:ids)')

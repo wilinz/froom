@@ -239,7 +239,7 @@ class QueryMethodWriter implements Writer {
   }
 
   String _parseTableName(String query) {
-    return RegExp(r'(?<=FROM )\w+', caseSensitive: false)
+    return RegExp(r'(?<=FROM `?)\w+(?=`?)', caseSensitive: false)
             .firstMatch(query)
             ?.group(0) ??
         'no_table_name';
