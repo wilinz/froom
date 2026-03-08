@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.0.0
+
+### ⬆️ Breaking Changes & Dependencies
+- **analyzer**: Bumped to version 9.0.0 (breaking major version bump) with comprehensive dependency updates
+- **froom_generator**: Updated fakes for analyzer 9.x API compatibility (`isDeprecatedWithKind`)
+- **Dart SDK**: Minimum requirement raised to `>=3.9.0`
+- **build**: Updated to 4.0.4
+- **build_runner**: Updated to 2.11.1
+- **source_gen**: Updated to 4.2.0
+- **mockito**: Updated to 5.6.3
+
+### 🐛 Bug Fixes
+- **query_method_writer**: Accept backtick-quoted table names for `queryableName` ([#161](https://github.com/wilinz/froom/pull/161))
+
 ## 4.0.0
 
 ### ⬆️ Breaking Changes & Dependencies
