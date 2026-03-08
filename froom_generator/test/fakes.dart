@@ -640,4 +640,22 @@ class FakeFieldElement implements FieldElement {
   bool isDeprecatedWithKind(String kind) {
     throw UnimplementedError();
   }
+
+  @override
+  FieldFormalParameterElement? get declaringFormalParameter => throw UnimplementedError();
+
+  @override
+  bool get isOriginDeclaration => throw UnimplementedError();
+
+  @override
+  bool get isOriginDeclaringFormalParameter => throw UnimplementedError();
+
+  @override
+  bool get isOriginEnumValues => throw UnimplementedError();
+
+  @override
+  bool get isOriginExtensionTypeRecoveryRepresentation => throw UnimplementedError();
+
+  @override
+  bool get isOriginGetterSetter => throw UnimplementedError();
 }

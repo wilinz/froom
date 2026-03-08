@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-03-08
+
+### 🔄 Breaking Changes
+- **analyzer**: Bumped from `9.0.0` to `^10.0.0` in `froom_generator` and `example`
+- **ci**: Updated CI Docker image from `dart:3.7.2` to `dart:3.9.0`
+
+### ⬆️ Dependencies
+- **analyzer**: `9.0.0` → `^10.0.0`
+
+### 🧹 Maintenance
+- **fakes**: Add missing `FakeFieldElement` stubs for analyzer 10.x API compatibility:
+  - `declaringFormalParameter`
+  - `isOriginDeclaration`
+  - `isOriginDeclaringFormalParameter`
+  - `isOriginEnumValues`
+  - `isOriginExtensionTypeRecoveryRepresentation`
+  - `isOriginGetterSetter`
+
+### 📝 All Commits
+- `.github/workflows/ci.yml`: dart:3.7.2 → dart:3.9.0
+- `froom_generator/pubspec.yaml`: analyzer 9.0.0 → ^10.0.0
+- `example/pubspec.yaml`: analyzer 9.0.0 → ^10.0.0
+- `froom_generator/test/fakes.dart`: Add FakeFieldElement stubs for analyzer 10.x
+
 ## [5.0.0] - 2026-03-08
 
 ### 🔄 Breaking Changes
