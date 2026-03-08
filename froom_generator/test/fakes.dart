@@ -430,6 +430,11 @@ class FakeClassElement implements ClassElement {
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
+
+  @override
+  bool isDeprecatedWithKind(String kind) {
+    throw UnimplementedError();
+  }
 }
 
 class FakeFieldElement implements FieldElement {
@@ -630,4 +635,9 @@ class FakeFieldElement implements FieldElement {
 
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {}
+
+  @override
+  bool isDeprecatedWithKind(String kind) {
+    throw UnimplementedError();
+  }
 }

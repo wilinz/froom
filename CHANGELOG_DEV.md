@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-03-08
+
+### 🔄 Breaking Changes
+- **analyzer**: Bumped from `^8.1.1` to `9.0.0` in `froom_generator` and `example`
+- **Dart SDK**: Minimum requirement raised from `>=3.7.0` to `>=3.9.0` in `froom_generator`
+
+### ⬆️ Dependencies
+- **analyzer**: `8.1.1` → `9.0.0`
+- **_fe_analyzer_shared**: `88.0.0` → `92.0.0`
+- **build**: `4.0.0` → `4.0.4`
+- **build_runner**: `2.8.0` → `2.11.1`
+- **build_test**: `3.4.0` → `3.5.7`
+- **build_modules**: `5.0.17` → `5.1.8`
+- **build_web_compilers**: `4.2.3` → `4.4.15`
+- **source_gen**: `4.0.1` → `4.2.0`
+- **dart_style**: `3.1.2` → `3.1.3`
+- **mockito**: `5.5.1` → `5.6.3`
+- **test**: `1.26.3` → `1.30.0`
+
+### ✨ Features / Bug Fixes
+- **query_method_writer**: Accept backtick-quoted table names for `queryableName` (135d615, PR #161 by [@Huluk](https://github.com/Huluk))
+
+### 🧹 Maintenance
+- **fakes**: Add `isDeprecatedWithKind` stub to `FakeClassElement` and `FakeFieldElement` for analyzer 9.x compatibility
+
+### 📝 All Commits Since v4.0.0
+- 95db6b0: Merge pull request #161 from Huluk/backticks
+- 135d615: Accept backtick-quoted table names for queryableName
+
 ## [4.0.0] - 2025-09-10
 
 ### 🔄 Breaking Changes
