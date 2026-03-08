@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## 6.0.0
+
+### ⬆️ Breaking Changes & Dependencies
+- **analyzer**: Bumped to `^10.0.0`
+- **ci**: Updated CI Docker image from `dart:3.7.2` to `dart:3.9.0`
+
+### 🛠 Maintenance
+- **fakes**: Add missing `FieldElement` API stubs for analyzer 10.x compatibility (`declaringFormalParameter`, `isOriginDeclaration`, `isOriginDeclaringFormalParameter`, `isOriginEnumValues`, `isOriginExtensionTypeRecoveryRepresentation`, `isOriginGetterSetter`)
+
 ## 5.0.0
 
 ### ⬆️ Breaking Changes & Dependencies
