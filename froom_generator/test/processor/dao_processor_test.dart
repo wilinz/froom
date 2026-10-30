@@ -12,6 +12,8 @@ import 'package:froom_generator/value_object/view.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
 
+import '../test_utils.dart';
+
 void main() {
   late List<Entity> entities;
   late List<View> views;
@@ -69,6 +71,53 @@ void main() {
     expect(actual.queryMethods, hasLength(1));
     expect(actual.queryMethods.first.query.sql,
         equals('SELECT * FROM person WHERE id > 0'));
+  });
+
+  test('Keeps concrete methods between redeclaration and annotated method',
+      () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends AbstractDao<Person> {
+        @override
+        Future<List<Person>> findAll();
+      }
+      
+      abstract class AbstractDao<T> extends AnotherAbstractDao<T> {
+        @override
+        Future<List<T>> findAll() async => [];
+      }
+      
+      abstract class AnotherAbstractDao<T> {
+        @Query('SELECT * FROM person')
+        Future<List<T>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, isEmpty);
+  });
+
+  test('Rejects redeclarations with another signature without annotation',
+      () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends AbstractDao<Person> {
+        @override
+        Future<List<Person>> findAll({int limit = 10});
+      }
+      
+      abstract class AbstractDao<T> {
+        @Query('SELECT * FROM person LIMIT :limit')
+        Future<List<T>> findAll({int limit = 1});
+      }
+    ''');
+
+    final actual = () =>
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual, throwsInvalidGenerationSourceError());
   });
 
   test('Ignores @transaction on query and change methods', () async {

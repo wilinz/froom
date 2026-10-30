@@ -18,6 +18,7 @@ import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:froom_generator/value_object/update_method.dart';
 import 'package:froom_generator/value_object/upsertion_method.dart';
 import 'package:froom_generator/value_object/view.dart';
+import 'package:source_gen/source_gen.dart';
 
 import 'deletion_method_processor.dart';
 import 'insertion_method_processor.dart';
@@ -85,17 +86,20 @@ class DaoProcessor extends Processor<Dao> {
   /// most specific declaration is kept for overridden methods.
   ///
   /// An abstract redeclaration without annotation keeps the annotation of the
-  /// overridden method, while a concrete one replaces it.
+  /// closest overridden method, unless that one is concrete.
   List<MethodElement> _getMethods() {
     final methods = <String, MethodElement>{};
+    final redeclarations = <String, MethodElement>{};
     void addMethods(final Iterable<MethodElement> declaredMethods) {
       for (final method in declaredMethods) {
         final name = method.name!;
         final declared = methods[name];
-        if (declared == null ||
-            (declared.isAbstract &&
-                !_isAnnotated(declared) &&
-                _isAnnotated(method))) {
+        if (declared == null) {
+          methods[name] = method;
+        } else if (declared.isAbstract &&
+            !_isAnnotated(declared) &&
+            (!method.isAbstract || _isAnnotated(method))) {
+          redeclarations.putIfAbsent(name, () => declared);
           methods[name] = method;
         }
       }
@@ -106,7 +110,36 @@ class DaoProcessor extends Processor<Dao> {
       addMethods(supertype.methods);
     }
 
+    redeclarations.forEach((name, redeclaration) {
+      final method = methods[name]!;
+      if (_isAnnotated(method) && !_hasSameSignature(redeclaration, method)) {
+        throw InvalidGenerationSourceError(
+          'The method $name redeclares the annotated method of ${method.enclosingElement?.displayName} with another signature without repeating its annotation.',
+          todo: 'Repeat the annotation on the redeclaration or keep the signature.',
+          element: redeclaration,
+        );
+      }
+    });
+
     return methods.values.toList();
+  }
+
+  /// Whether the generated implementation of [method] can implement the
+  /// [redeclaration], which differs neither in types nor default values.
+  bool _hasSameSignature(
+    final MethodElement redeclaration,
+    final MethodElement method,
+  ) {
+    if (redeclaration.type != method.type) return false;
+    final parameters = method.formalParameters;
+    final redeclaredParameters = redeclaration.formalParameters;
+    for (var i = 0; i < parameters.length; i++) {
+      if (parameters[i].defaultValueCode !=
+          redeclaredParameters[i].defaultValueCode) {
+        return false;
+      }
+    }
+    return true;
   }
 
   List<QueryMethod> _getQueryMethods(
