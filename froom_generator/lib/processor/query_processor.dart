@@ -3,7 +3,6 @@ import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/processor/error/query_processor_error.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/value_object/query.dart';
-import 'package:sqlparser/sqlparser.dart' show isKeywordLexeme;
 
 // The migration is complete
 class QueryProcessor extends Processor<Query> {
@@ -90,8 +89,26 @@ class QueryProcessor extends Processor<Query> {
     if (!before.endsWith('(') || !after.startsWith(')')) return false;
 
     final precedingWord = RegExp(r'(\w+)\s*\($').firstMatch(before)?.group(1);
-    return precedingWord == null || isKeywordLexeme(precedingWord);
+    return precedingWord == null ||
+        _rowValueKeywords.contains(precedingWord.toUpperCase());
   }
+
+  /// Keywords which can precede a row value, unlike names of functions,
+  /// some of which are keywords as well, like `REPLACE` or `LIKE`.
+  static const _rowValueKeywords = {
+    'VALUES',
+    'WHERE',
+    'HAVING',
+    'ON',
+    'AND',
+    'OR',
+    'NOT',
+    'IS',
+    'BETWEEN',
+    'WHEN',
+    'THEN',
+    'ELSE',
+  };
 
   /// Nullable values are bound as `NULL`, but lists have to be non-nullable
   /// as their items are expanded into the query.

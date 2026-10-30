@@ -347,10 +347,11 @@ void main() {
       expect(actual, throwsProcessorError(error));
     });
 
-    test('exception when list parameter is the argument of a function',
-        () async {
+    for (final function in ['lower', 'abs']) {
+      test('exception when list parameter is the argument of $function',
+          () async {
       final methodElement = await _createQueryMethodElement('''
-      @Query('SELECT * FROM Person WHERE name = lower(:names)')
+      @Query('SELECT * FROM Person WHERE name = $function(:names)')
       Future<List<Person>> findPersonsByNames(List<String> names);
     ''');
 
@@ -361,7 +362,8 @@ void main() {
       final error = QueryProcessorError(methodElement)
           .queryMethodParameterIsListButVariableIsNot(':names');
       expect(actual, throwsProcessorError(error));
-    });
+      });
+    }
 
     test(
         'exception when query arguments do not match method parameters, list vs no list',
