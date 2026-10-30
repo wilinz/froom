@@ -39,3 +39,23 @@ final database = await $FroomAppDatabase
     .addMigrations([migration1to2])
     .build();
 ```
+
+## Destructive Migration
+
+When it's fine to lose the data of the database, e.g. for a cache or during development, call `fallbackToDestructiveMigration()` on the database builder.
+Like Room, Froom then recreates the database from scratch instead of failing when there is no migration from its version to the current one, or when the database version is higher than the current one (downgrade).
+All tables and views get dropped, so all data is lost.
+Migrations are still used whenever they cover the version change.
+
+```dart
+final database = await $FroomAppDatabase
+    .databaseBuilder('app_database.db')
+    .addMigrations([migration1to2])
+    .addCallback(Callback(
+      onDestructiveMigration: (database) {
+        // e.g. re-download data
+      },
+    ))
+    .fallbackToDestructiveMigration()
+    .build();
+```

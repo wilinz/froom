@@ -14,6 +14,10 @@ abstract class $FlutterDatabaseBuilderContract {
   /// Adds a database [Callback] to the builder.
   $FlutterDatabaseBuilderContract addCallback(Callback callback);
 
+  /// Recreates the database instead of crashing when there is no migration
+  /// from its version to the current one, deleting all of its data.
+  $FlutterDatabaseBuilderContract fallbackToDestructiveMigration();
+
   /// Creates the database and initializes it.
   Future<FlutterDatabase> build();
 }
@@ -41,6 +45,8 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
 
   Callback? _callback;
 
+  bool _fallbackToDestructiveMigration = false;
+
   @override
   $FlutterDatabaseBuilderContract addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
@@ -54,12 +60,23 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
   }
 
   @override
+  $FlutterDatabaseBuilderContract fallbackToDestructiveMigration() {
+    _fallbackToDestructiveMigration = true;
+    return this;
+  }
+
+  @override
   Future<FlutterDatabase> build() async {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
         : ':memory:';
     final database = _$FlutterDatabase();
-    database.database = await database.open(path, _migrations, _callback);
+    database.database = await database.open(
+      path,
+      _migrations,
+      _callback,
+      _fallbackToDestructiveMigration,
+    );
     return database;
   }
 }
@@ -75,7 +92,20 @@ class _$FlutterDatabase extends FlutterDatabase {
     String path,
     List<Migration> migrations, [
     Callback? callback,
+    bool fallbackToDestructiveMigration = false,
   ]) async {
+    Future<void> createSchema(sqflite.Database database) async {
+      await database.execute(
+        'CREATE TABLE IF NOT EXISTS `Task` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `message` TEXT NOT NULL, `isRead` INTEGER, `timestamp` INTEGER NOT NULL, `status` INTEGER, `type` TEXT)',
+      );
+    }
+
+    Future<void> recreateSchema(sqflite.Database database) async {
+      await MigrationAdapter.dropAllTables(database);
+      await createSchema(database);
+      await callback?.onDestructiveMigration?.call(database);
+    }
+
     final databaseOptions = sqflite.OpenDatabaseOptions(
       version: 1,
       onConfigure: (database) async {
@@ -86,6 +116,16 @@ class _$FlutterDatabase extends FlutterDatabase {
         await callback?.onOpen?.call(database);
       },
       onUpgrade: (database, startVersion, endVersion) async {
+        if (fallbackToDestructiveMigration &&
+            !MigrationAdapter.hasMigrationPath(
+              startVersion,
+              endVersion,
+              migrations,
+            )) {
+          await recreateSchema(database);
+          return;
+        }
+
         await MigrationAdapter.runMigrations(
           database,
           startVersion,
@@ -95,10 +135,11 @@ class _$FlutterDatabase extends FlutterDatabase {
 
         await callback?.onUpgrade?.call(database, startVersion, endVersion);
       },
+      onDowngrade: fallbackToDestructiveMigration
+          ? (database, startVersion, endVersion) => recreateSchema(database)
+          : null,
       onCreate: (database, version) async {
-        await database.execute(
-          'CREATE TABLE IF NOT EXISTS `Task` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `message` TEXT NOT NULL, `isRead` INTEGER, `timestamp` INTEGER NOT NULL, `status` INTEGER, `type` TEXT)',
-        );
+        await createSchema(database);
 
         await callback?.onCreate?.call(database, version);
       },

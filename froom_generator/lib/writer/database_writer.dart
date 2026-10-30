@@ -107,14 +107,32 @@ class DatabaseWriter implements Writer {
     final callbackParameter = Parameter((builder) => builder
       ..name = 'callback'
       ..type = refer('Callback?'));
+    final fallbackToDestructiveMigrationParameter = Parameter((builder) =>
+        builder
+          ..name = 'fallbackToDestructiveMigration'
+          ..type = refer('bool')
+          ..defaultTo = const Code('false'));
 
     return Method((builder) => builder
       ..name = 'open'
       ..returns = refer('Future<sqflite.Database>')
       ..modifier = MethodModifier.async
       ..requiredParameters.addAll([pathParameter, migrationsParameter])
-      ..optionalParameters.add(callbackParameter)
+      ..optionalParameters.addAll(
+          [callbackParameter, fallbackToDestructiveMigrationParameter])
       ..body = Code('''
+          Future<void> createSchema(sqflite.Database database) async {
+            $createTableStatements
+            $createIndexStatements
+            $createViewStatements
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: ${database.version},
             onConfigure: (database) async {
@@ -125,14 +143,21 @@ class DatabaseWriter implements Writer {
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
               await MigrationAdapter.runMigrations(database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              $createTableStatements
-              $createIndexStatements
-              $createViewStatements
+              await createSchema(database);
 
               await callback?.onCreate?.call(database, version);
             },

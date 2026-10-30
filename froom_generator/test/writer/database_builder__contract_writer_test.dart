@@ -20,6 +20,10 @@ void main() {
         /// Adds a database [Callback] to the builder.
         $FooBarBuilderContract addCallback(Callback callback);
       
+        /// Recreates the database instead of crashing when there is no migration
+        /// from its version to the current one, deleting all of its data.
+        $FooBarBuilderContract fallbackToDestructiveMigration();
+      
         /// Creates the database and initializes it.
         Future<FooBar> build();
       }      

@@ -12,6 +12,7 @@
 - **database**: Add `clearAllTables()` to delete all rows of all entity tables, like Room ([#163](https://github.com/wilinz/froom/issues/163))
 - **queryable**: Fields not initialized by the constructor are assigned via their setters when reading entities and views ([#164](https://github.com/wilinz/froom/issues/164))
 - **column_info**: Add `@ColumnInfo(defaultValue: ...)` for SQL default values of columns, like Room ([#165](https://github.com/wilinz/froom/issues/165))
+- **migrations**: Add `fallbackToDestructiveMigration()` to the database builder and `Callback.onDestructiveMigration`, recreating the database when there is no migration, like Room ([#167](https://github.com/wilinz/froom/issues/167))
 
 ### 🐛 Bug Fixes
 - **froom_generator**: Generated code suppresses lints with `// ignore_for_file: type=lint` ([#162](https://github.com/wilinz/froom/issues/162))

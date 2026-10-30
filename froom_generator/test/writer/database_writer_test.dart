@@ -39,7 +39,19 @@ void main() {
           String path,
           List<Migration> migrations, [
           Callback? callback,
+          bool fallbackToDestructiveMigration = false,
         ]) async {
+          Future<void> createSchema(sqflite.Database database) async {
+              await database.execute(
+                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
@@ -50,15 +62,23 @@ void main() {
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
-      
+
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              await database.execute(
-                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
-      
+              await createSchema(database);
+
               await callback?.onCreate?.call(database, version);
             },
           );
@@ -109,7 +129,19 @@ void main() {
           String path,
           List<Migration> migrations, [
           Callback? callback,
+          bool fallbackToDestructiveMigration = false,
         ]) async {
+          Future<void> createSchema(sqflite.Database database) async {
+              await database.execute(
+                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
@@ -120,15 +152,23 @@ void main() {
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
-      
+
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              await database.execute(
-                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
-      
+              await createSchema(database);
+
               await callback?.onCreate?.call(database, version);
             },
           );
@@ -175,7 +215,19 @@ void main() {
           String path,
           List<Migration> migrations, [
           Callback? callback,
+          bool fallbackToDestructiveMigration = false,
         ]) async {
+          Future<void> createSchema(sqflite.Database database) async {
+              await database.execute(
+                  'CREATE TABLE IF NOT EXISTS `custom_table_name` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `custom_name` TEXT NOT NULL)');
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
@@ -186,14 +238,22 @@ void main() {
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              await database.execute(
-                  'CREATE TABLE IF NOT EXISTS `custom_table_name` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `custom_name` TEXT NOT NULL)');
+              await createSchema(database);
 
               await callback?.onCreate?.call(database, version);
             },
@@ -244,7 +304,22 @@ void main() {
           String path,
           List<Migration> migrations, [
           Callback? callback,
+          bool fallbackToDestructiveMigration = false,
         ]) async {
+          Future<void> createSchema(sqflite.Database database) async {
+              await database.execute(
+                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
+                  
+              await database.execute(
+                  'CREATE VIEW IF NOT EXISTS `names` AS SELECT custom_name as name FROM person');
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
@@ -255,17 +330,22 @@ void main() {
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              await database.execute(
-                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
-                  
-              await database.execute(
-                  'CREATE VIEW IF NOT EXISTS `names` AS SELECT custom_name as name FROM person');
+              await createSchema(database);
 
               await callback?.onCreate?.call(database, version);
             },

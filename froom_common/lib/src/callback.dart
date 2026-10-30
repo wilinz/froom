@@ -25,7 +25,17 @@ class Callback {
     int endVersion,
   )? onUpgrade;
 
+  /// Fired after the [database] has been recreated by a destructive
+  /// migration, as there was no migration from its version to the current
+  /// one. All actions are run within a single transaction.
+  final FutureOr<void> Function(Database database)? onDestructiveMigration;
+
   /// Constructor.
-  const Callback(
-      {this.onConfigure, this.onCreate, this.onOpen, this.onUpgrade});
+  const Callback({
+    this.onConfigure,
+    this.onCreate,
+    this.onOpen,
+    this.onUpgrade,
+    this.onDestructiveMigration,
+  });
 }

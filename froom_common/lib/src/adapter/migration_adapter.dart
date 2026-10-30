@@ -10,22 +10,72 @@ abstract class MigrationAdapter {
     final int endVersion,
     final List<Migration> migrations,
   ) async {
-    final relevantMigrations = migrations
-        .where((migration) => migration.startVersion >= startVersion)
-        .toList()
-      ..sort(
-          (first, second) => first.startVersion.compareTo(second.startVersion));
-
-    if (relevantMigrations.isEmpty ||
-        relevantMigrations.last.endVersion != endVersion) {
+    if (!hasMigrationPath(startVersion, endVersion, migrations)) {
       throw StateError(
         'There is no migration supplied to update the database to the current version.'
         ' Aborting the migration.',
       );
     }
 
-    for (final migration in relevantMigrations) {
+    for (final migration in _getRelevantMigrations(startVersion, migrations)) {
       await migration.migrate(migrationDatabase);
+    }
+  }
+
+  /// Whether [migrations] migrate the database from [startVersion] to
+  /// [endVersion].
+  static bool hasMigrationPath(
+    final int startVersion,
+    final int endVersion,
+    final List<Migration> migrations,
+  ) {
+    final relevantMigrations =
+        _getRelevantMigrations(startVersion, migrations);
+    return relevantMigrations.isNotEmpty &&
+        relevantMigrations.last.endVersion == endVersion;
+  }
+
+  static List<Migration> _getRelevantMigrations(
+    final int startVersion,
+    final List<Migration> migrations,
+  ) {
+    return migrations
+        .where((migration) => migration.startVersion >= startVersion)
+        .toList()
+      ..sort(
+          (first, second) => first.startVersion.compareTo(second.startVersion));
+  }
+
+  /// Drops all tables and views of the [database], e.g. for a destructive
+  /// migration. Foreign keys are only checked once the transaction gets
+  /// committed.
+  static Future<void> dropAllTables(final DatabaseExecutor database) async {
+    await database.execute('PRAGMA defer_foreign_keys = TRUE');
+
+    Future<List<Map<String, Object?>>> schemaObjects(final String type) {
+      return database.rawQuery(
+        "SELECT name, sql FROM sqlite_master WHERE type = ? AND name NOT LIKE 'sqlite\\_%' ESCAPE '\\' AND name != 'android_metadata'",
+        [type],
+      );
+    }
+
+    for (final view in await schemaObjects('view')) {
+      await database.execute('DROP VIEW IF EXISTS `${view['name']}`');
+    }
+
+    // dropping virtual tables drops their shadow tables as well
+    final tables = await schemaObjects('table');
+    final virtualTables = tables.where((table) =>
+        (table['sql'] as String?)
+            ?.trimLeft()
+            .toUpperCase()
+            .startsWith('CREATE VIRTUAL TABLE') ??
+        false);
+    for (final table in virtualTables) {
+      await database.execute('DROP TABLE IF EXISTS `${table['name']}`');
+    }
+    for (final table in await schemaObjects('table')) {
+      await database.execute('DROP TABLE IF EXISTS `${table['name']}`');
     }
   }
 }

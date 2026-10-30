@@ -30,6 +30,11 @@ class DatabaseBuilderWriter extends Writer {
       ..name = '_callback'
       ..type = refer('Callback?'));
 
+    final fallbackToDestructiveMigrationField = Field((builder) => builder
+      ..name = '_fallbackToDestructiveMigration'
+      ..type = refer('bool')
+      ..assignment = const Code('false'));
+
     final constructor = Constructor((builder) => builder
       ..requiredParameters.add(Parameter((builder) => builder
         ..toThis = true
@@ -59,6 +64,15 @@ class DatabaseBuilderWriter extends Writer {
         ..name = 'callback'
         ..type = refer('Callback'))));
 
+    final fallbackToDestructiveMigrationMethod = Method((builder) => builder
+      ..annotations.add(overrideAnnotationExpression)
+      ..name = 'fallbackToDestructiveMigration'
+      ..returns = databaseBuilderContractRefer
+      ..body = const Code('''
+        _fallbackToDestructiveMigration = true;
+        return this;
+      '''));
+
     final buildMethod = Method((builder) => builder
       ..annotations.add(overrideAnnotationExpression)
       ..returns = refer('Future<$_databaseName>')
@@ -73,6 +87,7 @@ class DatabaseBuilderWriter extends Writer {
           path,
           _migrations,
           _callback,
+          _fallbackToDestructiveMigration,
         );
         return database;
       '''));
@@ -86,11 +101,13 @@ class DatabaseBuilderWriter extends Writer {
         nameField,
         migrationsField,
         callbackField,
+        fallbackToDestructiveMigrationField,
       ])
       ..constructors.add(constructor)
       ..methods.addAll([
         addMigrationsMethod,
         addCallbackMethod,
+        fallbackToDestructiveMigrationMethod,
         buildMethod,
       ]));
   }
