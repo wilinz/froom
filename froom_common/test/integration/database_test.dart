@@ -255,6 +255,14 @@ void main() {
           expect(actual, equals(newPersons));
         });
 
+        test('transaction with nullable return value', () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+
+          expect(await personDao.findPersonInTransaction(1), equals(person));
+          expect(await personDao.findPersonInTransaction(2), isNull);
+        });
+
         test('transaction rollback on failure', () async {
           final persons = [Person(1, 'Simon'), Person(2, 'Frank')];
           await personDao.insertPersons(persons);

@@ -109,6 +109,11 @@ abstract class PersonDao {
   }
 
   @transaction
+  Future<Person?> findPersonInTransaction(int id) async {
+    return findPersonById(id);
+  }
+
+  @transaction
   Future<List<Person>> replacePersonsAndReturn(List<Person> persons) async {
     await replacePersons(persons);
     return findAllPersons();

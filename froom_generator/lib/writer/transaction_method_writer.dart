@@ -31,7 +31,7 @@ class TransactionMethodWriter implements Writer {
         '${method.name}(${getArgumentsOf(method.parameterElements)})';
     final innerType = method.returnType.flatten();
     final innerTypeName =
-        innerType.getDisplayStringCompat(withNullability: false);
+        innerType.getDisplayStringCompat(withNullability: true);
     final finalExpression = innerType is VoidType ? 'await' : 'return';
 
     return '''

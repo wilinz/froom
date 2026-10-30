@@ -163,7 +163,7 @@ void main() {
           return super.replacePersons(persons);
         } else {
           return (database as sqflite.Database)
-              .transaction<Person>((transaction) async {
+              .transaction<Person?>((transaction) async {
             final transactionDatabase = _$TestDatabase(changeListener)
               ..database = transaction;
             return transactionDatabase.personDao.replacePersons(persons);

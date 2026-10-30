@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 26 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 27 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 8 | Bug or small feature to be fixed |
+| ⏳ Planned | 7 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -104,7 +104,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#770](https://github.com/pinchbv/floor/issues/770) | Cannot use a variable for table name | ➖ Not planned |  | Question, support or not applicable |
 | [floor#775](https://github.com/pinchbv/floor/issues/775) | Creating new tables within an existing DB | ✅ Fixed | [#187](https://github.com/wilinz/froom/issues/187) | Indices are created with `IF NOT EXISTS` |
 | [floor#778](https://github.com/pinchbv/floor/issues/778) | Issue when try to get insert primary key as String | ➖ Not planned |  | Question, support or not applicable |
-| [floor#783](https://github.com/pinchbv/floor/issues/783) | Error in code generation with @transaction method with return of nullable variable | ⏳ Planned |  | `@transaction` with nullable return type (verified) |
+| [floor#783](https://github.com/pinchbv/floor/issues/783) | Error in code generation with @transaction method with return of nullable variable | ✅ Fixed | [#188](https://github.com/wilinz/froom/issues/188) | `@transaction` methods keep nullable return types |
 | [floor#785](https://github.com/pinchbv/floor/issues/785) | DatabaseView from Entities | ➖ Not planned |  | Question, support or not applicable |
 | [floor#786](https://github.com/pinchbv/floor/issues/786) | Access database in isolates | ➖ Not planned |  | Question, support or not applicable |
 | [floor#787](https://github.com/pinchbv/floor/issues/787) | can not generate code without @ignore metadata | 🧩 Large feature |  |  |

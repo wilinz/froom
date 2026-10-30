@@ -34,6 +34,7 @@
 - **streams**: Closing the database while a stream re-queries no longer throws unhandled exceptions ([#184](https://github.com/wilinz/froom/issues/184))
 - **dao**: `@transaction` on query and change methods no longer generates them twice ([#185](https://github.com/wilinz/froom/issues/185))
 - **index**: Indices are created with `IF NOT EXISTS` like tables ([#187](https://github.com/wilinz/froom/issues/187))
+- **transaction**: `@transaction` methods with nullable return values generate compiling code ([#188](https://github.com/wilinz/froom/issues/188))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13
