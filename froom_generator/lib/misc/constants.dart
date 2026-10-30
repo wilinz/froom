@@ -45,6 +45,7 @@ abstract class IndexField {
   static const name = 'name';
   static const unique = 'unique';
   static const value = 'value';
+  static const where = 'where';
 }
 
 abstract class SqlType {

@@ -22,8 +22,19 @@ class Index {
   /// for details on index usage in the query optimizer.
   final List<String> value;
 
+  /// The SQL expression of a partial index, which only indexes rows the
+  /// expression is true for, e.g. `'email IS NOT NULL'` for a [unique] index
+  /// allowing multiple rows without an email.
+  /// See <a href="https://www.sqlite.org/partialindex.html">SQLite documentation</a>.
+  final String? where;
+
   /// Declares an index on an Entity.
   ///
   /// Is not [unique] by default.
-  const Index({this.name, this.unique = false, required this.value});
+  const Index({
+    this.name,
+    this.unique = false,
+    required this.value,
+    this.where,
+  });
 }

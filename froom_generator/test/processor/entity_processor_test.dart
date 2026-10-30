@@ -317,6 +317,32 @@ void main() {
     );
   });
 
+  test('Process partial index', () async {
+    final classElement = await createClassElement('''
+      @Entity(indices: [
+        Index(value: ['email'], unique: true, where: 'email IS NOT NULL')
+      ])
+      class Person {
+        @primaryKey
+        final int id;
+      
+        final String? email;
+      
+        Person(this.id, this.email);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().indices;
+
+    expect(
+      actual,
+      equals([
+        Index('index_Person_email', 'Person', true, ['email'],
+            where: 'email IS NOT NULL'),
+      ]),
+    );
+  });
+
   group('foreign keys', () {
     test('foreign key holds correct values', () async {
       final classElements = await _createClassElements('''

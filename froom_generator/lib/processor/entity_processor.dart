@@ -181,7 +181,15 @@ class EntityProcessor extends QueryableProcessor<Entity> {
           final name = indexObject.getField(IndexField.name)?.toStringValue() ??
               _generateIndexName(tableName, indexColumnNames);
 
-          return Index(name, tableName, unique, indexColumnNames);
+          final where = indexObject.getField(IndexField.where)?.toStringValue();
+
+          return Index(
+            name,
+            tableName,
+            unique,
+            indexColumnNames,
+            where: where != null && where.trim().isNotEmpty ? where : null,
+          );
         }).toList() ??
         [];
   }

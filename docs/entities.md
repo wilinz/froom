@@ -121,6 +121,23 @@ class Person {
 }
 ```
 
+A [partial index](https://www.sqlite.org/partialindex.html) only includes the rows for which its `where` expression is true.
+This allows e.g. a unique index which permits multiple rows without a value.
+
+```dart
+@Entity(indices: [
+  Index(value: ['email'], unique: true, where: 'email IS NOT NULL'),
+])
+class Account {
+  @primaryKey
+  final int id;
+
+  final String? email;
+
+  Account(this.id, this.email);
+}
+```
+
 ### Ignoring Fields
 Getters, setters and all static fields of entities are ignored by default and thus excluded from the library's mapping.
 In case further fields should be ignored, the `@ignore` annotation should be used and applied as shown in the following snippet.

@@ -6,15 +6,26 @@ class Index {
   final bool unique;
   final List<String> columnNames;
 
-  Index(this.name, this.tableName, this.unique, this.columnNames);
+  /// The expression of a partial index.
+  final String? where;
+
+  Index(
+    this.name,
+    this.tableName,
+    this.unique,
+    this.columnNames, {
+    this.where,
+  });
 
   String createQuery() {
     final uniqueSql = unique ? ' UNIQUE' : '';
     final escapedColumnNames =
         columnNames.map((columnName) => '`$columnName`').join(', ');
 
+    final whereSql = where != null ? ' WHERE $where' : '';
+
     return 'CREATE$uniqueSql INDEX `$name`'
-        ' ON `$tableName` ($escapedColumnNames)';
+        ' ON `$tableName` ($escapedColumnNames)$whereSql';
   }
 
   static const defaultPrefix = 'index_';
@@ -27,17 +38,19 @@ class Index {
           name == other.name &&
           tableName == other.tableName &&
           unique == other.unique &&
-          const ListEquality<String>().equals(columnNames, other.columnNames);
+          const ListEquality<String>().equals(columnNames, other.columnNames) &&
+          where == other.where;
 
   @override
   int get hashCode =>
       name.hashCode ^
       tableName.hashCode ^
       unique.hashCode ^
-      columnNames.hashCode;
+      columnNames.hashCode ^
+      where.hashCode;
 
   @override
   String toString() {
-    return 'Index{name: $name, tableName: $tableName, unique: $unique, columnNames: $columnNames}';
+    return 'Index{name: $name, tableName: $tableName, unique: $unique, columnNames: $columnNames, where: $where}';
   }
 }

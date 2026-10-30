@@ -27,4 +27,16 @@ void main() {
         'CREATE UNIQUE INDEX `$name` ON `$tableName` (${columnNames.map((name) => '`$name`').join(', ')})';
     expect(actual, equals(expected));
   });
+
+  test('create partial index', () {
+    final actual = Index('foo', 'bar', true, ['email'],
+            where: 'email IS NOT NULL')
+        .createQuery();
+
+    expect(
+      actual,
+      equals(
+          'CREATE UNIQUE INDEX `foo` ON `bar` (`email`) WHERE email IS NOT NULL'),
+    );
+  });
 }

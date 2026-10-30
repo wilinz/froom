@@ -23,6 +23,7 @@
 - **column_info**: Add `ColumnInfo.defaultValue`, added as `DEFAULT` to the column definition; text values are quoted (and escaped) unless SQLite constants or parenthesized expressions, `NULL` for non-nullable fields is an error, and partial entities may omit columns with default values (#165, upstream floor#256, floor#611, floor#849)
 - **migrations**: Add `fallbackToDestructiveMigration()` to the builder; without a migration path on upgrade, and on downgrade, `MigrationAdapter.dropAllTables` drops all views and tables (virtual tables first) with deferred foreign keys and the schema gets recreated; `MigrationAdapter.hasMigrationPath` and `Callback.onDestructiveMigration` added, the generated `open` creates the schema in a local `createSchema` (#167, upstream floor#356, floor#566, floor#614, floor#853)
 - **queryable_processor**: Allow mixins on entities and views (removed `prohibitedMixinUsage`); their fields are columns like fields of superclasses (#171, upstream floor#495)
+- **index**: Add `Index.where`, appended as `WHERE` clause to `CREATE INDEX` for partial indices (#172, upstream floor#497)
 
 ### 🐛 Bug Fixes
 - **insertion_method_processor**: Reject `Future<List<void>>` return types, which generated non-compiling code
