@@ -32,9 +32,10 @@ extension MethodParametersExtension on MethodBuilder {
   }
 }
 
-/// The default value of [parameterElement] as literal if possible, as its
-/// code can refer to constants not accessible from the generated code, e.g.
-/// when the parameter is inherited from a supertype of another library.
+/// The default value of [parameterElement] as literal or enum value if
+/// possible, as its code can refer to constants not accessible from the
+/// generated code, e.g. when the parameter is inherited from a supertype of
+/// another library.
 String? _getDefaultValueCode(final FormalParameterElement parameterElement) {
   final code = parameterElement.defaultValueCode;
   if (code == null) return null;
@@ -49,6 +50,10 @@ String? _getDefaultValueCode(final FormalParameterElement parameterElement) {
   if (type.isDartCoreDouble) {
     final doubleValue = value.toDoubleValue()!;
     if (doubleValue.isFinite) return doubleValue.toString();
+  }
+  final enumName = value.getField('_name')?.toStringValue();
+  if (type.element is EnumElement && enumName != null) {
+    return '${type.element!.displayName}.$enumName';
   }
   return code;
 }

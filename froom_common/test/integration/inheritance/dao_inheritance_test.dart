@@ -56,6 +56,8 @@ void main() {
 
       expect(await personDao.findPage(), equals([Person(1, 'Simon')]));
       expect(await personDao.findPage(limit: 2), hasLength(2));
+      expect(await personDao.findOrderedPage(),
+          equals([Person(2, 'Frank'), Person(1, 'Simon')]));
     });
 
     test('entity overriding fields of supertypes has each column once',
