@@ -17,6 +17,15 @@ class QueryMethodProcessorError {
     );
   }
 
+  InvalidGenerationSourceError get unresolvedReturnType {
+    return InvalidGenerationSourceError(
+      'The return type of the query method ${_methodElement.displayName} can not be resolved.',
+      todo:
+          'Make sure the returned class exists and is imported in the file of the DAO.',
+      element: _methodElement,
+    );
+  }
+
   InvalidGenerationSourceError get doesNotReturnFutureNorStream {
     return InvalidGenerationSourceError(
       'All queries have to return a Future or Stream.',

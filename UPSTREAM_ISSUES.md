@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 21 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 22 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 13 | Bug or small feature to be fixed |
+| ⏳ Planned | 12 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -92,7 +92,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#738](https://github.com/pinchbv/floor/issues/738) | Floor Batches | 🧩 Large feature |  |  |
 | [floor#741](https://github.com/pinchbv/floor/issues/741) | Join query | ➖ Not planned |  | Question, support or not applicable |
 | [floor#742](https://github.com/pinchbv/floor/issues/742) | Invalid use of a private type | ✔️ Already resolved |  | Generated code suppresses lints (`type=lint`) |
-| [floor#744](https://github.com/pinchbv/floor/issues/744) | Make the method return a Future of a nullable type | ⏳ Planned |  | Nullable single return error message |
+| [floor#744](https://github.com/pinchbv/floor/issues/744) | Make the method return a Future of a nullable type | ✅ Fixed | [#183](https://github.com/wilinz/froom/issues/183) | Unresolved return types, e.g. missing imports, are reported as such |
 | [floor#745](https://github.com/pinchbv/floor/issues/745) | Unhandled Exception: DatabaseException(error database_closed) | ⏳ Planned |  | Streams re-query a closed database |
 | [floor#746](https://github.com/pinchbv/floor/issues/746) | There's a lot of duplicate code | ➖ Not planned |  | Internal refactoring, partially done while fixing other issues |
 | [floor#747](https://github.com/pinchbv/floor/issues/747) | Query with IF | ➖ Not planned |  | Question, support or not applicable |
@@ -126,7 +126,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#833](https://github.com/pinchbv/floor/issues/833) | No stream updates with quoted table name | ⏳ Planned |  | No stream updates with double quoted table names (verified) |
 | [floor#834](https://github.com/pinchbv/floor/issues/834) | Feature Request: Add clearAllTables Function | 🔁 Duplicate | [#163](https://github.com/wilinz/froom/issues/163) | Same as floor#166, also resets `sqlite_sequence` |
 | [floor#835](https://github.com/pinchbv/floor/issues/835) | Feature request: Indexes on Expressions | ⏳ Planned |  | Indices on expressions |
-| [floor#837](https://github.com/pinchbv/floor/issues/837) | [ERROR] Queries returning single elements might return null. | 🔁 Duplicate |  | Same as floor#744 |
+| [floor#837](https://github.com/pinchbv/floor/issues/837) | [ERROR] Queries returning single elements might return null. | 🔁 Duplicate | [#183](https://github.com/wilinz/froom/issues/183) | Same as floor#744 |
 | [floor#838](https://github.com/pinchbv/floor/issues/838) | Need to set null for sqflite database instance when close database. Otherwise it will always return the old instance. | ➖ Not planned |  | Question, support or not applicable |
 | [floor#839](https://github.com/pinchbv/floor/issues/839) | when the Constructor has no params , dart run build_runner build cannot build the correct query result | 🔁 Duplicate | [#164](https://github.com/wilinz/froom/issues/164) | Same as floor#175 |
 | [floor#840](https://github.com/pinchbv/floor/issues/840) | [Bug]  Test directory referenced by the `Testing` documentation not found | ⏳ Planned |  | Docs: broken link to the tests |

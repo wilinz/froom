@@ -383,6 +383,21 @@ void main() {
       expect(actual, throwsProcessorError(error));
     });
 
+    test('exception when return type can not be resolved', () async {
+      final methodElement = await _createQueryMethodElement('''
+      @Query('SELECT * FROM Staff WHERE id = :id')
+      Future<Staff?> findStaffById(int id);
+    ''');
+
+      final actual = () =>
+          QueryMethodProcessor(methodElement, [...entities, ...views], {})
+              .process();
+
+      final error =
+          QueryMethodProcessorError(methodElement).unresolvedReturnType;
+      expect(actual, throwsInvalidGenerationSourceError(error));
+    });
+
     test('exception when passing nullable list parameter to query method',
         () async {
       final methodElement = await _createQueryMethodElement('''

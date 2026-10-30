@@ -30,6 +30,7 @@
 - **entity**: Fields overriding fields of superclasses or interfaces are columns only once ([#176](https://github.com/wilinz/froom/issues/176))
 - **migrations**: Migrations run with foreign keys disabled and are checked for violations afterwards, e.g. for recreating tables ([#178](https://github.com/wilinz/froom/issues/178))
 - **query**: List parameters can be used as row values like `(a, b) > (:list)`, including `List<Object>` ([#180](https://github.com/wilinz/froom/issues/180))
+- **query**: Report unresolved return types of query methods, e.g. due to missing imports, instead of asking for a nullable return type ([#183](https://github.com/wilinz/froom/issues/183))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13

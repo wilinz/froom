@@ -40,6 +40,7 @@
 - **queryable_processor**: Collect fields from the closest to the most distant supertype and keep only the most specific declaration of overridden fields, respecting `@ignore` on overrides; the traversal is shared with the DAO processor (`InterfaceElementExtension.supertypesClosestFirst`) (#176, upstream floor#522, floor#798, floor#799)
 - **database_writer, migration_adapter**: Don't enable foreign keys in `onConfigure` when an upgrade is pending (`MigrationAdapter.isUpgradePending`), but after the migrations in `onOpen` following a `PRAGMA foreign_key_check` (`enableForeignKeysAfterMigrations`) (#178, upstream floor#534)
 - **query_processor, query_method_writer**: Accept list parameters as the only content of parentheses (row values), not only after `IN`, and bind `List<Object>` items as they are (#180, upstream floor#617)
+- **query_method_processor**: Throw `unresolvedReturnType` for `InvalidType` return types before the nullability check, which misleadingly asked for a nullable type (#183, upstream floor#744, floor#837)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

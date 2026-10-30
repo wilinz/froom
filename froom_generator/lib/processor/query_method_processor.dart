@@ -51,6 +51,11 @@ class QueryMethodProcessor extends Processor<QueryMethod> {
       returnsList,
     );
 
+    // e.g. a class which isn't imported, reported before its nullability
+    if (flattenedReturnType is InvalidType) {
+      throw _processorError.unresolvedReturnType;
+    }
+
     _assertReturnsNullableSingle(
       returnsStream,
       returnsList,
