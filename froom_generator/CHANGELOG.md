@@ -1,5 +1,58 @@
 # Changelog
 
+## 7.0.0
+
+### ⬆️ Breaking Changes & Dependencies
+- **migrations**: Migrations run with foreign keys disabled, so foreign key actions like `ON DELETE CASCADE` don't run during migrations; opening the database fails if the migrations add foreign key violations ([#178](https://github.com/wilinz/froom/issues/178))
+- **migrations**: Like in Room, migrations have to lead from the database version to the current one without gaps, otherwise opening the database fails (or recreates it with `fallbackToDestructiveMigration()`); of several migrations starting at the same version, only the one reaching the highest version runs
+- **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13
+- **froom_generator**: Minimum Dart SDK raised to `>=3.9.0`
+
+### ✨ Features
+- **upsert**: Add `@upsert` / `@Upsert` annotation mirroring Room's `@Upsert` ([#2](https://github.com/wilinz/froom/issues/2))
+  - Inserts entities and updates them instead on primary key or unique constraint conflicts, without deleting the existing row; conflicts on other unique indices are rethrown
+  - Supports multiple parameters, upserted in a single transaction
+  - Supports partial entities via `@Upsert(entity: X)`, only inserting or updating the columns they contain
+  - Returns the row ids of inserted entities or `-1` for updated ones
+  - Upserts returning `void` use batched native `INSERT ... ON CONFLICT DO UPDATE` on SQLite 3.24.0 and above
+- **database**: Add `clearAllTables()` to delete all rows of all entity tables, like Room ([#163](https://github.com/wilinz/froom/issues/163))
+- **queryable**: Fields not initialized by the constructor are assigned via their setters when reading entities and views ([#164](https://github.com/wilinz/froom/issues/164))
+- **column_info**: Add `@ColumnInfo(defaultValue: ...)` for SQL default values of columns, like Room ([#165](https://github.com/wilinz/froom/issues/165))
+- **migrations**: Add `fallbackToDestructiveMigration()` to the database builder and `Callback.onDestructiveMigration`, recreating the database when there is no migration, like Room ([#167](https://github.com/wilinz/froom/issues/167))
+- **queryable**: Entities and views can use mixins, whose fields become columns ([#171](https://github.com/wilinz/froom/issues/171))
+- **index**: Add `Index.where` for partial indices ([#172](https://github.com/wilinz/froom/issues/172))
+- **type_converter**: Converters of non-nullable types also convert nullable fields, parameters and query results, keeping `null` as `NULL` ([#174](https://github.com/wilinz/froom/issues/174))
+- **entity**: Like Room, `0` of a non-nullable auto generated `int` primary key is treated as unset when inserting ([#177](https://github.com/wilinz/froom/issues/177))
+- **type_converter**: Type converters may implement `TypeConverter` or extend it indirectly ([#182](https://github.com/wilinz/froom/issues/182))
+- **index**: Support indices on expressions like `lower(email)` ([#194](https://github.com/wilinz/froom/issues/194))
+
+### 🐛 Bug Fixes
+- **froom_generator**: Generated code suppresses lints with `// ignore_for_file: type=lint` ([#162](https://github.com/wilinz/froom/issues/162))
+- **queryable**: Use the unnamed constructor instead of the first declared one and call named constructors by their name ([#166](https://github.com/wilinz/froom/issues/166))
+- **dao**: Query and transaction methods support optional positional and named parameters with default values ([#168](https://github.com/wilinz/froom/issues/168))
+- **dao**: `INSERT`, `UPDATE` and `DELETE` statements of `@Query` methods update streams declared in other DAOs too ([#169](https://github.com/wilinz/froom/issues/169))
+- **views**: Database views are recreated with their current queries after migrations ([#170](https://github.com/wilinz/froom/issues/170))
+- **query**: Query method parameters can be nullable and are bound as `NULL` ([#173](https://github.com/wilinz/froom/issues/173))
+- **dao**: Methods overriding methods of DAO supertypes are generated only once ([#175](https://github.com/wilinz/froom/issues/175))
+- **entity**: Fields overriding fields of superclasses or interfaces are columns only once ([#176](https://github.com/wilinz/froom/issues/176))
+- **migrations**: Migrations run with foreign keys disabled and are checked for violations afterwards, e.g. for recreating tables ([#178](https://github.com/wilinz/froom/issues/178))
+- **query**: List parameters can be used as row values like `(a, b) > (:list)`, including `List<Object>` ([#180](https://github.com/wilinz/froom/issues/180))
+- **query**: Report unresolved return types of query methods, e.g. due to missing imports, instead of asking for a nullable return type ([#183](https://github.com/wilinz/froom/issues/183))
+- **streams**: Closing the database while a stream re-queries no longer throws unhandled exceptions ([#184](https://github.com/wilinz/froom/issues/184))
+- **dao**: `@transaction` on query and change methods no longer generates them twice ([#185](https://github.com/wilinz/froom/issues/185))
+- **index**: Indices are created with `IF NOT EXISTS` like tables ([#187](https://github.com/wilinz/froom/issues/187))
+- **transaction**: `@transaction` methods with nullable return values generate compiling code ([#188](https://github.com/wilinz/froom/issues/188))
+- **entity**: Report columns of `@Entity(primaryKeys: ...)` that don't exist instead of ignoring them ([#189](https://github.com/wilinz/froom/issues/189))
+- **query**: `double` values are read correctly when SQLite returns integers, e.g. for `COALESCE(SUM(x), 0)` ([#191](https://github.com/wilinz/froom/issues/191))
+- **query**: Queries which aren't valid SQL fail the code generation instead of only at runtime ([#192](https://github.com/wilinz/froom/issues/192))
+- **streams**: Streams of queries with double quoted or bracketed table names update ([#193](https://github.com/wilinz/froom/issues/193))
+
+### 📝 Documentation
+- Document passing an absolute path to `databaseBuilder()` for a custom database location ([#179](https://github.com/wilinz/froom/issues/179))
+- Import the entity in the DAO example of the getting started guide ([#181](https://github.com/wilinz/froom/issues/181))
+- Document full text search with `@Fts3`/`@Fts4` entities ([#190](https://github.com/wilinz/froom/issues/190))
+- Fix the broken link to the integration tests and the syntax of the testing example ([#195](https://github.com/wilinz/froom/issues/195))
+
 ## 6.0.0
 
 ### ⬆️ Breaking Changes & Dependencies
