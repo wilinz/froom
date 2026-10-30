@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 20 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 21 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 14 | Bug or small feature to be fixed |
+| ⏳ Planned | 13 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -87,7 +87,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#644](https://github.com/pinchbv/floor/issues/644) | Generated code mishandles named constructors | 🔁 Duplicate | [#166](https://github.com/wilinz/froom/issues/166) | Same as floor#275 |
 | [floor#645](https://github.com/pinchbv/floor/issues/645) | Example code in the README needs to import also entity into dao | ✅ Fixed | [#181](https://github.com/wilinz/froom/issues/181) | The DAO example imports the entity |
 | [floor#648](https://github.com/pinchbv/floor/issues/648) | SqfliteDatabaseException (DatabaseException(no such table: featurings (code 1 SQLITE_ERROR): , while compiling: select * from featurings) sql 'select * from featurings' args []) | ➖ Not planned |  | Question, support or not applicable |
-| [floor#670](https://github.com/pinchbv/floor/issues/670) | enforce TypeConverter implementation test rather than inheritence in floor generator | ⏳ Planned |  | Accept `TypeConverter` implementations, not only subclasses |
+| [floor#670](https://github.com/pinchbv/floor/issues/670) | enforce TypeConverter implementation test rather than inheritence in floor generator | ✅ Fixed | [#182](https://github.com/wilinz/froom/issues/182) | Converters may implement `TypeConverter` or extend it indirectly |
 | [floor#729](https://github.com/pinchbv/floor/issues/729) | Upsert | ✔️ Already resolved | [#2](https://github.com/wilinz/froom/issues/2) | `@upsert` like Room |
 | [floor#738](https://github.com/pinchbv/floor/issues/738) | Floor Batches | 🧩 Large feature |  |  |
 | [floor#741](https://github.com/pinchbv/floor/issues/741) | Join query | ➖ Not planned |  | Question, support or not applicable |
