@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
-import 'package:froom_generator/processor/error/queryable_processor_error.dart';
 import 'package:froom_generator/processor/field_processor.dart';
 import 'package:froom_generator/processor/queryable_processor.dart';
 import 'package:froom_generator/value_object/field.dart';
@@ -226,7 +225,7 @@ void main() {
 
       final expectedFieldNames = ['id', 'foo', 'name'];
       const expectedConstructor =
-          "TestEntity(row['id'] as int, row['foo'] as double, row['name'] as String)";
+          "TestEntity(row['id'] as int, (row['foo'] as num).toDouble(), row['name'] as String)";
       expect(fieldNames, containsAll(expectedFieldNames));
       expect(actual.constructor, equals(expectedConstructor));
     });
@@ -285,7 +284,65 @@ void main() {
       expect(actual.constructor, equals(expectedConstructor));
     });
 
-    test('Throws when queryable inherits from mixin', () async {
+    test('Process overridden fields once', () async {
+      final classElement = await createClassElement('''
+        class TestEntity extends IdEntity implements NamedEntity {
+          @override
+          int id;
+        
+          @override
+          String name;
+        
+          TestEntity(this.id, this.name) : super(id);
+        }
+        
+        class IdEntity {
+          int id;
+        
+          IdEntity(this.id);
+        }
+        
+        class NamedEntity {
+          String name;
+        
+          NamedEntity(this.name);
+        }
+    ''');
+
+      final actual = TestProcessor(classElement).process();
+
+      expect(actual.fields.map((field) => field.name), equals(['id', 'name']));
+      expect(
+        actual.fields.map((field) => field.fieldElement.enclosingElement.name),
+        equals(['TestEntity', 'TestEntity']),
+      );
+    });
+
+    test('Ignore overridden fields ignored by the override', () async {
+      final classElement = await createClassElement('''
+        class TestEntity extends BaseEntity {
+          @override
+          @ignore
+          String? note;
+        
+          TestEntity(int id) : super(id);
+        }
+        
+        class BaseEntity {
+          final int id;
+        
+          String? note;
+        
+          BaseEntity(this.id);
+        }
+    ''');
+
+      final actual = TestProcessor(classElement).process();
+
+      expect(actual.fields.map((field) => field.name), equals(['id']));
+    });
+
+    test('Process fields of mixins', () async {
       final classElement = await createClassElement('''
         class TestEntity with TestMixin {
           final int id;
@@ -293,15 +350,20 @@ void main() {
           TestEntity(this.id);
         }
         
-        class TestMixin {
-          String name;
+        mixin TestMixin {
+          String? name;
+        
+          List<Object?> get props => [name];
         }      
     ''');
 
-      final actual = () => TestProcessor(classElement).process();
+      final actual = TestProcessor(classElement).process();
 
-      final error = QueryableProcessorError(classElement).prohibitedMixinUsage;
-      expect(actual, throwsInvalidGenerationSourceError(error));
+      expect(actual.fields.map((field) => field.name), equals(['id', 'name']));
+      expect(
+        actual.constructor,
+        equals("TestEntity(row['id'] as int)..name = (row['name'] as String?)"),
+      );
     });
   });
 
@@ -567,7 +629,7 @@ void main() {
 
         const expected = 'Person('
             "row['id'] as int?, "
-            "row['doubleId'] as double?, "
+            "(row['doubleId'] as num?)?.toDouble(), "
             "row['name'] as String?, "
             "row['bar'] == null ? null : (row['bar'] as int) != 0, "
             "row['blob'] as Uint8List?, "
@@ -602,7 +664,7 @@ void main() {
 
         const expected = 'Person('
             "row['id'] as int, "
-            "row['doubleId'] as double, "
+            "(row['doubleId'] as num).toDouble(), "
             "row['name'] as String, "
             "(row['bar'] as int) != 0, "
             "row['blob'] as Uint8List, "

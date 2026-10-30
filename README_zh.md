@@ -121,11 +121,14 @@ class Person {
   SQL 语句必须添加在括号中。
   该方法必须返回您要查询的 `Entity` 的 `Future` 或 `Stream`。
 - `@insert` 将方法标记为插入方法。
+- `@upsert` 将方法标记为插入或更新方法：实体不存在时插入，已存在时更新。详见 [Upsert](https://wilinz.github.io/froom/daos/#upsert)。
 
 ```dart
 // dao/person_dao.dart
 
 import 'package:froom/froom.dart';
+
+import '../entity/person.dart';
 
 @dao
 abstract class PersonDao {
@@ -198,7 +201,7 @@ await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
 
-更多示例请查看 [example](https://github.com/wilinz/froom/tree/develop/example) 和 [test](https://github.com/wilinz/froom/tree/develop/froom/test/integration) 目录。
+更多示例请查看 [example](https://github.com/wilinz/froom/tree/develop/example) 和 [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) 目录。
 
 ## 命名
 

@@ -23,6 +23,7 @@ class DatabaseWriter implements Writer {
       ..name = '_\$$databaseName'
       ..extend = refer(databaseName)
       ..methods.add(_generateOpenMethod(database))
+      ..methods.add(_generateEntityTableNamesGetter(database))
       ..methods.addAll(_generateDaoGetters(database))
       ..fields.addAll(_generateDaoInstances(database))
       ..constructors.add(_generateConstructor()));
@@ -40,6 +41,20 @@ class DatabaseWriter implements Writer {
         )
         ..optionalParameters.add(parameter);
     });
+  }
+
+  Method _generateEntityTableNamesGetter(final Database database) {
+    final tableNames = database.entities
+        .map((entity) => entity.name.toLiteral())
+        .join(', ');
+
+    return Method((builder) => builder
+      ..annotations.add(overrideAnnotationExpression)
+      ..type = MethodType.getter
+      ..returns = refer('List<String>')
+      ..name = 'entityTableNames'
+      ..lambda = true
+      ..body = Code('const [$tableNames]'));
   }
 
   List<Method> _generateDaoGetters(final Database database) {
@@ -82,6 +97,15 @@ class DatabaseWriter implements Writer {
         .map((view) => view.getCreateViewStatement().toLiteral())
         .map((statement) => 'await database.execute($statement);')
         .join('\n');
+    // views don't hold data, so they are recreated with their current queries
+    final recreateViewStatements = database.views.isEmpty
+        ? ''
+        : [
+            ...database.views
+                .map((view) => 'DROP VIEW IF EXISTS `${view.name}`'.toLiteral())
+                .map((statement) => 'await database.execute($statement);'),
+            createViewStatements,
+          ].join('\n');
 
     final pathParameter = Parameter((builder) => builder
       ..name = 'path'
@@ -92,32 +116,71 @@ class DatabaseWriter implements Writer {
     final callbackParameter = Parameter((builder) => builder
       ..name = 'callback'
       ..type = refer('Callback?'));
+    final fallbackToDestructiveMigrationParameter = Parameter((builder) =>
+        builder
+          ..name = 'fallbackToDestructiveMigration'
+          ..type = refer('bool')
+          ..defaultTo = const Code('false'));
 
     return Method((builder) => builder
       ..name = 'open'
       ..returns = refer('Future<sqflite.Database>')
       ..modifier = MethodModifier.async
       ..requiredParameters.addAll([pathParameter, migrationsParameter])
-      ..optionalParameters.add(callbackParameter)
+      ..optionalParameters.addAll(
+          [callbackParameter, fallbackToDestructiveMigrationParameter])
       ..body = Code('''
+          Future<void> createSchema(sqflite.Database database) async {
+            $createTableStatements
+            $createIndexStatements
+            $createViewStatements
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
+          // foreign keys are enabled after migrations, which can't disable
+          // them within their transaction
+          var enableForeignKeysOnOpen = false;
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: ${database.version},
             onConfigure: (database) async {
-              await database.execute('PRAGMA foreign_keys = ON');
+              if (await MigrationAdapter.isUpgradePending(database, ${database.version})) {
+                enableForeignKeysOnOpen = true;
+              } else {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onConfigure?.call(database);
             },
             onOpen: (database) async {
+              if (enableForeignKeysOnOpen) {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
               await MigrationAdapter.runMigrations(database, startVersion, endVersion, migrations);
+              $recreateViewStatements
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              $createTableStatements
-              $createIndexStatements
-              $createViewStatements
+              await createSchema(database);
 
               await callback?.onCreate?.call(database, version);
             },

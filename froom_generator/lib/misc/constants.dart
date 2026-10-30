@@ -2,12 +2,14 @@ abstract class AnnotationField {
   static const queryValue = 'value';
   static const primaryKeyAutoGenerate = 'autoGenerate';
   static const onConflict = 'onConflict';
+  static const upsertEntity = 'entity';
 
   static const databaseVersion = 'version';
   static const databaseEntities = 'entities';
   static const databaseViews = 'views';
 
   static const columnInfoName = 'name';
+  static const columnInfoDefaultValue = 'defaultValue';
 
   static const entityTableName = 'tableName';
   static const entityForeignKeys = 'foreignKeys';
@@ -43,6 +45,7 @@ abstract class IndexField {
   static const name = 'name';
   static const unique = 'unique';
   static const value = 'value';
+  static const where = 'where';
 }
 
 abstract class SqlType {

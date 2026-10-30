@@ -74,11 +74,14 @@ The abstract class contains the method signatures for querying the database whic
   The SQL statement has to get added in parenthesis.
   The method must return a `Future` or `Stream` of the `Entity` you're querying for.
 - `@insert` marks a method as an insertion method.
+- `@upsert` marks a method as an upsert method, which inserts an entity or updates it if it already exists. See [Upsert](daos.md#upsert).
 
 ```dart
 // dao/person_dao.dart
 
 import 'package:froom/froom.dart';
+
+import '../entity/person.dart';
 
 @dao
 abstract class PersonDao {
@@ -132,7 +135,9 @@ To automatically run it, whenever a file changes, use `flutter packages pub run 
 
 For obtaining an instance of the database, use the generated `$FroomAppDatabase` class, which allows access to a database builder.
 The name is being composed by `$Froom` and the database class name.
-The string passed to `databaseBuilder()` will be the database file name.
+The string passed to `databaseBuilder()` will be the database file name, which is placed in the default databases directory of the platform.
+To store the database somewhere else, pass an absolute path instead, e.g. one based on `getApplicationSupportDirectory()` of the `path_provider` package.
+Make sure that its directory exists.
 For initializing the database, call `build()` and make sure to `await` the result.
 
 In order to retrieve the `PersonDao` instance, invoking the `persoDao` getter on the database instance is enough.
@@ -148,4 +153,11 @@ await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
 
-For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom/test/integration) directories.
+To delete all data while keeping the database schema, e.g. when a user logs out, call `clearAllTables()` on the database.
+It deletes the rows of all entity tables in a single transaction, resets the `AUTOINCREMENT` counters and notifies the streams of all entities.
+
+```dart
+await database.clearAllTables();
+```
+
+For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) directories.

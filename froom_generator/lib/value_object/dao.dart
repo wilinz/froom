@@ -8,6 +8,7 @@ import 'package:froom_generator/value_object/query_method.dart';
 import 'package:froom_generator/value_object/transaction_method.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:froom_generator/value_object/update_method.dart';
+import 'package:froom_generator/value_object/upsertion_method.dart';
 import 'package:froom_generator/value_object/view.dart';
 
 // The migration is complete
@@ -17,6 +18,7 @@ class Dao {
   final List<QueryMethod> queryMethods;
   final List<InsertionMethod> insertionMethods;
   final List<UpdateMethod> updateMethods;
+  final List<UpsertionMethod> upsertionMethods;
   final List<DeletionMethod> deletionMethods;
   final List<TransactionMethod> transactionMethods;
   final Set<Entity> streamEntities;
@@ -29,6 +31,7 @@ class Dao {
     this.queryMethods,
     this.insertionMethods,
     this.updateMethods,
+    this.upsertionMethods,
     this.deletionMethods,
     this.transactionMethods,
     this.streamEntities,
@@ -46,6 +49,7 @@ class Dao {
           queryMethods.equals(other.queryMethods) &&
           insertionMethods.equals(other.insertionMethods) &&
           updateMethods.equals(other.updateMethods) &&
+          upsertionMethods.equals(other.upsertionMethods) &&
           deletionMethods.equals(other.deletionMethods) &&
           transactionMethods.equals(other.transactionMethods) &&
           streamEntities.equals(streamEntities) &&
@@ -59,6 +63,7 @@ class Dao {
       queryMethods.hashCode ^
       insertionMethods.hashCode ^
       updateMethods.hashCode ^
+      upsertionMethods.hashCode ^
       deletionMethods.hashCode ^
       transactionMethods.hashCode ^
       streamEntities.hashCode ^
@@ -67,6 +72,6 @@ class Dao {
 
   @override
   String toString() {
-    return 'Dao{classElement: $classElement, name: $name, queryMethods: $queryMethods, insertionMethods: $insertionMethods, updateMethods: $updateMethods, deletionMethods: $deletionMethods, transactionMethods: $transactionMethods, streamEntities: $streamEntities, streamViews: $streamViews, typeConverters: $typeConverters}';
+    return 'Dao{classElement: $classElement, name: $name, queryMethods: $queryMethods, insertionMethods: $insertionMethods, updateMethods: $updateMethods, upsertionMethods: $upsertionMethods, deletionMethods: $deletionMethods, transactionMethods: $transactionMethods, streamEntities: $streamEntities, streamViews: $streamViews, typeConverters: $typeConverters}';
   }
 }

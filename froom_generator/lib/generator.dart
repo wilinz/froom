@@ -37,21 +37,26 @@ class FroomGenerator extends GeneratorForAnnotation<annotations.Database> {
     final distinctTypeConverterFields = database.allTypeConverters
         .distinctBy((element) => element.name)
         .map((typeConverter) =>
-            TypeConverterFieldWriter(typeConverter.name).write());
+            TypeConverterFieldWriter(typeConverter.name).write())
+        .toList();
+
+    // Generated code is not expected to satisfy the lint rules of the
+    // consuming project (e.g. very_good_analysis), so suppress all lints.
+    final ignoredDiagnostics = [
+      'type=lint',
+      if (distinctTypeConverterFields.isNotEmpty) 'unused_element',
+    ];
 
     final library = Library((builder) {
       builder
+        ..body
+            .add(Code('// ignore_for_file: ${ignoredDiagnostics.join(', ')}\n'))
         ..body.add(DatabaseBuilderContractWriter(database.name).write())
         ..body.add(CodeWriter(database.name).write())
         ..body.add(DatabaseBuilderWriter(database.name).write())
         ..body.add(databaseClass)
-        ..body.addAll(daoClasses);
-
-      if (distinctTypeConverterFields.isNotEmpty) {
-        builder
-          ..body.add(const Code('// ignore_for_file: unused_element\n'))
-          ..body.addAll(distinctTypeConverterFields);
-      }
+        ..body.addAll(daoClasses)
+        ..body.addAll(distinctTypeConverterFields);
     });
 
     return library.accept(DartEmitter()).toString();

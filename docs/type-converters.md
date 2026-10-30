@@ -13,8 +13,9 @@ It's sufficient to define the conversion from a database to an in-memory type an
 
 The implementation and usage of the mentioned `DateTime` to `int` converter is described in the following.
 
-1. Create a converter class that implements the abstract `TypeConverter` and supply the in-memory object type and database type as parameterized types.
+1. Create a converter class that extends or implements the abstract `TypeConverter` and supply the in-memory object type and database type as parameterized types.
    This class inherits the `decode()` and `encode()` functions which define the conversion from one to the other type.
+   Implementing `TypeConverter` allows a class to be a converter of other libraries as well, e.g. a `JsonConverter` of json_annotation.
 ```dart
 class DateTimeConverter extends TypeConverter<DateTime, int> {
   @override
@@ -51,6 +52,10 @@ class Order {
   Order(this.id, this.date);
 }
 ```
+
+A converter of a non-nullable type also converts the nullable type, e.g. `DateTime?` fields, parameters and query results.
+`null` values are stored as `NULL` without invoking the converter.
+A converter of the nullable type, e.g. `TypeConverter<DateTime?, int?>`, is preferred if there is one.
 
 ---
 

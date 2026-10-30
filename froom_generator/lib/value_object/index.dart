@@ -6,15 +6,33 @@ class Index {
   final bool unique;
   final List<String> columnNames;
 
-  Index(this.name, this.tableName, this.unique, this.columnNames);
+  /// The expression of a partial index.
+  final String? where;
+
+  /// The entries of [columnNames] that are expressions like `y + z` or
+  /// `lower(name)` rather than column names.
+  final Set<String> expressions;
+
+  Index(
+    this.name,
+    this.tableName,
+    this.unique,
+    this.columnNames, {
+    this.where,
+    this.expressions = const {},
+  });
 
   String createQuery() {
     final uniqueSql = unique ? ' UNIQUE' : '';
-    final escapedColumnNames =
-        columnNames.map((columnName) => '`$columnName`').join(', ');
+    final escapedColumnNames = columnNames
+        .map((columnName) =>
+            expressions.contains(columnName) ? columnName : '`$columnName`')
+        .join(', ');
 
-    return 'CREATE$uniqueSql INDEX `$name`'
-        ' ON `$tableName` ($escapedColumnNames)';
+    final whereSql = where != null ? ' WHERE $where' : '';
+
+    return 'CREATE$uniqueSql INDEX IF NOT EXISTS `$name`'
+        ' ON `$tableName` ($escapedColumnNames)$whereSql';
   }
 
   static const defaultPrefix = 'index_';
@@ -27,17 +45,21 @@ class Index {
           name == other.name &&
           tableName == other.tableName &&
           unique == other.unique &&
-          const ListEquality<String>().equals(columnNames, other.columnNames);
+          const ListEquality<String>().equals(columnNames, other.columnNames) &&
+          where == other.where &&
+          const SetEquality<String>().equals(expressions, other.expressions);
 
   @override
   int get hashCode =>
       name.hashCode ^
       tableName.hashCode ^
       unique.hashCode ^
-      columnNames.hashCode;
+      const ListEquality<String>().hash(columnNames) ^
+      where.hashCode ^
+      const SetEquality<String>().hash(expressions);
 
   @override
   String toString() {
-    return 'Index{name: $name, tableName: $tableName, unique: $unique, columnNames: $columnNames}';
+    return 'Index{name: $name, tableName: $tableName, unique: $unique, columnNames: $columnNames, where: $where, expressions: $expressions}';
   }
 }

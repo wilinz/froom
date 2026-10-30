@@ -17,14 +17,48 @@ class ChangeMethodProcessorHelper {
   )   : _methodElement = methodElement,
         _entities = entities;
 
-  FormalParameterElement getParameterElement() {
+  /// Whether the method returns a [Future].
+  bool get returnsFuture => _methodElement.returnType.isDartAsyncFuture;
+
+  /// Whether the [Future] returned by the method completes with a [List].
+  bool get returnsList => _futureValueType.isDartCoreList;
+
+  /// The type the [Future] returned by the method completes with, unwrapping
+  /// a [List], e.g. `int` for both `Future<int>` and `Future<List<int>>`.
+  DartType get flattenedReturnType {
+    final futureValueType = _futureValueType;
+    return futureValueType.isDartCoreList
+        ? futureValueType.flatten()
+        : futureValueType;
+  }
+
+  /// Whether the method returns `Future<void>`.
+  bool get returnsVoid => !returnsList && flattenedReturnType is VoidType;
+
+  /// Whether the method returns `Future<int>`.
+  bool get returnsInt => !returnsList && flattenedReturnType.isDartCoreInt;
+
+  /// Whether the method returns `Future<List<int>>`.
+  bool get returnsIntList => returnsList && flattenedReturnType.isDartCoreInt;
+
+  DartType get _futureValueType =>
+      _methodElement.library.typeSystem.flatten(_methodElement.returnType);
+
+  /// Returns the parameters of the method, which must not be empty.
+  List<FormalParameterElement> getParameterElements() {
     final parameters = _methodElement.formalParameters;
     if (parameters.isEmpty) {
       throw InvalidGenerationSourceError(
         'There is no parameter supplied for this method. Please add one.',
         element: _methodElement,
       );
-    } else if (parameters.length > 1) {
+    }
+    return parameters;
+  }
+
+  FormalParameterElement getParameterElement() {
+    final parameters = getParameterElements();
+    if (parameters.length > 1) {
       throw InvalidGenerationSourceError(
         'Only one parameter is allowed on this.',
         element: _methodElement,

@@ -170,6 +170,110 @@ void main() {
     );
     expect(actual, equals(expected));
   });
+  group('default value', () {
+    Future<String?> defaultValueOf(final String field) async {
+      final fieldElement = await _generateFieldElement(field);
+      return FieldProcessor(fieldElement, null).process().defaultValue;
+    }
+
+    test('is null when not declared', () async {
+      expect(await defaultValueOf('final String name;'), isNull);
+    });
+
+    test('quotes text values', () async {
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: 'Guest') final String role;"),
+        equals("'Guest'"),
+      );
+    });
+
+    test('keeps quoted text values and escapes quotes', () async {
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"'NULL'\") final String name;"),
+        equals("'NULL'"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"O'Brien\") final String name;"),
+        equals("'O''Brien'"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"'it''s'\") final String name;"),
+        equals("'it''s'"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"x'\") final String name;"),
+        equals("'x'"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"'it's'\") final String name;"),
+        equals("'it''s'"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"''Guest''\") final String name;"),
+        equals("'Guest'"),
+      );
+    });
+
+    test('keeps SQLite constants and expressions of text columns', () async {
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: 'CURRENT_TIMESTAMP') final String at;"),
+        equals('CURRENT_TIMESTAMP'),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"('a' || 'b')\") final String ab;"),
+        equals("('a' || 'b')"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: 'NULL') final String? name;"),
+        equals('NULL'),
+      );
+    });
+
+    test('keeps values of other columns', () async {
+      expect(
+        await defaultValueOf("@ColumnInfo(defaultValue: '0') final int count;"),
+        equals('0'),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: '1') final bool active;"),
+        equals('1'),
+      );
+    });
+
+    test('is part of the column definition', () async {
+      final fieldElement = await _generateFieldElement(
+          "@ColumnInfo(defaultValue: 'Guest') final String role;");
+
+      final actual =
+          FieldProcessor(fieldElement, null).process().getDatabaseDefinition(false);
+
+      expect(actual, equals("`role` TEXT NOT NULL DEFAULT 'Guest'"));
+    });
+
+    test('NULL for non-nullable field throws error', () async {
+      final fieldElement = await _generateFieldElement(
+          "@ColumnInfo(defaultValue: 'null') final String name;");
+
+      final actual = () => FieldProcessor(fieldElement, null).process();
+
+      expect(
+          actual,
+          throwsA(isA<InvalidGenerationSourceError>().having(
+              (error) => error.message, 'message', contains('must not be NULL'))));
+    });
+  });
+
   test('Field with unsupported type throws error', () async {
     final fieldElement = await _generateFieldElement('''
       final List<int> id;

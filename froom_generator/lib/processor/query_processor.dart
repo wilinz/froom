@@ -18,7 +18,7 @@ class QueryProcessor extends Processor<Query> {
 
   @override
   Query process() {
-    _assertNoNullableParameters();
+    _assertNoNullableListParameters();
 
     final indices = <String, int>{};
     final fixedParameters = <String>{};
@@ -60,8 +60,8 @@ class QueryProcessor extends Processor<Query> {
         newQuery.write('?');
         newQuery.write(varIndexInMethod);
       } else {
-        //list variable/parameter
-        if (!varToken.isListVar) {
+        //list variable/parameter, either `IN (:list)` or a row value `(:list)`
+        if (!varToken.isListVar && !_isInParentheses(varToken)) {
           throw _processorError
               .queryMethodParameterIsListButVariableIsNot(varToken.name);
         }
@@ -79,9 +79,50 @@ class QueryProcessor extends Processor<Query> {
     );
   }
 
-  void _assertNoNullableParameters() {
+  /// Whether the variable is the only content of parentheses, e.g. of a row
+  /// value like `(a, b) > (:list)`, into which the list items are expanded.
+  ///
+  /// The parentheses of function calls like `lower(:list)` don't count.
+  bool _isInParentheses(final VariableToken varToken) {
+    final before = _query.substring(0, varToken.startPosition).trimRight();
+    final after = _query.substring(varToken.endPosition).trimLeft();
+    if (!before.endsWith('(') || !after.startsWith(')')) return false;
+
+    // quoted function names like `lower`(:list) and nested parentheses like
+    // lower((:list))
+    final beforeParenthesis =
+        before.substring(0, before.length - 1).trimRight();
+    if (RegExp(r'[`"\](]$').hasMatch(beforeParenthesis)) return false;
+
+    final precedingWord = RegExp(r'(\w+)\s*\($').firstMatch(before)?.group(1);
+    return precedingWord == null ||
+        _rowValueKeywords.contains(precedingWord.toUpperCase());
+  }
+
+  /// Keywords which can precede a row value, unlike names of functions,
+  /// some of which are keywords as well, like `REPLACE` or `LIKE`.
+  static const _rowValueKeywords = {
+    'IN',
+    'CASE',
+    'VALUES',
+    'WHERE',
+    'HAVING',
+    'ON',
+    'AND',
+    'OR',
+    'NOT',
+    'IS',
+    'BETWEEN',
+    'WHEN',
+    'THEN',
+    'ELSE',
+  };
+
+  /// Nullable values are bound as `NULL`, but lists have to be non-nullable
+  /// as their items are expanded into the query.
+  void _assertNoNullableListParameters() {
     for (final parameter in _parameters) {
-      if (parameter.type.isNullable) {
+      if (parameter.type.isDartCoreList && parameter.type.isNullable) {
         throw _processorError.queryMethodParameterIsNullable(parameter);
       }
     }

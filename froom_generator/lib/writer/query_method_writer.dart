@@ -1,11 +1,13 @@
 import 'dart:core';
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_generator/misc/annotation_expression.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converters_extension.dart';
+import 'package:froom_generator/misc/method_parameters.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/processor/error/query_method_writer_error.dart';
 import 'package:froom_generator/value_object/query.dart';
@@ -30,25 +32,13 @@ class QueryMethodWriter implements Writer {
         withNullability: true,
       ))
       ..name = _queryMethod.name
-      ..requiredParameters.addAll(_generateMethodParameters())
+      ..addParametersOf(_queryMethod.parameters)
       ..body = Code(_generateMethodBody());
 
     if (!_queryMethod.returnsStream || _queryMethod.returnsVoid) {
       builder..modifier = MethodModifier.async;
     }
     return builder.build();
-  }
-
-  List<Parameter> _generateMethodParameters() {
-    return _queryMethod.parameters.map((parameter) {
-      return Parameter((builder) => builder
-        ..name = parameter.name!
-        ..type = refer(parameter.type.getDisplayStringCompat(
-          // processor disallows nullable method parameters and throws if found,
-          // still interested in nullability here to future-proof codebase
-          withNullability: true,
-        )));
-    }).toList();
   }
 
   String _generateMethodBody() {
@@ -116,17 +106,21 @@ class QueryMethodWriter implements Writer {
           .map((parameter) {
         final type = parameter.type;
         final displayName = parameter.displayName;
-        final typeConverter = _queryMethod.typeConverters.getClosestOrNull(
-          type,
-        );
+        final typeConverter = _queryMethod.typeConverters
+            .getClosestOrNullForNullable(type, _typeSystem);
 
         if (typeConverter != null) {
-          return '_${typeConverter.name.decapitalize()}.encode($displayName)';
+          final converterName = '_${typeConverter.name.decapitalize()}';
+          // nullable values are bound as NULL
+          return typeConverter.convertsOnlyNonNull(type)
+              ? '$displayName == null ? null : $converterName.encode($displayName)'
+              : '$converterName.encode($displayName)';
         } else if (type.isDartCoreBool) {
-          // query method parameters can't be null
-          return '$displayName ? 1 : 0';
+          return type.isNullable
+              ? '$displayName == null ? null : ($displayName ? 1 : 0)'
+              : '$displayName ? 1 : 0';
         } else if (type.isEnumType) {
-          return '$displayName.index';
+          return type.isNullable ? '$displayName?.index' : '$displayName.index';
         } else if (type.isDefaultSqlType) {
           return displayName;
         } else {
@@ -148,7 +142,10 @@ class QueryMethodWriter implements Writer {
         );
         if (typeConverter != null) {
           return '...$displayName.map((element) => _${typeConverter.name.decapitalize()}.encode(element))';
-        } else if (flatType.isDefaultSqlType || flatType.isEnumType) {
+        } else if (flatType.isDefaultSqlType ||
+            flatType.isEnumType ||
+            // values of mixed types, e.g. of row values, are bound as they are
+            flatType.isDartCoreObject) {
           return '...$displayName';
         } else {
           throw InvalidGenerationSourceError(
@@ -190,13 +187,14 @@ class QueryMethodWriter implements Writer {
   String _generateQuery(final String query, final String? arguments) {
     final queryable = _queryMethod.queryable;
     final returnType = _queryMethod.flattenedReturnType;
-    final converter = _queryMethod.typeConverters.getClosestOrNull(returnType);
+    final converter = _queryMethod.typeConverters
+        .getClosestOrNullForNullable(returnType, _typeSystem);
 
     String? mapper;
     if (queryable != null) {
       mapper = _generateMapper(queryable);
     } else if (converter != null) {
-      mapper = _generateConverterMapper(converter);
+      mapper = _generateConverterMapper(converter, returnType);
     } else if (returnType.isDefaultSqlType || returnType.isEnumType) {
       mapper = _generateDartCoreMapper(returnType);
     } else {
@@ -211,14 +209,21 @@ class QueryMethodWriter implements Writer {
       // for streamed queries, we need to provide the queryable to know which
       // entity to monitor. For views, we monitor all entities.
       parameters
-        ..write(", queryableName: '${_parseTableName(query)}'")
+        ..write(", queryableName: '${_parseTableName(_queryMethod.query.sql)}'")
         ..write(', isView: ${queryable is View}');
     }
 
     final list = _queryMethod.returnsList ? 'List' : '';
     final stream = _queryMethod.returnsStream ? 'Stream' : '';
+    // the mapper returns null itself, which inference of the type argument
+    // from the nullable return type doesn't consider
+    final typeArgument = converter != null &&
+            queryable == null &&
+            converter.convertsOnlyNonNull(returnType)
+        ? '<${returnType.getDisplayStringCompat(withNullability: true)}>'
+        : '';
 
-    return 'return _queryAdapter.query$list$stream($parameters);';
+    return 'return _queryAdapter.query$list$stream$typeArgument($parameters);';
   }
 
   String _generateDartCoreMapper(final DartType returnType) {
@@ -230,18 +235,30 @@ class QueryMethodWriter implements Writer {
     return '(Map<String, Object?> row) => $castedDatabaseValue';
   }
 
-  String _generateConverterMapper(final TypeConverter typeConverter) {
-    final castedDatabaseValue = 'row.values.first'.cast(
+  String _generateConverterMapper(
+    final TypeConverter typeConverter,
+    final DartType returnType,
+  ) {
+    const databaseValue = 'row.values.first';
+    final castedDatabaseValue = databaseValue.cast(
       typeConverter.databaseType,
       typeConverter.fieldType.element,
     );
-    return '(Map<String, Object?> row) => _${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
+    final decodedValue =
+        '_${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
+    final value = typeConverter.convertsOnlyNonNull(returnType)
+        ? '$databaseValue == null ? null : $decodedValue'
+        : decodedValue;
+    return '(Map<String, Object?> row) => $value';
   }
 
+  TypeSystem get _typeSystem => _queryMethod.methodElement.library.typeSystem;
+
   String _parseTableName(String query) {
-    return RegExp(r'(?<=FROM `?)\w+(?=`?)', caseSensitive: false)
+    // the table name can be quoted like `table`, "table" or [table]
+    return RegExp(r'\bFROM\s+[`"\[]?(\w+)', caseSensitive: false)
             .firstMatch(query)
-            ?.group(0) ??
+            ?.group(1) ??
         'no_table_name';
   }
 }

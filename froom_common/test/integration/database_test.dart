@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:froom_common/froom_common.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:test/test.dart';
 
@@ -105,6 +108,78 @@ void main() {
         });
       });
 
+      group('upsert', () {
+        test('upsert inserts new person', () async {
+          final person = Person(1, 'Simon');
+
+          await personDao.upsertPerson(person);
+
+          final actual = await personDao.findAllPersons();
+          expect(actual, equals([person]));
+        });
+
+        test('upsert updates existing person', () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+          final updatedPerson = Person(person.id, person.name.reversed());
+
+          await personDao.upsertPerson(updatedPerson);
+
+          final actual = await personDao.findAllPersons();
+          expect(actual, equals([updatedPerson]));
+        });
+
+        test('upsert inserts and updates persons', () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+          final persons = [
+            Person(person.id, person.name.reversed()),
+            Person(2, 'Frank'),
+          ];
+
+          await personDao.upsertPersons(persons);
+
+          final actual = await personDao.findAllPersons();
+          expect(actual, equals(persons));
+        });
+
+        test('upsert returns id of inserted and -1 for updated person',
+            () async {
+          final person = Person(1, 'Simon');
+
+          final insertedId = await personDao.upsertPersonWithReturn(person);
+          final updatedId = await personDao.upsertPersonWithReturn(
+            Person(person.id, person.name.reversed()),
+          );
+
+          expect(insertedId, equals(person.id));
+          expect(updatedId, equals(-1));
+        });
+
+        test('upsert persons returns ids and -1 for updated persons',
+            () async {
+          await personDao.insertPerson(Person(1, 'Simon'));
+          final persons = [Person(1, 'Nomis'), Person(2, 'Frank')];
+
+          final actual = await personDao.upsertPersonsWithReturn(persons);
+
+          expect(actual, equals([-1, 2]));
+        });
+
+        test('upsert does not cascade delete dog of existing person',
+            () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+          final dog = Dog(2, 'Peter', 'Pete', person.id!);
+          await dogDao.insertDog(dog);
+
+          await personDao.upsertPerson(Person(person.id, 'Frank'));
+
+          final actual = await dogDao.findAllDogs();
+          expect(actual, equals([dog]));
+        });
+      });
+
       group('querying', () {
         test('query with two parameters (int, String)', () async {
           final person = Person(1, 'Frank');
@@ -113,6 +188,36 @@ void main() {
           final actual = await personDao.findPersonByIdAndName(1, 'Frank');
 
           expect(actual, equals(person));
+        });
+
+        test('query with named and optional parameters', () async {
+          final persons = [Person(1, 'Simon'), Person(2, 'Frank')];
+          await personDao.insertPersons(persons);
+
+          expect(await personDao.findPersonsPage(count: 1), equals([persons[0]]));
+          expect(await personDao.findPersonsPage(offset: 1, count: 5),
+              equals([persons[1]]));
+        });
+
+        test('query with nullable parameter', () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+
+          expect(await personDao.findPersonsWithNullableName('Simon'),
+              equals([person]));
+          expect(await personDao.findPersonsWithNullableName(null), isEmpty);
+        });
+
+        test('query with list parameter as row value', () async {
+          final persons = [
+            Person(1, 'Anna'),
+            Person(2, 'Frank'),
+            Person(3, 'Frank'),
+          ];
+          await personDao.insertPersons(persons);
+
+          expect(await personDao.findPersonsAfter(['Frank', 2]),
+              equals([persons[2]]));
         });
 
         test("query with ''", () async {
@@ -148,6 +253,14 @@ void main() {
           final actual = await personDao.replacePersonsAndReturn(newPersons);
 
           expect(actual, equals(newPersons));
+        });
+
+        test('transaction with nullable return value', () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+
+          expect(await personDao.findPersonInTransaction(1), equals(person));
+          expect(await personDao.findPersonInTransaction(2), isNull);
         });
 
         test('transaction rollback on failure', () async {
@@ -209,6 +322,15 @@ void main() {
           final actual = await personDao.insertPersonWithReturn(person);
 
           expect(actual, equals(person.id));
+        });
+
+        test('insert person annotated with @transaction too', () async {
+          final person = Person(1, 'Simon');
+
+          final actual = await personDao.insertPersonInTransaction(person);
+
+          expect(actual, equals(person.id));
+          expect(await personDao.findAllPersons(), equals([person]));
         });
 
         test('insert persons and return ids of inserted items', () async {
@@ -382,6 +504,52 @@ void main() {
       });
     });
   });
+  group('clear all tables', () {
+    late TestDatabase database;
+
+    setUp(() async {
+      database = await $FroomTestDatabase.inMemoryDatabaseBuilder().build();
+    });
+
+    tearDown(() async {
+      await database.close();
+    });
+
+    test('deletes rows of all tables, regardless of foreign keys', () async {
+      final person = Person(1, 'Simon');
+      await database.personDao.insertPerson(person);
+      await database.dogDao.insertDog(Dog(2, 'Peter', 'Pete', person.id!));
+
+      await database.clearAllTables();
+
+      expect(await database.personDao.findAllPersons(), isEmpty);
+      expect(await database.dogDao.findAllDogs(), isEmpty);
+    });
+
+    test('notifies streams', () async {
+      await database.personDao.insertPerson(Person(1, 'Simon'));
+      final actual = database.personDao.findAllPersonsAsStream();
+      expect(actual, emits(hasLength(1)));
+
+      await database.clearAllTables();
+
+      expect(actual, emits(isEmpty));
+    });
+  });
+
+  test('database at an absolute path', () async {
+    final directory = await Directory.systemTemp.createTemp('froom_path');
+    addTearDown(() => directory.delete(recursive: true));
+    final path = p.join(directory.path, 'user', 'data.db');
+    await Directory(p.dirname(path)).create(recursive: true);
+
+    final database = await $FroomTestDatabase.databaseBuilder(path).build();
+    await database.personDao.insertPerson(Person(1, 'Simon'));
+    await database.close();
+
+    expect(File(path).existsSync(), isTrue);
+  });
+
   test('callback test', () async {
     final database = await $FroomTestDatabase
         .inMemoryDatabaseBuilder()

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:froom_annotation/froom_annotation.dart';
+import 'package:froom_common/src/extension/change_listener_extension.dart';
 import 'package:froom_common/src/extension/on_conflict_strategy_extensions.dart';
 import 'package:froom_common/src/util/primary_key_helper.dart';
 import 'package:sqflite_common/sqlite_api.dart';
@@ -72,7 +73,7 @@ class UpdateAdapter<T> {
       ),
       conflictAlgorithm: onConflictStrategy.asSqfliteConflictAlgorithm(),
     );
-    if (result != 0) _changeListener?.add(_entityName);
+    if (result != 0) _changeListener?.notifyChange(_entityName);
     return result;
   }
 
@@ -96,7 +97,7 @@ class UpdateAdapter<T> {
       );
     }
     final result = (await batch.commit(noResult: false)).cast<int>();
-    if (result.isNotEmpty) _changeListener?.add(_entityName);
+    if (result.isNotEmpty) _changeListener?.notifyChange(_entityName);
     return result.isNotEmpty
         ? result.reduce((sum, element) => sum + element)
         : 0;

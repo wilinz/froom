@@ -3,6 +3,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
+import 'package:froom_generator/misc/extension/field_element_extension.dart';
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
 import 'package:froom_generator/misc/extension/type_converters_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -25,32 +26,64 @@ class FieldProcessor extends Processor<Field> {
   @override
   Field process() {
     final name = _fieldElement.name!;
-    final columnName = _getColumnName(name);
+    final columnName = _fieldElement.columnName;
     final isNullable = _fieldElement.type.isNullable;
     final typeConverter = {
       ..._fieldElement.getTypeConverters(TypeConverterScope.field),
       _typeConverter
     }.nonNulls.closestOrNull;
 
+    final sqlType = _getSqlType(typeConverter);
+
     return Field(
       _fieldElement,
       name,
       columnName,
       isNullable,
-      _getSqlType(typeConverter),
+      sqlType,
       typeConverter,
+      defaultValue: _getDefaultValue(sqlType, isNullable),
     );
   }
 
-  String _getColumnName(final String name) {
-    return _fieldElement.hasAnnotation(annotations.ColumnInfo)
-        ? _fieldElement
-                .getAnnotation(annotations.ColumnInfo)
-                ?.getField(AnnotationField.columnInfoName)
-                ?.toStringValue() ??
-            name
-        : name;
+  /// Returns the SQL default value, quoting values of `TEXT` columns unless
+  /// they are SQLite constants or expressions, like Room does.
+  String? _getDefaultValue(final String sqlType, final bool isNullable) {
+    final value = _fieldElement
+        .getAnnotation(annotations.ColumnInfo)
+        ?.getField(AnnotationField.columnInfoDefaultValue)
+        ?.toStringValue();
+    if (value == null || value.trim().isEmpty) return null;
+
+    final normalizedValue = value.trim().toLowerCase();
+    if (normalizedValue == 'null' && !isNullable) {
+      throw InvalidGenerationSourceError(
+        'The default value of the non-nullable field ${_fieldElement.displayName} must not be NULL.',
+        todo: 'Make the field nullable or use another default value.',
+        element: _fieldElement,
+      );
+    }
+
+    if (sqlType != SqlType.text ||
+        normalizedValue.startsWith('(') ||
+        _sqliteValueConstants.contains(normalizedValue)) {
+      return value;
+    }
+    // a string literal is used as is, any other value gets quoted
+    final trimmedValue = value.trim();
+    if (RegExp(r"^'([^']|'')*'$").hasMatch(trimmedValue)) return trimmedValue;
+    final unquotedValue = trimmedValue.replaceAll(RegExp(r"^'+|'+$"), '');
+    return "'${unquotedValue.replaceAll("'", "''")}'";
   }
+
+  static const _sqliteValueConstants = {
+    'null',
+    'current_time',
+    'current_date',
+    'current_timestamp',
+    'true',
+    'false',
+  };
 
   String _getSqlType(final TypeConverter? typeConverter) {
     final type = _fieldElement.type;

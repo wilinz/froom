@@ -36,9 +36,9 @@ class QueryProcessorError {
     final name = varName.substring(1);
     return ProcessorError(
       message:
-          'The parameter $name should be referenced like a list (`x IN ($varName)`)',
-      todo: 'Change the type of $name to not be a List<> or'
-          'reference it with ` IN ($varName)` (including the parentheses).',
+          'The parameter $name should be referenced like a list (`x IN ($varName)` or a row value `($varName)`)',
+      todo: 'Change the type of $name to not be a List<> or '
+          'reference it with ` IN ($varName)` or `($varName)` (including the parentheses).',
       element: _methodElement,
     );
   }
@@ -59,10 +59,9 @@ class QueryProcessorError {
     final FormalParameterElement parameterElement,
   ) {
     return ProcessorError(
-      message: 'Query method parameters have to be non-nullable.',
-      todo: 'Define ${parameterElement.displayName} as non-nullable.'
-          '\nIf you want to assert null, change your query to use the `IS NULL`/'
-          '`IS NOT NULL` operator without passing a nullable parameter.',
+      message: 'List parameters of query methods have to be non-nullable.',
+      todo: 'Define ${parameterElement.displayName} as non-nullable, e.g. by '
+          'passing an empty list instead of null.',
       element: parameterElement,
     );
   }

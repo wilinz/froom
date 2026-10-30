@@ -25,6 +25,15 @@ abstract class MailDao {
   @update
   Future<void> updateMail(Mail mailInfo);
 
+  @upsert
+  Future<void> upsertMail(Mail mailInfo);
+
+  @upsert
+  Future<void> upsertMails(List<Mail> mailInfo);
+
+  @upsert
+  Future<List<int>> upsertMailsWithReturn(List<Mail> mailInfo);
+
   @update
   Future<void> updateMails(List<Mail> mailInfo);
 

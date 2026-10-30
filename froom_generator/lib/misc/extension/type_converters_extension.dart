@@ -1,5 +1,7 @@
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:collection/collection.dart';
+import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:source_gen/source_gen.dart';
@@ -20,6 +22,19 @@ extension TypeConvertersExtension on Iterable<TypeConverter> {
     });
   }
 
+  /// Like [getClosestOrNull], but a nullable [dartType] falls back to a
+  /// converter of its non-nullable type, which then only converts non-null
+  /// values, see [TypeConverterNullabilityExtension.convertsOnlyNonNull].
+  TypeConverter? getClosestOrNullForNullable(
+    DartType dartType,
+    TypeSystem typeSystem,
+  ) {
+    return getClosestOrNull(dartType) ??
+        (dartType.isNullable
+            ? getClosestOrNull(typeSystem.promoteToNonNull(dartType))
+            : null);
+  }
+
   /// Returns the [TypeConverter] in the closest [TypeConverterScope] for
   /// [dartType]
   TypeConverter getClosest(DartType dartType) {
@@ -31,5 +46,13 @@ extension TypeConvertersExtension on Iterable<TypeConverter> {
       );
     }
     return closest;
+  }
+}
+
+extension TypeConverterNullabilityExtension on TypeConverter {
+  /// Whether the converter of a non-nullable type is used for the nullable
+  /// [dartType], so that null values have to bypass it.
+  bool convertsOnlyNonNull(DartType dartType) {
+    return dartType.isNullable && !fieldType.isNullable;
   }
 }

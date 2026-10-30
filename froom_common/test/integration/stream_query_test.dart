@@ -114,6 +114,32 @@ void main() {
       });
     });
 
+    group('upsertion change', () {
+      test('upsert new item', () async {
+        final person = Person(1, 'Simon');
+
+        final actual = personDao.findAllPersonsAsStream();
+        expect(actual, emits(<Person>[]));
+
+        await personDao.upsertPerson(person);
+        expect(actual, emits([person]));
+      });
+
+      test('upsert existing items', () async {
+        final persons = [Person(1, 'Simon'), Person(2, 'Frank')];
+        final updatedPersons = persons
+            .map((person) => Person(person.id, person.name.reversed()))
+            .toList();
+        await personDao.insertPersons(persons);
+
+        final actual = personDao.findAllPersonsAsStream();
+        expect(actual, emits(persons));
+
+        await personDao.upsertPersons(updatedPersons);
+        expect(actual, emits(updatedPersons));
+      });
+    });
+
     group('deletion change', () {
       test('delete item', () async {
         final person = Person(1, 'Simon');
@@ -136,6 +162,52 @@ void main() {
         await personDao.deletePersons(persons);
         expect(actual, emits(<Person>[]));
       });
+    });
+
+    test('closing the database while a stream re-queries', () async {
+      final person = Person(1, 'Simon');
+      final actual = personDao.findAllPersonsAsStream();
+      final events = <List<Person>>[];
+      final subscription = actual.listen(events.add);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      await personDao.insertPerson(person);
+      await database.close();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      await subscription.cancel();
+      expect(events.first, isEmpty);
+    });
+
+    test('stream of double quoted table updates', () async {
+      final person = Person(1, 'Simon');
+
+      final actual = personDao.findAllPersonsFromQuotedTableAsStream();
+      expect(actual, emitsInOrder(<List<Person>>[[], [person]]));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      await personDao.insertPerson(person);
+    });
+
+    test('query changes of other Dao update streams', () async {
+      final person = Person(1, 'Simon');
+      final dog = Dog(1, 'Dog', 'Doggie', person.id!);
+      await personDao.insertPerson(person);
+      await database.dogDao.insertDog(dog);
+
+      final actual = personDao.findAllDogsOfPersonAsStream(person.id!);
+      expect(
+          actual,
+          emitsInOrder(<List<Dog>>[
+            [dog],
+            [Dog(1, 'Renamed', 'Doggie', person.id!)],
+            [],
+          ]));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      await database.dogDao.renameDog(dog.id!, 'Renamed');
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await database.dogDao.deleteAllDogs();
     });
 
     test('regression test streaming updates from other Dao', () async {

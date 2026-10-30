@@ -228,6 +228,284 @@ void main() {
     expect(actual, equals(expected));
   });
 
+  test('Maps unset auto generated primary key to NULL when inserting',
+      () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @PrimaryKey(autoGenerate: true)
+        final int id;
+      
+        final String name;
+      
+        Person(this.id, this.name);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process();
+
+    expect(actual.valueMapping,
+        equals("<String, Object?>{'id': item.id, 'name': item.name}"));
+    expect(
+      actual.insertionValueMapping,
+      equals("<String, Object?>{'id': item.id == 0 ? null : item.id, "
+          "'name': item.name}"),
+    );
+  });
+
+  test('Keeps nullable auto generated primary key when inserting', () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @PrimaryKey(autoGenerate: true)
+        final int? id;
+      
+        final String name;
+      
+        Person(this.id, this.name);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process();
+
+    expect(actual.insertionValueMapping, equals(actual.valueMapping));
+  });
+
+  test('Uses converter of non-nullable type for nullable fields', () async {
+    final classElement = await createClassElement('''
+      @entity
+      @TypeConverters([DateTimeConverter])
+      class Order {
+        @primaryKey
+        final int id;
+      
+        final DateTime createdAt;
+      
+        final DateTime? shippedAt;
+      
+        Order(this.id, this.createdAt, this.shippedAt);
+      }
+      
+      class DateTimeConverter extends TypeConverter<DateTime, int> {
+        @override
+        DateTime decode(int databaseValue) =>
+            DateTime.fromMillisecondsSinceEpoch(databaseValue);
+      
+        @override
+        int encode(DateTime value) => value.millisecondsSinceEpoch;
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process();
+
+    expect(
+      actual.constructor,
+      equals("Order(row['id'] as int, "
+          "_dateTimeConverter.decode(row['createdAt'] as int), "
+          "row['shippedAt'] == null ? null : "
+          "_dateTimeConverter.decode(row['shippedAt'] as int))"),
+    );
+    expect(
+      actual.valueMapping,
+      equals("<String, Object?>{'id': item.id, "
+          "'createdAt': _dateTimeConverter.encode(item.createdAt), "
+          "'shippedAt': item.shippedAt == null ? null : "
+          "_dateTimeConverter.encode(item.shippedAt!)}"),
+    );
+    expect(
+      actual.fields.map((field) => field.getDatabaseDefinition(false)),
+      equals([
+        '`id` INTEGER NOT NULL',
+        '`createdAt` INTEGER NOT NULL',
+        '`shippedAt` INTEGER',
+      ]),
+    );
+  });
+
+  test('Prefers the unnamed constructor over named ones declared before',
+      () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @primaryKey
+        final int? id;
+      
+        final String? name;
+      
+        Person.empty() : id = null, name = null;
+      
+        Person(this.id, this.name);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().constructor;
+
+    expect(actual, equals("Person(row['id'] as int?, row['name'] as String?)"));
+  });
+
+  test('Calls a named constructor by its name', () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        final String name;
+      
+        Person.fromDatabase(this.id, this.name);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().constructor;
+
+    expect(
+      actual,
+      equals("Person.fromDatabase(row['id'] as int, row['name'] as String)"),
+    );
+  });
+
+  test('Assigns fields not initialized by the constructor via setters',
+      () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @primaryKey
+        int? id;
+      
+        String? name;
+      
+        bool active = false;
+      
+        final String constant = 'constant';
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().constructor;
+
+    expect(
+      actual,
+      equals("Person()..id = (row['id'] as int?)"
+          "..name = (row['name'] as String?)"
+          "..active = ((row['active'] as int) != 0)"),
+    );
+  });
+
+  test('Assigns only fields the constructor does not initialize', () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        String? name;
+      
+        Person(this.id);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().constructor;
+
+    expect(
+      actual,
+      equals("Person(row['id'] as int)..name = (row['name'] as String?)"),
+    );
+  });
+
+  test('Process index on expressions', () async {
+    final classElement = await createClassElement('''
+      @Entity(indices: [Index(value: ['y + z', 'x'])])
+      class Foo {
+        @primaryKey
+        final int x;
+      
+        final int y;
+      
+        final int z;
+      
+        Foo(this.x, this.y, this.z);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().indices;
+
+    expect(
+      actual,
+      equals([
+        Index('index_Foo_y_z_x', 'Foo', false, ['y + z', 'x'],
+            expressions: {'y + z'}),
+      ]),
+    );
+  });
+
+  test('Process index on column name containing special characters',
+      () async {
+    final classElement = await createClassElement('''
+      @Entity(indices: [Index(value: ['first name'])])
+      class Foo {
+        @primaryKey
+        final int id;
+      
+        @ColumnInfo(name: 'first name')
+        final String firstName;
+      
+        Foo(this.id, this.firstName);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().indices;
+
+    expect(
+      actual,
+      equals([Index('index_Foo_first name', 'Foo', false, ['first name'])]),
+    );
+  });
+
+  test('Process partial index', () async {
+    final classElement = await createClassElement('''
+      @Entity(indices: [
+        Index(value: ['email'], unique: true, where: 'email IS NOT NULL')
+      ])
+      class Person {
+        @primaryKey
+        final int id;
+      
+        final String? email;
+      
+        Person(this.id, this.email);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().indices;
+
+    expect(
+      actual,
+      equals([
+        Index('index_Person_email', 'Person', true, ['email'],
+            where: 'email IS NOT NULL'),
+      ]),
+    );
+  });
+
+  test('Throws when a compound primary key column does not exist', () async {
+    final classElement = await createClassElement('''
+      @Entity(primaryKeys: ['foreign_id', 'time'])
+      class Example {
+        final int foreignId;
+      
+        final int time;
+      
+        Example(this.foreignId, this.time);
+      }
+    ''');
+
+    final actual = () => EntityProcessor(classElement, {}).process();
+
+    expect(
+        actual,
+        throwsInvalidGenerationSourceError(EntityProcessorError(classElement)
+            .noMatchingPrimaryKeyColumn('foreign_id')));
+  });
+
   group('foreign keys', () {
     test('foreign key holds correct values', () async {
       final classElements = await _createClassElements('''
@@ -500,7 +778,8 @@ void main() {
       expect(
           processor.process,
           throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements).missingPrimaryKey));
+              EntityProcessorError(classElements)
+                  .noMatchingPrimaryKeyColumn('notAField')));
     });
     test('missing parent columns', () async {
       final classElements = await _createClassElements('''

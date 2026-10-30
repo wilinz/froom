@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:froom_common/src/extension/change_listener_extension.dart';
 import 'package:froom_common/src/util/string_utils.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqlparser/sqlparser.dart';
@@ -22,7 +23,7 @@ class QueryAdapter {
   /// Executes a SQLite query that may return a single value.
   Future<T?> query<T>(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
     required final T Function(Map<String, Object?>) mapper,
   }) async {
     final rows = await _preformQuery(sql, arguments);
@@ -39,7 +40,7 @@ class QueryAdapter {
   /// Executes a SQLite query that may return multiple values.
   Future<List<T>> queryList<T>(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
     required final T Function(Map<String, Object?>) mapper,
   }) async {
     final rootNode = _parseRootNode(sql);
@@ -56,7 +57,7 @@ class QueryAdapter {
 
   Future<void> queryNoReturn(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
   }) async {
     await _preformQuery(sql, arguments);
   }
@@ -65,52 +66,55 @@ class QueryAdapter {
   /// or `null`.
   Stream<T?> queryStream<T>(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
     required final String queryableName,
     required final bool isView,
     required final T Function(Map<String, Object?>) mapper,
   }) {
-    // ignore: close_sinks
-    final changeListener = ArgumentError.checkNotNull(_changeListener);
-    final controller = StreamController<T?>.broadcast();
-
-    Future<void> executeQueryAndNotifyController() async {
-      final result = await query(sql, arguments: arguments, mapper: mapper);
-      controller.add(result);
-    }
-
-    controller.onListen = () async => executeQueryAndNotifyController();
-
-    // listen on all updates if the stream is on a view, only listen to the
-    // name of the table if the stream is on a entity.
-    final subscription = changeListener.stream
-        .where((updatedTable) =>
-            isView || updatedTable.equals(queryableName, ignoreCase: true))
-        .listen(
-          (_) async => executeQueryAndNotifyController(),
-          onDone: () => controller.close(),
-        );
-
-    controller.onCancel = () => subscription.cancel();
-
-    return controller.stream;
+    return _createStream(
+      () => query(sql, arguments: arguments, mapper: mapper),
+      queryableName: queryableName,
+      isView: isView,
+    );
   }
 
   /// Executes a SQLite query that returns a stream of multiple query results.
   Stream<List<T>> queryListStream<T>(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
     required final String queryableName,
     required final bool isView,
     required final T Function(Map<String, Object?>) mapper,
   }) {
+    return _createStream(
+      () => queryList(sql, arguments: arguments, mapper: mapper),
+      queryableName: queryableName,
+      isView: isView,
+    );
+  }
+
+  /// Creates a stream emitting the results of [executeQuery] when listened to
+  /// and whenever the queried entity changes.
+  Stream<R> _createStream<R>(
+    final Future<R> Function() executeQuery, {
+    required final String queryableName,
+    required final bool isView,
+  }) {
     // ignore: close_sinks
     final changeListener = ArgumentError.checkNotNull(_changeListener);
-    final controller = StreamController<List<T>>.broadcast();
+    final controller = StreamController<R>.broadcast();
 
     Future<void> executeQueryAndNotifyController() async {
-      final result = await queryList(sql, arguments: arguments, mapper: mapper);
-      controller.add(result);
+      try {
+        final result = await executeQuery();
+        if (!controller.isClosed) controller.add(result);
+      } catch (error, stackTrace) {
+        // the database can be closed while querying, which closes the stream
+        final isDatabaseClosed =
+            error is DatabaseException && error.isDatabaseClosedError();
+        if (controller.isClosed || isDatabaseClosed) return;
+        controller.addError(error, stackTrace);
+      }
     }
 
     controller.onListen = () async => executeQueryAndNotifyController();
@@ -132,7 +136,7 @@ class QueryAdapter {
   /// Parses the SQL query to determine which method is declared and executes it.
   Future<List<Map<String, Object?>>> _preformQuery(
     String sql,
-    List<Object>? arguments,
+    List<Object?>? arguments,
   ) async {
     List<Map<String, Object?>> result = List.empty();
     String tableName = '';
@@ -167,7 +171,7 @@ class QueryAdapter {
   ) {
     final count = result.firstOrNull?[changedRowsKey];
     if (tableName.isNotEmpty && count is int && count > 0) {
-      _changeListener?.add(tableName);
+      _changeListener?.notifyChange(tableName);
     }
   }
 

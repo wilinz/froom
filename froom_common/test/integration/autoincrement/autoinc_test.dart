@@ -30,6 +30,29 @@ void main() {
       expect(actual, equals(AutoIncEntity(1.0, id: 1)));
     });
 
+    test('clearing all tables resets ids', () async {
+      await aiDao.insertAIEntity(AutoIncEntity(1.0, id: null));
+      await aiDao.insertAIEntity(AutoIncEntity(1.5, id: null));
+
+      await database.clearAllTables();
+      await aiDao.insertAIEntity(AutoIncEntity(2.0, id: null));
+
+      final actual = await aiDao.findAll();
+      expect(actual, equals([AutoIncEntity(2.0, id: 1)]));
+    });
+
+    test('zero of non-nullable auto generated key is treated as unset',
+        () async {
+      await aiDao.insertCounter(Counter(0, 'first'));
+      await aiDao.insertCounter(Counter(0, 'second'));
+      await aiDao.upsertCounter(Counter(0, 'third'));
+
+      final actual = await aiDao.findAllCounters();
+
+      expect(actual.map((counter) => '${counter.id} ${counter.name}'),
+          equals(['1 first', '2 second', '3 third']));
+    });
+
     test('retrieve multiple entities', () async {
       final obj = AutoIncEntity(1.5, id: null);
       final obj2 = AutoIncEntity(1.7, id: null);
@@ -69,7 +92,17 @@ class AutoIncEntity {
   }
 }
 
-@Database(version: 1, entities: [AutoIncEntity])
+@entity
+class Counter {
+  @PrimaryKey(autoGenerate: true)
+  final int id;
+
+  final String name;
+
+  Counter(this.id, this.name);
+}
+
+@Database(version: 1, entities: [AutoIncEntity, Counter])
 abstract class TestDatabase extends FroomDatabase {
   AIDao get aiDao;
 }
@@ -84,4 +117,13 @@ abstract class AIDao {
 
   @insert
   Future<void> insertAIEntity(AutoIncEntity e);
+
+  @insert
+  Future<void> insertCounter(Counter counter);
+
+  @upsert
+  Future<void> upsertCounter(Counter counter);
+
+  @Query('SELECT * FROM Counter ORDER BY id')
+  Future<List<Counter>> findAllCounters();
 }

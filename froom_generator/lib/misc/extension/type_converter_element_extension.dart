@@ -1,4 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
@@ -31,11 +33,11 @@ extension TypeConverterElementExtension on Element {
           typeConverterElements.cast<ClassElement>();
 
       if (typeConverterClassElements
-          .any((element) => !element.isTypeConverter)) {
+          .any((element) => element.typeConverterSupertype == null)) {
         throw ProcessorError(
           message:
-              'Only classes that inherit from TypeConverter can be used as type converters.',
-          todo: 'Make sure use a class that inherits from TypeConverter.',
+              'Only classes that extend or implement TypeConverter can be used as type converters.',
+          todo: 'Make sure to use a class that extends or implements TypeConverter.',
           element: this,
         );
       }
@@ -49,7 +51,12 @@ extension TypeConverterElementExtension on Element {
   }
 }
 
-extension on ClassElement {
-  bool get isTypeConverter =>
-      supertype?.element.displayName == 'TypeConverter';
+extension TypeConverterClassElementExtension on ClassElement {
+  /// The `TypeConverter` supertype of this class, which it can extend or
+  /// implement, directly or indirectly.
+  InterfaceType? get typeConverterSupertype {
+    return allSupertypes.firstWhereOrNull((type) =>
+        type.element.name == 'TypeConverter' &&
+        type.element.library.uri.toString().startsWith('package:froom_annotation/'));
+  }
 }

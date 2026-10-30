@@ -8,14 +8,6 @@ class QueryableProcessorError {
   QueryableProcessorError(final ClassElement classElement)
       : _classElement = classElement;
 
-  InvalidGenerationSourceError get prohibitedMixinUsage {
-    return InvalidGenerationSourceError(
-      'Entities and views are not allowed to inherit from mixins.',
-      todo: 'Inline fields and remove mixin from class definition.',
-      element: _classElement,
-    );
-  }
-
   InvalidGenerationSourceError get missingUnnamedConstructor {
     return InvalidGenerationSourceError(
       'Entity constructor is not recognized.',

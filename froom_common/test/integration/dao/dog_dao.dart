@@ -12,4 +12,10 @@ abstract class DogDao {
 
   @Query('SELECT * FROM dog')
   Future<List<Dog>> findAllDogs();
+
+  @Query('DELETE FROM dog')
+  Future<void> deleteAllDogs();
+
+  @Query('UPDATE dog SET name = :name WHERE id = :id')
+  Future<void> renameDog(int id, String name);
 }

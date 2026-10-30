@@ -1,6 +1,8 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
+import 'package:froom_generator/misc/extension/interface_element_extension.dart';
 import 'package:froom_generator/misc/extension/set_extension.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
@@ -10,13 +12,12 @@ import 'package:froom_generator/processor/error/queryable_processor_error.dart';
 import 'package:froom_generator/processor/field_processor.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/value_object/field.dart';
-import 'package:froom_generator/value_object/queryable.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:meta/meta.dart';
 import 'package:source_gen/source_gen.dart';
 
 // The migration is complete
-abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
+abstract class QueryableProcessor<T> extends Processor<T> {
   final QueryableProcessorError _queryableProcessorError;
 
   @protected
@@ -34,30 +35,49 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
 
   @protected
   List<Field> getFields() {
-    if (classElement.mixins.isNotEmpty) {
-      throw _queryableProcessorError.prohibitedMixinUsage;
-    }
-    final fields = [
+    // supertypes include the applied mixins, overridden fields are only
+    // included once with their most specific declaration, which is null when
+    // the field is ignored
+    final fields = <String, FieldElement?>{};
+    for (final field in [
       ...classElement.fields,
-      ...classElement.allSupertypes.expand((type) => type.element.fields),
-    ];
+      ...classElement.supertypesClosestFirst
+          .expand((type) => type.element.fields),
+    ]) {
+      if (field.shouldBeIncluded()) {
+        fields.putIfAbsent(field.name!, () => field);
+      } else if (field.isIgnored) {
+        fields.putIfAbsent(field.name!, () => null);
+      }
+    }
 
-    return fields
-        .where((fieldElement) => fieldElement.shouldBeIncluded())
-        .map((field) {
-      final typeConverter =
-          queryableTypeConverters.getClosestOrNull(field.type);
+    return fields.values.nonNulls.map((field) {
+      final typeConverter = getFieldTypeConverter(field);
       return FieldProcessor(field, typeConverter).process();
     }).toList();
   }
 
+  /// The type converter to use for [fieldElement] unless the field declares
+  /// its own one.
+  @protected
+  TypeConverter? getFieldTypeConverter(final FieldElement fieldElement) {
+    return queryableTypeConverters.getClosestOrNullForNullable(
+      fieldElement.type,
+      classElement.library.typeSystem,
+    );
+  }
+
   @protected
   String getConstructor(final List<Field> fields) {
-    final constructorParameters = classElement.constructors
-        .firstWhereOrNull((element) => element.isPublic && !element.isFactory)
-        ?.formalParameters;
+    final constructors = classElement.constructors
+        .where((element) => element.isPublic && !element.isFactory);
+    // prefer the unnamed constructor, the name of which is `new`
+    final constructor =
+        constructors.firstWhereOrNull((element) => element.name == 'new') ??
+            constructors.firstOrNull;
+    final constructorParameters = constructor?.formalParameters;
 
-    if (constructorParameters == null) {
+    if (constructor == null || constructorParameters == null) {
       throw _queryableProcessorError.missingUnnamedConstructor;
     } else {
       final parameterValues = constructorParameters
@@ -66,7 +86,24 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
           .where((parameterValue) => parameterValue != null)
           .join(', ');
 
-      return '${classElement.displayName}($parameterValues)';
+      // fields which aren't initialized by the constructor but have a setter
+      final constructorParameterNames = constructorParameters
+          .map((parameterElement) => parameterElement.displayName)
+          .toSet();
+      final setterAssignments = fields
+          .where((field) => !constructorParameterNames.contains(field.name))
+          .where((field) => field.fieldElement.setter != null)
+          .map((field) {
+        final value =
+            _getDecodedValue(field, field.fieldElement.type, field.fieldElement);
+        return '..${field.name} = ($value)';
+      }).join();
+
+      final constructorName = constructor.name == 'new'
+          ? classElement.displayName
+          : '${classElement.displayName}.${constructor.name}';
+
+      return '$constructorName($parameterValues)$setterAssignments';
     }
   }
 
@@ -80,35 +117,11 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
         // null whenever field is @ignored
         fields.firstWhereOrNull((field) => field.name == parameterName);
     if (field != null) {
-      final databaseValue = "row['${field.columnName}']";
-
-      String parameterValue;
-
-      final typeConverter = [...queryableTypeConverters, field.typeConverter]
-          .nonNulls
-          .getClosestOrNull(parameterElement.type);
-
-      if (typeConverter != null) {
-        final castedDatabaseValue = databaseValue.cast(
-          typeConverter.databaseType,
-          parameterElement,
-        );
-
-        parameterValue =
-            '_${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
-      } else if (parameterElement.type.isDefaultSqlType ||
-          parameterElement.type.isEnumType) {
-        parameterValue = databaseValue.cast(
-          parameterElement.type,
-          parameterElement,
-        );
-      } else {
-        throw InvalidGenerationSourceError(
-          'Column type is not supported for ${parameterElement.type}',
-          todo:
-              'Either use a supported type https://wilinz.github.io/froom/entities/#supported-types or supply a type converter.',
-        );
-      }
+      final parameterValue = _getDecodedValue(
+        field,
+        parameterElement.type,
+        parameterElement,
+      );
 
       if (parameterElement.isNamed) {
         return '$parameterName: $parameterValue';
@@ -118,11 +131,112 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
       return null;
     }
   }
+
+  /// The type converter encoding the value of [field] for the database.
+  @protected
+  TypeConverter? getValueTypeConverter(final Field field) {
+    return [...queryableTypeConverters, field.typeConverter]
+        .nonNulls
+        .getClosestOrNullForNullable(
+          field.fieldElement.type,
+          classElement.library.typeSystem,
+        );
+  }
+
+  /// Decodes the database value of [field] into a value of [type].
+  String _getDecodedValue(
+    final Field field,
+    final DartType type,
+    final Element element,
+  ) {
+    final databaseValue = "row['${field.columnName}']";
+
+    final typeConverter = [...queryableTypeConverters, field.typeConverter]
+        .nonNulls
+        .getClosestOrNullForNullable(type, classElement.library.typeSystem);
+
+    if (typeConverter != null) {
+      final castedDatabaseValue = databaseValue.cast(
+        typeConverter.databaseType,
+        element,
+      );
+      final decodedValue =
+          '_${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
+      return typeConverter.convertsOnlyNonNull(type)
+          ? '$databaseValue == null ? null : $decodedValue'
+          : decodedValue;
+    } else if (type.isDefaultSqlType || type.isEnumType) {
+      return databaseValue.cast(type, element);
+    } else {
+      throw InvalidGenerationSourceError(
+        'Column type is not supported for $type',
+        todo:
+            'Either use a supported type https://wilinz.github.io/froom/entities/#supported-types or supply a type converter.',
+      );
+    }
+  }
+
+  /// Maps the fields of an item to its database column values.
+  ///
+  /// Like Room, `0` of a non-nullable auto generated integer primary key
+  /// [unsetPrimaryKey] is mapped to `NULL` when inserting, so that SQLite
+  /// generates the key.
+  @protected
+  String getValueMapping(
+    final List<Field> fields, {
+    final Field? unsetPrimaryKey,
+  }) {
+    final keyValueList = fields.map((field) {
+      final columnName = field.columnName;
+      final attributeValue = _getAttributeValue(field);
+      if (field == unsetPrimaryKey) {
+        return "'$columnName': $attributeValue == 0 ? null : $attributeValue";
+      }
+      return "'$columnName': $attributeValue";
+    }).toList();
+
+    return '<String, Object?>{${keyValueList.join(', ')}}';
+  }
+
+  String _getAttributeValue(final Field field) {
+    final fieldElement = field.fieldElement;
+    final parameterName = fieldElement.displayName;
+    final fieldType = fieldElement.type;
+    final typeConverter = getValueTypeConverter(field);
+    String attributeValue = 'item.$parameterName';
+
+    if (typeConverter != null) {
+      final converterName = '_${typeConverter.name.decapitalize()}';
+      attributeValue = typeConverter.convertsOnlyNonNull(fieldType)
+          // force! underlying non-nullable type as null check has been done
+          ? '$attributeValue == null ? null : $converterName.encode($attributeValue!)'
+          : '$converterName.encode($attributeValue)';
+    } else if (fieldType.isDartCoreBool) {
+      attributeValue = _serializeBoolean(field, attributeValue);
+    } else if (fieldType.isEnumType) {
+      attributeValue = _serializeEnum(attributeValue, field);
+    }
+    return attributeValue;
+  }
+
+  String _serializeBoolean(Field field, String attributeValue) {
+    return field.isNullable
+        // force! underlying non-nullable type as null check has been done
+        ? '$attributeValue == null ? null : ($attributeValue! ? 1 : 0)'
+        : '$attributeValue ? 1 : 0';
+  }
+
+  String _serializeEnum(String attributeValue, Field field) {
+    final operator = field.isNullable ? '?.' : '.';
+    return '$attributeValue${operator}index';
+  }
 }
 
 extension on FieldElement {
+  bool get isIgnored => hasAnnotation(annotations.ignore.runtimeType);
+
   bool shouldBeIncluded() {
-    final isIgnored = hasAnnotation(annotations.ignore.runtimeType);
-    return !(isStatic || isSynthetic || isIgnored);
+    final isDeclared = isOriginDeclaration || isOriginDeclaringFormalParameter;
+    return !(isStatic || !isDeclared || isIgnored);
   }
 }

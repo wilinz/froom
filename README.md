@@ -122,11 +122,14 @@ The abstract class contains the method signatures for querying the database whic
   The SQL statement has to get added in parenthesis.
   The method must return a `Future` or `Stream` of the `Entity` you're querying for.
 - `@insert` marks a method as an insertion method.
+- `@upsert` marks a method as an upsert method, which inserts an entity or updates it if it already exists. See [Upsert](https://wilinz.github.io/froom/daos/#upsert).
 
 ```dart
 // dao/person_dao.dart
 
 import 'package:froom/froom.dart';
+
+import '../entity/person.dart';
 
 @dao
 abstract class PersonDao {
@@ -199,7 +202,7 @@ await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
 
-For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom/test/integration) directories.
+For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) directories.
 
 ## Naming
 The library's name derives from the following.

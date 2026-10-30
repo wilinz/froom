@@ -186,6 +186,10 @@ void main() {
       mockStreamController,
     );
 
+    setUp(() {
+      when(mockStreamController.isClosed).thenReturn(false);
+    });
+
     tearDown(() {
       clearInteractions(mockStreamController);
       reset(mockStreamController);
@@ -202,6 +206,20 @@ void main() {
       await underTest.insert(person, onConflictStrategy);
 
       verify(mockStreamController.add(entityName));
+    });
+
+    test('insert item after closing the change listener', () async {
+      final person = Person(1, 'Simon');
+      when(mockDatabaseExecutor.insert(
+        entityName,
+        valueMapper(person),
+        conflictAlgorithm: conflictAlgorithm,
+      )).thenAnswer((_) => Future(() => person.id));
+      when(mockStreamController.isClosed).thenReturn(true);
+
+      await underTest.insert(person, onConflictStrategy);
+
+      verifyNever(mockStreamController.add(any));
     });
 
     test('insert item but transaction failed (returns 0)', () async {

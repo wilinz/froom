@@ -14,9 +14,13 @@ import 'package:froom_generator/processor/query_processor.dart';
 import 'package:froom_generator/value_object/query_method.dart';
 import 'package:froom_generator/value_object/queryable.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
+import 'package:sqlparser/sqlparser.dart' as sql;
 
 // The migration is complete
 class QueryMethodProcessor extends Processor<QueryMethod> {
+  /// Shared by all query methods, as it's only used for parsing.
+  static final _sqlEngine = sql.SqlEngine();
+
   final QueryMethodProcessorError _processorError;
 
   final MethodElement _methodElement;
@@ -50,6 +54,11 @@ class QueryMethodProcessor extends Processor<QueryMethod> {
       returnsStream,
       returnsList,
     );
+
+    // e.g. a class which isn't imported, reported before its nullability
+    if (flattenedReturnType is InvalidType) {
+      throw _processorError.unresolvedReturnType;
+    }
 
     _assertReturnsNullableSingle(
       returnsStream,
@@ -96,6 +105,11 @@ class QueryMethodProcessor extends Processor<QueryMethod> {
         ?.trim();
 
     if (query == null || query.isEmpty) throw _processorError.noQueryDefined;
+
+    // the same check fails the query at runtime otherwise
+    if (_sqlEngine.parse(query).rootNode is sql.InvalidStatement) {
+      throw _processorError.invalidQuery(query);
+    }
     return query;
   }
 

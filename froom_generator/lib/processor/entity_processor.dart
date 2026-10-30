@@ -5,8 +5,6 @@ import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/dart_object_extension.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
-import 'package:froom_generator/misc/extension/string_extension.dart';
-import 'package:froom_generator/misc/extension/type_converters_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/processor/error/entity_processor_error.dart';
 import 'package:froom_generator/processor/queryable_processor.dart';
@@ -48,9 +46,24 @@ class EntityProcessor extends QueryableProcessor<Entity> {
       _getIndices(fields, name),
       _getWithoutRowid(),
       getConstructor(fields),
-      _getValueMapping(fields),
+      getValueMapping(fields),
       _getFts(),
+      insertionValueMapping: getValueMapping(
+        fields,
+        unsetPrimaryKey: _getUnsetPrimaryKey(primaryKey),
+      ),
     );
+  }
+
+  /// Returns the auto generated primary key field, for which `0` means unset,
+  /// if it's a non-nullable integer without type converter.
+  Field? _getUnsetPrimaryKey(final PrimaryKey primaryKey) {
+    if (!primaryKey.autoGenerateId) return null;
+    final field = primaryKey.fields.single;
+    final type = field.fieldElement.type;
+    return type.isDartCoreInt && !field.isNullable && field.typeConverter == null
+        ? field
+        : null;
   }
 
   String _getName() {
@@ -174,16 +187,32 @@ class EntityProcessor extends QueryableProcessor<Entity> {
             throw _processorError.missingIndexColumnName;
           }
 
+          final expressions = <String>{};
           for (final indexColumnName in indexColumnNames) {
-            if (!fields.any((field) => field.columnName == indexColumnName)) {
+            if (fields.any((field) => field.columnName == indexColumnName)) {
+              continue;
+            }
+            // anything else than a plain name is an expression like `y + z`
+            if (RegExp(r'\W').hasMatch(indexColumnName)) {
+              expressions.add(indexColumnName);
+            } else {
               throw _processorError.noMatchingColumn(indexColumnName);
             }
           }
 
           final name = indexObject.getField(IndexField.name)?.toStringValue() ??
-              _generateIndexName(tableName, indexColumnNames);
+              _generateIndexName(tableName, indexColumnNames, expressions);
 
-          return Index(name, tableName, unique, indexColumnNames);
+          final where = indexObject.getField(IndexField.where)?.toStringValue();
+
+          return Index(
+            name,
+            tableName,
+            unique,
+            indexColumnNames,
+            where: where != null && where.trim().isNotEmpty ? where : null,
+            expressions: expressions,
+          );
         }).toList() ??
         [];
   }
@@ -191,8 +220,14 @@ class EntityProcessor extends QueryableProcessor<Entity> {
   String _generateIndexName(
     final String tableName,
     final List<String> columnNames,
+    final Set<String> expressions,
   ) {
-    return Index.defaultPrefix + tableName + '_' + columnNames.join('_');
+    // expressions can contain any characters
+    final names = columnNames.map((columnName) =>
+        expressions.contains(columnName)
+            ? columnName.replaceAll(RegExp(r'\W+'), '_')
+            : columnName);
+    return Index.defaultPrefix + tableName + '_' + names.join('_');
   }
 
   List<String> _getColumns(
@@ -229,14 +264,18 @@ class EntityProcessor extends QueryableProcessor<Entity> {
       return null;
     }
 
+    for (final primaryKeyColumnName in compoundPrimaryKeyColumnNames) {
+      if (!fields.any((field) => field.columnName == primaryKeyColumnName)) {
+        throw _processorError.noMatchingPrimaryKeyColumn(
+          primaryKeyColumnName ?? 'null',
+        );
+      }
+    }
+
     final compoundPrimaryKeyFields = fields.where((field) {
       return compoundPrimaryKeyColumnNames.any(
           (primaryKeyColumnName) => field.columnName == primaryKeyColumnName);
     }).toList();
-
-    if (compoundPrimaryKeyFields.isEmpty) {
-      throw _processorError.missingPrimaryKey;
-    }
 
     return PrimaryKey(compoundPrimaryKeyFields, false);
   }
@@ -261,48 +300,6 @@ class EntityProcessor extends QueryableProcessor<Entity> {
             ?.getField(AnnotationField.entityWithoutRowid)
             ?.toBoolValue() ??
         false;
-  }
-
-  String _getValueMapping(final List<Field> fields) {
-    final keyValueList = fields.map((field) {
-      final columnName = field.columnName;
-      final attributeValue = _getAttributeValue(field);
-      return "'$columnName': $attributeValue";
-    }).toList();
-
-    return '<String, Object?>{${keyValueList.join(', ')}}';
-  }
-
-  String _getAttributeValue(final Field field) {
-    final fieldElement = field.fieldElement;
-    final parameterName = fieldElement.displayName;
-    final fieldType = fieldElement.type;
-    final typeConverter = [...queryableTypeConverters, field.typeConverter]
-        .nonNulls
-        .getClosestOrNull(fieldType);
-    String attributeValue = 'item.$parameterName';
-
-    if (typeConverter != null) {
-      attributeValue =
-          '_${typeConverter.name.decapitalize()}.encode(item.$parameterName)';
-    } else if (fieldType.isDartCoreBool) {
-      attributeValue = _serializeBoolean(field, attributeValue);
-    } else if (fieldType.isEnumType) {
-      attributeValue = _serializeEnum(attributeValue, field);
-    }
-    return attributeValue;
-  }
-
-  String _serializeBoolean(Field field, String attributeValue) {
-    return field.isNullable
-        // force! underlying non-nullable type as null check has been done
-        ? '$attributeValue == null ? null : ($attributeValue! ? 1 : 0)'
-        : '$attributeValue ? 1 : 0';
-  }
-
-  String _serializeEnum(String attributeValue, Field field) {
-    final operator = field.isNullable ? '?.' : '.';
-    return '$attributeValue${operator}index';
   }
 
   annotations.ForeignKeyAction _getForeignKeyAction(

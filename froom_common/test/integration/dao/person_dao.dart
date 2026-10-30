@@ -11,6 +11,9 @@ abstract class PersonDao {
   @Query('SELECT * FROM person')
   Stream<List<Person>> findAllPersonsAsStream();
 
+  @Query('SELECT * FROM "person"')
+  Stream<List<Person>> findAllPersonsFromQuotedTableAsStream();
+
   @Query('SELECT * FROM person WHERE id = :id')
   Future<Person?> findPersonById(int id);
 
@@ -37,6 +40,16 @@ abstract class PersonDao {
   @Query('SELECT * FROM person WHERE custom_name LIKE :name')
   Future<List<Person>> findPersonsWithNamesLike(String name);
 
+  @Query('SELECT * FROM person ORDER BY id LIMIT :count OFFSET :offset')
+  Future<List<Person>> findPersonsPage({int offset = 0, required int count});
+
+  @Query('SELECT * FROM person WHERE custom_name IS :name')
+  Future<List<Person>> findPersonsWithNullableName(String? name);
+
+  @Query(
+      'SELECT * FROM person WHERE (custom_name, id) > (:keySet) ORDER BY custom_name, id')
+  Future<List<Person>> findPersonsAfter(List<Object> keySet);
+
   @Query("SELECT * FROM person WHERE custom_name == ''")
   Future<List<Person>> findPersonsWithEmptyName();
 
@@ -48,6 +61,10 @@ abstract class PersonDao {
 
   @insert
   Future<int> insertPersonWithReturn(Person person);
+
+  @insert
+  @transaction
+  Future<int> insertPersonInTransaction(Person person);
 
   @insert
   Future<List<int>> insertPersonsWithReturn(List<Person> persons);
@@ -63,6 +80,18 @@ abstract class PersonDao {
 
   @update
   Future<int> updatePersonsWithReturn(List<Person> persons);
+
+  @upsert
+  Future<void> upsertPerson(Person person);
+
+  @upsert
+  Future<void> upsertPersons(List<Person> persons);
+
+  @upsert
+  Future<int> upsertPersonWithReturn(Person person);
+
+  @upsert
+  Future<List<int>> upsertPersonsWithReturn(List<Person> persons);
 
   @delete
   Future<void> deletePerson(Person person);
@@ -80,6 +109,11 @@ abstract class PersonDao {
   Future<void> replacePersons(List<Person> persons) async {
     await deleteAllPersons();
     await insertPersons(persons);
+  }
+
+  @transaction
+  Future<Person?> findPersonInTransaction(int id) async {
+    return findPersonById(id);
   }
 
   @transaction

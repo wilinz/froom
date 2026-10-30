@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/change_method_processor_helper.dart';
 import 'package:froom_generator/misc/constants.dart';
@@ -30,17 +29,15 @@ class InsertionMethodProcessor implements Processor<InsertionMethod> {
     final name = _methodElement.name!;
     final returnType = _methodElement.returnType;
 
-    _assertMethodReturnsFuture(returnType);
+    if (!_helper.returnsFuture) {
+      throw _errors.doesNotReturnFuture;
+    }
 
-    final returnsList = _getReturnsList(returnType);
-    final flattenedReturnType =
-        _getFlattenedReturnType(returnType, returnsList);
+    final flattenedReturnType = _helper.flattenedReturnType;
 
-    final returnsVoid = flattenedReturnType is VoidType;
-    final returnsInt = flattenedReturnType.isDartCoreInt;
-    final returnsIntList = returnsList && flattenedReturnType.isDartCoreInt;
-
-    if (!returnsVoid && !returnsIntList && !returnsInt) {
+    if (!_helper.returnsVoid &&
+        !_helper.returnsInt &&
+        !_helper.returnsIntList) {
       throw _errors.doesNotReturnVoidNorIntNorListInt;
     }
 
@@ -62,19 +59,6 @@ class InsertionMethodProcessor implements Processor<InsertionMethod> {
     );
   }
 
-  bool _getReturnsList(final DartType returnType) {
-    final type = _methodElement.library.typeSystem.flatten(returnType);
-    return type.isDartCoreList;
-  }
-
-  DartType _getFlattenedReturnType(
-    final DartType returnType,
-    final bool returnsList,
-  ) {
-    final type = _methodElement.library.typeSystem.flatten(returnType);
-    return returnsList ? type.flatten() : type;
-  }
-
   String _getOnConflictStrategy() {
     final onConflictStrategy = _methodElement
         .getAnnotation(annotations.Insert)
@@ -85,12 +69,6 @@ class InsertionMethodProcessor implements Processor<InsertionMethod> {
       throw _errors.wrongOnConflictValue;
     } else {
       return onConflictStrategy;
-    }
-  }
-
-  void _assertMethodReturnsFuture(final DartType returnType) {
-    if (!returnType.isDartAsyncFuture) {
-      throw _errors.doesNotReturnFuture;
     }
   }
 }

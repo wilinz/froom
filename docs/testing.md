@@ -1,7 +1,8 @@
 # Testing
 
 Simply instantiate an in-memory database and run the database tests on your local development machine as shown in the following snippet.
-For more test references, check out the [project's tests](https://github.com/wilinz/froom/tree/develop/froom/test/integration).
+For more test references, check out the [project's tests](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration).
+They test the pure Dart package `froom_common` with `package:test`; in a Flutter project, import `package:froom/froom.dart` and use `flutter_test` as shown below.
 
 In case you're running Linux, make sure to have sqlite3 and libsqlite3-dev installed.
 
@@ -12,7 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 // your imports follow here
 import 'dao/person_dao.dart';
 import 'database.dart';
-import 'entity/person.dart';
+import 'model/person.dart';
 
 void main() {
   group('database tests', () {
@@ -38,6 +39,6 @@ void main() {
 
       expect(actual, equals(person));
     });
-  }
+  });
 }
 ```

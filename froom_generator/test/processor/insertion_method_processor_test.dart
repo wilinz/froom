@@ -55,6 +55,23 @@ void main() {
               ChangeMethodProcessorError(insertionMethod, 'Insertion')
                   .doesNotReturnFuture));
     });
+    test('when returning list of void', () async {
+      final insertionMethod = await '''
+      @insert
+      Future<List<void>> insertPersons(List<Person> persons);
+    '''
+          .asDaoMethodElement();
+      final entities = await getPersonEntity();
+
+      final actual =
+          () => InsertionMethodProcessor(insertionMethod, [entities]).process();
+
+      expect(
+          actual,
+          throwsInvalidGenerationSourceError(
+              ChangeMethodProcessorError(insertionMethod, 'Insertion')
+                  .doesNotReturnVoidNorIntNorListInt));
+    });
     test('when not returning int or void or List<int>', () async {
       final insertionMethod = await '''
       @insert

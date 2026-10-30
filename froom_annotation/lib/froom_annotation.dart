@@ -18,3 +18,4 @@ export 'src/transaction.dart';
 export 'src/type_converter.dart';
 export 'src/type_converters.dart';
 export 'src/update.dart';
+export 'src/upsert.dart';

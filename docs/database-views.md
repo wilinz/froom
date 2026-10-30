@@ -3,7 +3,7 @@
 If you want to define static `SELECT`-statements which return different types than your entities, your best option is to use `@DatabaseView`.
 A database view can be understood as a virtual table, which can be queried like a real table.
 
-A database view in froom is defined and used similarly to entities, with the main difference being that access is read-only, which means that update, insert and delete functions are not possible.
+A database view in froom is defined and used similarly to entities, with the main difference being that access is read-only, which means that update, insert, upsert and delete functions are not possible.
 Similarly to entities, the class name is used if no `viewName` was set.
 
 ```dart
@@ -32,7 +32,10 @@ You can then query the view via a DAO function like an entity.
 
 It is possible for DatabaseViews to inherit common fields from a base class, just like in entities.
 
+When upgrading the database with migrations, the views of the database are recreated with their current queries after the migrations, as views don't hold any data.
+Thus, changing the query of a view only requires a database version increase with a migration, which doesn't have to touch the view.
+
 !!! attention
     It is now possible to return a `Stream` object from a DAO method which queries a database view. But it will fire on **any**
-    `@update`, `@insert`, `@delete` events in the whole database, which can get quite taxing on the runtime. Please add it only if you know what you are doing!
+    `@update`, `@insert`, `@upsert`, `@delete` events in the whole database, which can get quite taxing on the runtime. Please add it only if you know what you are doing!
     This is mostly due to the complexity of detecting which entities are involved in a database view.

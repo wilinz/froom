@@ -12,6 +12,8 @@ import 'package:froom_generator/value_object/view.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
 
+import '../test_utils.dart';
+
 void main() {
   late List<Entity> entities;
   late List<View> views;
@@ -40,6 +42,171 @@ void main() {
         .methodsLength;
 
     expect(actual, equals(2));
+  });
+
+  test('Includes overridden methods only once', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends AbstractDao<Person> {
+        @override
+        @Query('SELECT * FROM person WHERE id > 0')
+        Future<List<Person>> findAll();
+      }
+      
+      abstract class AbstractDao<T> extends AnotherAbstractDao<T> {
+        @override
+        @Query('SELECT * FROM person WHERE id > 1')
+        Future<List<T>> findAll();
+      }
+      
+      abstract class AnotherAbstractDao<T> {
+        @Query('SELECT * FROM person')
+        Future<List<T>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, hasLength(1));
+    expect(actual.queryMethods.first.query.sql,
+        equals('SELECT * FROM person WHERE id > 0'));
+  });
+
+  test('Keeps concrete methods between redeclaration and annotated method',
+      () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends AbstractDao<Person> {
+        @override
+        Future<List<Person>> findAll();
+      }
+      
+      abstract class AbstractDao<T> extends AnotherAbstractDao<T> {
+        @override
+        Future<List<T>> findAll() async => [];
+      }
+      
+      abstract class AnotherAbstractDao<T> {
+        @Query('SELECT * FROM person')
+        Future<List<T>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, isEmpty);
+  });
+
+  test('Prefers concrete methods of superclasses over interfaces', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends BaseDao implements ContractDao {}
+      
+      abstract class BaseDao extends RootDao {}
+      
+      abstract class RootDao {
+        Future<List<Person>> findAll() async => [];
+      }
+      
+      abstract class ContractDao {
+        @Query('SELECT * FROM person')
+        Future<List<Person>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, isEmpty);
+  });
+
+  test('Rejects redeclarations with another signature without annotation',
+      () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends AbstractDao<Person> {
+        @override
+        Future<List<Person>> findAll({int limit = 10});
+      }
+      
+      abstract class AbstractDao<T> {
+        @Query('SELECT * FROM person LIMIT :limit')
+        Future<List<T>> findAll({int limit = 1});
+      }
+    ''');
+
+    final actual = () =>
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual, throwsInvalidGenerationSourceError());
+  });
+
+  test('Accepts redeclarations with the same signature', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends AbstractDao<Person> {
+        @override
+        Future<List<Person>> findAll({int b = 2, int a = 0x1, int? c});
+      }
+      
+      abstract class AbstractDao<T> {
+        @Query('SELECT * FROM person WHERE :c IS NULL LIMIT :a OFFSET :b')
+        Future<List<T>> findAll({int a = 1, int b = 2, int? c = null});
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, hasLength(1));
+  });
+
+  test('Ignores @transaction on query and change methods', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao {
+        @insert
+        @transaction
+        Future<int> insertPerson(Person person);
+      
+        @Query('SELECT * FROM person')
+        @transaction
+        Future<List<Person>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.insertionMethods, hasLength(1));
+    expect(actual.queryMethods, hasLength(1));
+    expect(actual.transactionMethods, isEmpty);
+  });
+
+  test('Prefers methods of later mixins', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao with FirstMixin, SecondMixin {}
+      
+      mixin FirstMixin {
+        @Query('SELECT * FROM person WHERE id > 1')
+        Future<List<Person>> findAll();
+      }
+      
+      mixin SecondMixin {
+        @Query('SELECT * FROM person WHERE id > 2')
+        Future<List<Person>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, hasLength(1));
+    expect(actual.queryMethods.first.query.sql,
+        equals('SELECT * FROM person WHERE id > 2'));
   });
 
   test("Includes methods from abstract parent's abstract parent class",

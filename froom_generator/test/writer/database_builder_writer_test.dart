@@ -21,6 +21,8 @@ void main() {
         final List<Migration> _migrations = [];
 
         Callback? _callback;
+
+        bool _fallbackToDestructiveMigration = false;
       
         @override
         $FooBarBuilderContract addMigrations(List<Migration> migrations) {
@@ -35,6 +37,12 @@ void main() {
         }
 
         @override
+        $FooBarBuilderContract fallbackToDestructiveMigration() {
+          _fallbackToDestructiveMigration = true;
+          return this;
+        }
+
+        @override
         Future<FooBar> build() async {
           final path = name != null
             ? await sqfliteDatabaseFactory.getDatabasePath(name!)
@@ -44,6 +52,7 @@ void main() {
             path,
             _migrations,
             _callback,
+            _fallbackToDestructiveMigration,
           );
           return database;
         }

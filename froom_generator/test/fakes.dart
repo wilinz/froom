@@ -420,6 +420,9 @@ class FakeClassElement implements ClassElement {
   List<TypeParameterElement> get typeParameters2 => throw UnimplementedError();
 
   @override
+  ConstructorElement? get primaryConstructor => throw UnimplementedError();
+
+  @override
   ConstructorElement? get unnamedConstructor => throw UnimplementedError();
 
   @override

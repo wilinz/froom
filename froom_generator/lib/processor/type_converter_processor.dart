@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/processor/error/processor_error.dart';
 import 'package:froom_generator/processor/processor.dart';
@@ -17,12 +18,12 @@ class TypeConverterProcessor extends Processor<TypeConverter> {
 
   @override
   TypeConverter process() {
-    final supertype = _classElement.supertype;
+    final supertype = _classElement.typeConverterSupertype;
     if (supertype == null) {
       throw ProcessorError(
         message:
-            'Only classes that inherit from TypeConverter can be used as type converters.',
-        todo: 'Make sure use a class that inherits from TypeConverter.',
+            'Only classes that extend or implement TypeConverter can be used as type converters.',
+        todo: 'Make sure to use a class that extends or implements TypeConverter.',
         element: _classElement,
       );
     }

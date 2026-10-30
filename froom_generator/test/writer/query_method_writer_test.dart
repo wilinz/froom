@@ -60,7 +60,63 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Future<Person?> findById(int id) async {
-        return _queryAdapter.query('SELECT * FROM Person WHERE id = ?1', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [id]);
+        return _queryAdapter.query('SELECT * FROM Person WHERE id = ?1', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [id]);
+      }
+    '''));
+  });
+
+  test('query with optional and named parameters', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT * FROM Person WHERE name = :name LIMIT :count OFFSET :offset')
+      Future<List<Person>> findPage(String name, {int offset = 0, required int count});
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+      @override
+      Future<List<Person>> findPage(
+        String name, {
+        int offset = 0,
+        required int count,
+      }) async {
+        return _queryAdapter.queryList('SELECT * FROM Person WHERE name = ?1 LIMIT ?3 OFFSET ?2', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [name, offset, count]);
+      }
+    '''));
+  });
+
+  test('query with optional positional parameter', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT * FROM Person LIMIT :count')
+      Future<List<Person>> findFirst([int count = 10]);
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+      @override
+      Future<List<Person>> findFirst([int count = 10]) async {
+        return _queryAdapter.queryList('SELECT * FROM Person LIMIT ?1', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [count]);
+      }
+    '''));
+  });
+
+  test('query with nullable parameters', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT * FROM Person WHERE name IS :name AND admin IS :admin AND someType IS :type')
+      Future<List<Person>> findBy(String? name, bool? admin, CharacterType? type);
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+      @override
+      Future<List<Person>> findBy(
+        String? name,
+        bool? admin,
+        CharacterType? type,
+      ) async {
+        return _queryAdapter.queryList('SELECT * FROM Person WHERE name IS ?1 AND admin IS ?2 AND someType IS ?3', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [name, admin == null ? null : (admin ? 1 : 0), type?.index]);
       }
     '''));
   });
@@ -124,7 +180,7 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Future<double?> getFirstPersonWeight() async {
-        return _queryAdapter.query('SELECT weight FROM Person LIMIT 1', mapper: (Map<String, Object?> row) => row.values.first as double);
+        return _queryAdapter.query('SELECT weight FROM Person LIMIT 1', mapper: (Map<String, Object?> row) => (row.values.first as num).toDouble());
       }
     '''));
   });
@@ -140,7 +196,7 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Future<List<double>> getPeopleWeightList() async {
-        return _queryAdapter.queryList('SELECT weight FROM Person', mapper: (Map<String, Object?> row) => row.values.first as double);
+        return _queryAdapter.queryList('SELECT weight FROM Person', mapper: (Map<String, Object?> row) => (row.values.first as num).toDouble());
       }
     '''));
   });
@@ -156,7 +212,7 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Stream<List<double>> getPeopleWeightListAsStream() {
-        return _queryAdapter.queryListStream('SELECT weight FROM Person', mapper: (Map<String, Object?> row) => row.values.first as double, queryableName: 'Person', isView: false);
+        return _queryAdapter.queryListStream('SELECT weight FROM Person', mapper: (Map<String, Object?> row) => (row.values.first as num).toDouble(), queryableName: 'Person', isView: false);
       }
     '''));
   });
@@ -362,7 +418,7 @@ void main() {
         TypeConverterScope.database,
       );
       final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE id = :id')
+      @Query('SELECT * FROM `Order` WHERE id = :id')
       Future<Order?> findById(int id);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -372,7 +428,54 @@ void main() {
       expect(actual, equalsDart(r'''
       @override
       Future<Order?> findById(int id) async {
-        return _queryAdapter.query('SELECT * FROM Order WHERE id = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [id]);
+        return _queryAdapter.query('SELECT * FROM `Order` WHERE id = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [id]);
+      }
+    '''));
+    });
+
+    test('generates method with nullable type converted parameter', () async {
+      final typeConverter = TypeConverter(
+        'DateTimeConverter',
+        await dateTimeDartType,
+        await intDartType,
+        TypeConverterScope.database,
+      );
+      final queryMethod = await '''
+      @Query('SELECT * FROM `Order` WHERE dateTime IS :dateTime')
+      Future<List<Order>> findByDateTime(DateTime? dateTime);
+    '''
+          .asOrderQueryMethod({typeConverter});
+
+      final actual = QueryMethodWriter(queryMethod).write();
+
+      expect(actual, equalsDart(r'''
+      @override
+      Future<List<Order>> findByDateTime(DateTime? dateTime) async {
+        return _queryAdapter.queryList('SELECT * FROM `Order` WHERE dateTime IS ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [dateTime == null ? null : _dateTimeConverter.encode(dateTime)]);
+      }
+    '''));
+    });
+
+    test('generates method returning nullable type converted value',
+        () async {
+      final typeConverter = TypeConverter(
+        'DateTimeConverter',
+        await dateTimeDartType,
+        await intDartType,
+        TypeConverterScope.database,
+      );
+      final queryMethod = await '''
+      @Query('SELECT MAX(dateTime) FROM `Order`')
+      Future<DateTime?> findLatest();
+    '''
+          .asOrderQueryMethod({typeConverter});
+
+      final actual = QueryMethodWriter(queryMethod).write();
+
+      expect(actual, equalsDart(r'''
+      @override
+      Future<DateTime?> findLatest() async {
+        return _queryAdapter.query<DateTime?>('SELECT MAX(dateTime) FROM `Order`', mapper: (Map<String, Object?> row) => row.values.first == null ? null : _dateTimeConverter.decode(row.values.first as int));
       }
     '''));
     });
@@ -386,7 +489,7 @@ void main() {
       );
       final queryMethod = await '''
       @TypeConverters([DateTimeConverter])
-      @Query('SELECT * FROM Order WHERE dateTime = :dateTime')
+      @Query('SELECT * FROM `Order` WHERE dateTime = :dateTime')
       Future<Order?> findByDateTime(DateTime dateTime);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -396,7 +499,7 @@ void main() {
       expect(actual, equalsDart(r'''
       @override
       Future<Order?> findByDateTime(DateTime dateTime) async {
-        return _queryAdapter.query('SELECT * FROM Order WHERE dateTime = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _externalTypeConverter.decode(row['dateTime'] as int)), arguments: [_dateTimeConverter.encode(dateTime)]);
+        return _queryAdapter.query('SELECT * FROM `Order` WHERE dateTime = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _externalTypeConverter.decode(row['dateTime'] as int)), arguments: [_dateTimeConverter.encode(dateTime)]);
       }
     '''));
     });
@@ -410,7 +513,7 @@ void main() {
         TypeConverterScope.database,
       );
       final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE dateTime = :dateTime')
+      @Query('SELECT * FROM `Order` WHERE dateTime = :dateTime')
       Future<Order?> findByDateTime(@TypeConverters([DateTimeConverter]) DateTime dateTime);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -420,7 +523,7 @@ void main() {
       expect(actual, equalsDart(r'''
       @override
       Future<Order?> findByDateTime(DateTime dateTime) async {
-        return _queryAdapter.query('SELECT * FROM Order WHERE dateTime = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _externalTypeConverter.decode(row['dateTime'] as int)), arguments: [_dateTimeConverter.encode(dateTime)]);
+        return _queryAdapter.query('SELECT * FROM `Order` WHERE dateTime = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _externalTypeConverter.decode(row['dateTime'] as int)), arguments: [_dateTimeConverter.encode(dateTime)]);
       }
     '''));
     });
@@ -434,7 +537,7 @@ void main() {
         TypeConverterScope.database,
       );
       final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE date IN (:dates)')
+      @Query('SELECT * FROM `Order` WHERE date IN (:dates)')
       Future<List<Order>> findByDates(List<DateTime> dates);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -446,7 +549,7 @@ void main() {
       Future<List<Order>> findByDates(List<DateTime> dates) async {
         const offset = 1;
         final _sqliteVariablesForDates=Iterable<String>.generate(dates.length, (i)=>'?${i+offset}').join(',');
-        return _queryAdapter.queryList('SELECT * FROM Order WHERE date IN (' + _sqliteVariablesForDates + ')', 
+        return _queryAdapter.queryList('SELECT * FROM `Order` WHERE date IN (' + _sqliteVariablesForDates + ')', 
           mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)),
           arguments: [...dates.map((element) => _dateTimeConverter.encode(element))]);
       }
@@ -488,7 +591,7 @@ void main() {
       TypeConverterScope.database,
     );
     final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE id IN (:ids) AND id IN (:dateTimeList) OR foo in (:ids) AND bar = :foo OR name = :name')
+      @Query('SELECT * FROM `Order` WHERE id IN (:ids) AND id IN (:dateTimeList) OR foo in (:ids) AND bar = :foo OR name = :name')
       Future<List<Order>> findWithIds(List<int> ids, String name, @TypeConverters([DateTimeConverter]) List<DateTime> dateTimeList, DateTime foo);
     '''
         .asOrderQueryMethod({typeConverter});
@@ -511,7 +614,7 @@ void main() {
                 Iterable<String>.generate(dateTimeList.length, (i) => '?${i + offset}')
                     .join(',');
             return _queryAdapter.queryList(
-                'SELECT * FROM Order WHERE id IN (' +
+                'SELECT * FROM `Order` WHERE id IN (' +
                     _sqliteVariablesForIds +
                     ') AND id IN (' +
                     _sqliteVariablesForDateTimeList +
@@ -530,6 +633,63 @@ void main() {
           '''));
   });
 
+  test('Query with list parameter as row value', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT * FROM Person WHERE (name, id) > (:keySet) ORDER BY name, id LIMIT :count')
+      Future<List<Person>> findAfter(List<Object> keySet, int count);
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+          @override
+          Future<List<Person>> findAfter(
+            List<Object> keySet,
+            int count,
+          ) async {
+            const offset = 2;
+            final _sqliteVariablesForKeySet =
+                Iterable<String>.generate(keySet.length, (i) => '?${i + offset}')
+                    .join(',');
+            return _queryAdapter.queryList(
+                'SELECT * FROM Person WHERE (name, id) > (' +
+                    _sqliteVariablesForKeySet +
+                    ') ORDER BY name, id LIMIT ?1',
+                mapper: (Map<String, Object?> row) => Person(
+                    row['id'] as int,
+                    row['name'] as String,
+                    (row['weight'] as num).toDouble(),
+                    (row['admin'] as int) != 0,
+                    row['avatar'] as Uint8List),
+                arguments: [count, ...keySet]);
+          }
+          '''));
+  });
+
+  test('query stream selecting a column ending with from', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT validFrom FROM Person')
+      Stream<List<String>> findValidFromAsStream();
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write().body.toString();
+
+    expect(actual, contains("queryableName: 'Person'"));
+  });
+
+  for (final table in ['"Person"', '[Person]', '`Person`', '   Person']) {
+    test('query stream from quoted table $table', () async {
+      final queryMethod = await _createQueryMethod('''
+        @Query('SELECT * FROM $table')
+        Stream<List<Person>> findAllAsStream();
+      ''');
+
+      final actual = QueryMethodWriter(queryMethod).write().body.toString();
+
+      expect(actual, contains("queryableName: 'Person'"));
+    });
+  }
+
   test('query boolean parameter', () async {
     final queryMethod = await _createQueryMethod('''
       @Query('SELECT * FROM Person WHERE flag = :flag')
@@ -543,7 +703,7 @@ void main() {
           Future<List<Person>> findWithFlag(bool flag) async {
             return _queryAdapter.queryList('SELECT * FROM Person WHERE flag = ?1',
                 mapper: (Map<String, Object?> row) =>
-                    Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                    Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                 arguments: [flag ? 1 : 0]);
           }
           '''));
@@ -563,7 +723,7 @@ void main() {
             return _queryAdapter.queryList(
                 'SELECT * FROM Person WHERE characterType = ?1',
                 mapper: (Map<String, Object?> row) =>
-                    Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                    Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                 arguments: [type.index]);
           }
           '''));
@@ -585,7 +745,7 @@ void main() {
           ) async {
             return _queryAdapter.query('SELECT * FROM Person WHERE id = ?1 AND name = ?2',
                 mapper: (Map<String, Object?> row) =>
-                    Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                    Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                 arguments: [id, name]);
           }
           '''));
@@ -608,7 +768,7 @@ void main() {
             ) async {
               return _queryAdapter.query(
                   'SELECT * FROM Person WHERE foo = ?3 AND id = ?1 AND name = ?2 AND name = ?3',
-                  mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                  mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                   arguments: [id, name, bar]);
             }
             '''));
@@ -627,7 +787,7 @@ void main() {
             Future<List<Person>> findAll() async {
               return _queryAdapter.queryList('SELECT * FROM Person',
                   mapper: (Map<String, Object?> row) =>
-                      Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List));
+                      Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List));
             }
             '''));
   });
@@ -645,7 +805,7 @@ void main() {
             Stream<Person?> findByIdAsStream(int id) {
               return _queryAdapter.queryStream('SELECT * FROM Person WHERE id = ?1',
                   mapper: (Map<String, Object?> row) =>
-                      Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                      Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                   arguments: [id],
                   queryableName: 'Person',
                   isView: false);
@@ -666,7 +826,7 @@ void main() {
       Stream<List<Person>> findAllAsStream() {
         return _queryAdapter.queryListStream(
         'SELECT * FROM Person', 
-        mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), 
+        mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), 
         queryableName: 'Person', isView: false);
       }
     '''));
@@ -721,7 +881,7 @@ void main() {
         const offset = 1;
         final _sqliteVariablesForIds=Iterable<String>.generate(ids.length, (i)=>'?${i+offset}').join(',');
         return _queryAdapter.queryList('SELECT * FROM Person WHERE id IN (' + _sqliteVariablesForIds + ')', 
-          mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), 
+          mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), 
           arguments: [...ids]);
      }
     '''));
@@ -741,7 +901,7 @@ void main() {
         const offset = 1;
         final _sqliteVariablesForIds=Iterable<String>.generate(ids.length, (i)=>'?${i+offset}').join(',');
         return _queryAdapter.queryList('SELECT * FROM Person WHERE id IN(' + _sqliteVariablesForIds + ')',
-          mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+          mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
           arguments: [...ids]);
       }
     '''));
@@ -774,7 +934,7 @@ void main() {
                       _sqliteVariablesForIdx +
                       ')',
                   mapper: (Map<String, Object?> row) =>
-                      Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                      Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                   arguments: [...ids, ...idx]);
             }
             '''));
@@ -813,7 +973,7 @@ void main() {
                       _sqliteVariablesForIds +
                       ') AND bar = ?2 OR name = ?1',
                   mapper: (Map<String, Object?> row) =>
-                      Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                      Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                   arguments: [name, foo, ...idx, ...ids]);
             }
             '''));

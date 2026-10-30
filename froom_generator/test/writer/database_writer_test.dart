@@ -39,31 +39,67 @@ void main() {
           String path,
           List<Migration> migrations, [
           Callback? callback,
+          bool fallbackToDestructiveMigration = false,
         ]) async {
+          Future<void> createSchema(sqflite.Database database) async {
+              await database.execute(
+                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
+          // foreign keys are enabled after migrations, which can't disable
+          // them within their transaction
+          var enableForeignKeysOnOpen = false;
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
-              await database.execute('PRAGMA foreign_keys = ON');
+              if (await MigrationAdapter.isUpgradePending(database, 1)) {
+                enableForeignKeysOnOpen = true;
+              } else {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onConfigure?.call(database);
             },
             onOpen: (database) async {
+              if (enableForeignKeysOnOpen) {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
-      
+
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              await database.execute(
-                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
-      
+              await createSchema(database);
+
               await callback?.onCreate?.call(database, version);
             },
           );
           return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
         }
+
+        @override
+        List<String> get entityTableNames => const ['Person'];
       } 
       '''));
   });
@@ -106,31 +142,67 @@ void main() {
           String path,
           List<Migration> migrations, [
           Callback? callback,
+          bool fallbackToDestructiveMigration = false,
         ]) async {
+          Future<void> createSchema(sqflite.Database database) async {
+              await database.execute(
+                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
+          // foreign keys are enabled after migrations, which can't disable
+          // them within their transaction
+          var enableForeignKeysOnOpen = false;
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
-              await database.execute('PRAGMA foreign_keys = ON');
+              if (await MigrationAdapter.isUpgradePending(database, 1)) {
+                enableForeignKeysOnOpen = true;
+              } else {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onConfigure?.call(database);
             },
             onOpen: (database) async {
+              if (enableForeignKeysOnOpen) {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
-      
+
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              await database.execute(
-                  'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
-      
+              await createSchema(database);
+
               await callback?.onCreate?.call(database, version);
             },
           );
           return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
         }
+
+        @override
+        List<String> get entityTableNames => const ['Person'];
       
         @override
         TestDao get testDao {
@@ -169,31 +241,67 @@ void main() {
           String path,
           List<Migration> migrations, [
           Callback? callback,
+          bool fallbackToDestructiveMigration = false,
         ]) async {
+          Future<void> createSchema(sqflite.Database database) async {
+              await database.execute(
+                  'CREATE TABLE IF NOT EXISTS `custom_table_name` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `custom_name` TEXT NOT NULL)');
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
+          // foreign keys are enabled after migrations, which can't disable
+          // them within their transaction
+          var enableForeignKeysOnOpen = false;
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
-              await database.execute('PRAGMA foreign_keys = ON');
+              if (await MigrationAdapter.isUpgradePending(database, 1)) {
+                enableForeignKeysOnOpen = true;
+              } else {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onConfigure?.call(database);
             },
             onOpen: (database) async {
+              if (enableForeignKeysOnOpen) {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
             },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
             onCreate: (database, version) async {
-              await database.execute(
-                  'CREATE TABLE IF NOT EXISTS `custom_table_name` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `custom_name` TEXT NOT NULL)');
+              await createSchema(database);
 
               await callback?.onCreate?.call(database, version);
             },
           );
           return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
         }
+
+        @override
+        List<String> get entityTableNames => const ['custom_table_name'];
       }      
     '''));
   });
@@ -235,34 +343,73 @@ void main() {
           String path,
           List<Migration> migrations, [
           Callback? callback,
+          bool fallbackToDestructiveMigration = false,
         ]) async {
-          final databaseOptions = sqflite.OpenDatabaseOptions(
-            version: 1,
-            onConfigure: (database) async {
-              await database.execute('PRAGMA foreign_keys = ON');
-              await callback?.onConfigure?.call(database);
-            },
-            onOpen: (database) async {
-              await callback?.onOpen?.call(database);
-            },
-            onUpgrade: (database, startVersion, endVersion) async {
-              await MigrationAdapter.runMigrations(
-                  database, startVersion, endVersion, migrations);
-
-              await callback?.onUpgrade?.call(database, startVersion, endVersion);
-            },
-            onCreate: (database, version) async {
+          Future<void> createSchema(sqflite.Database database) async {
               await database.execute(
                   'CREATE TABLE IF NOT EXISTS `Person` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
                   
               await database.execute(
                   'CREATE VIEW IF NOT EXISTS `names` AS SELECT custom_name as name FROM person');
+          }
+
+          Future<void> recreateSchema(sqflite.Database database) async {
+            await MigrationAdapter.dropAllTables(database);
+            await createSchema(database);
+            await callback?.onDestructiveMigration?.call(database);
+          }
+
+          // foreign keys are enabled after migrations, which can't disable
+          // them within their transaction
+          var enableForeignKeysOnOpen = false;
+
+          final databaseOptions = sqflite.OpenDatabaseOptions(
+            version: 1,
+            onConfigure: (database) async {
+              if (await MigrationAdapter.isUpgradePending(database, 1)) {
+                enableForeignKeysOnOpen = true;
+              } else {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
+              await callback?.onConfigure?.call(database);
+            },
+            onOpen: (database) async {
+              if (enableForeignKeysOnOpen) {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
+              await callback?.onOpen?.call(database);
+            },
+            onUpgrade: (database, startVersion, endVersion) async {
+              if (fallbackToDestructiveMigration &&
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                await recreateSchema(database);
+                return;
+              }
+
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
+              await MigrationAdapter.runMigrations(
+                  database, startVersion, endVersion, migrations);
+              await database.execute('DROP VIEW IF EXISTS `names`');
+              await database.execute(
+                  'CREATE VIEW IF NOT EXISTS `names` AS SELECT custom_name as name FROM person');
+
+              await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
+            },
+            onDowngrade: fallbackToDestructiveMigration
+                ? (database, startVersion, endVersion) => recreateSchema(database)
+                : null,
+            onCreate: (database, version) async {
+              await createSchema(database);
 
               await callback?.onCreate?.call(database, version);
             },
           );
           return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
         }
+
+        @override
+        List<String> get entityTableNames => const ['Person'];
       }      
     """));
   });
