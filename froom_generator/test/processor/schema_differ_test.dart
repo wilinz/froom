@@ -261,6 +261,179 @@ void main() {
     expect(actual, throwsA(isA<SchemaDiffException>()));
   });
 
+  test('deleted column of a renamed table', () {
+    final singer = table('Singer', [id, column('name'), column('age')]);
+    final artist = table('Artist', [id, column('name')]);
+
+    final actual = SchemaDiffer(
+      schema(1, [singer]),
+      schema(2, [artist]),
+      specName: 'Spec',
+      renamedTables: [RenamedTable('Singer', 'Artist')],
+      deletedColumns: [DeletedColumn('Singer', 'age')],
+    ).diffSchemas();
+
+    expect(statements(actual), [
+      'CREATE TABLE IF NOT EXISTS `_new_Artist` (`id` INTEGER NOT NULL, `name` TEXT, PRIMARY KEY (`id`))',
+      'INSERT INTO `_new_Artist` (`id`, `name`) SELECT `id`, `name` FROM `Singer`',
+      'DROP TABLE `Singer`',
+      'ALTER TABLE `_new_Artist` RENAME TO `Artist`',
+    ]);
+  });
+
+  test('new table with the old name of a renamed table', () {
+    final oldA = table('A', [id]);
+    final newA = table('A', [id, column('name')]);
+    final b = table('B', [id]);
+
+    final actual = SchemaDiffer(
+      schema(1, [oldA]),
+      schema(2, [newA, b]),
+      specName: 'Spec',
+      renamedTables: [RenamedTable('A', 'B')],
+    ).diffSchemas();
+
+    expect(statements(actual), [
+      'ALTER TABLE `A` RENAME TO `B`',
+      'CREATE TABLE IF NOT EXISTS `A` (`id` INTEGER NOT NULL, `name` TEXT, PRIMARY KEY (`id`))',
+    ]);
+  });
+
+  test('deleted table replaced by a renamed table', () {
+    final a = table('A', [id]);
+    final oldB = table('B', [id]);
+
+    final actual = SchemaDiffer(
+      schema(1, [a, oldB]),
+      schema(2, [table('B', [id])]),
+      specName: 'Spec',
+      renamedTables: [RenamedTable('A', 'B')],
+      deletedTables: [DeletedTable('B')],
+    ).diffSchemas();
+
+    expect(statements(actual), [
+      'DROP TABLE `B`',
+      'ALTER TABLE `A` RENAME TO `B`',
+    ]);
+  });
+
+  test('new column with the old name of a renamed column gets no data', () {
+    final oldSong = table('Song', [id, column('name')]);
+    final newSong =
+        table('Song', [id, column('title'), column('name', defaultValue: "''")]);
+
+    final actual = SchemaDiffer(
+      schema(1, [oldSong]),
+      schema(2, [newSong]),
+      specName: 'Spec',
+      renamedColumns: [RenamedColumn('Song', 'name', 'title')],
+    ).diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Song` (`id`, `title`) SELECT `id`, `name` FROM `Song`'),
+    );
+  });
+
+  test('new NOT NULL column with the old name of a renamed column fails', () {
+    final oldSong = table('Song', [id, column('name')]);
+    final newSong =
+        table('Song', [id, column('title'), column('name', notNull: true)]);
+
+    final actual = () => SchemaDiffer(
+          schema(1, [oldSong]),
+          schema(2, [newSong]),
+          specName: 'Spec',
+          renamedColumns: [RenamedColumn('Song', 'name', 'title')],
+        ).diffSchemas();
+
+    expect(actual, throwsA(isA<SchemaDiffException>()));
+  });
+
+  for (final (description, differ) in [
+    (
+      'renamed column not in the new version',
+      () => SchemaDiffer(
+            schema(1, [table('Song', [id, column('name')])]),
+            schema(2, [table('Song', [id, column('title')])]),
+            renamedColumns: [RenamedColumn('Song', 'name', 'titel')],
+          ),
+    ),
+    (
+      'renamed column not in the old version',
+      () => SchemaDiffer(
+            schema(1, [table('Song', [id, column('name')])]),
+            schema(2, [table('Song', [id, column('title')])]),
+            renamedColumns: [RenamedColumn('Song', 'nam', 'title')],
+          ),
+    ),
+    (
+      'deleted table not in the old version',
+      () => SchemaDiffer(
+            schema(1, [person]),
+            schema(2, [person]),
+            deletedTables: [DeletedTable('Albums')],
+          ),
+    ),
+    (
+      'deleted column not in the old version',
+      () => SchemaDiffer(
+            schema(1, [person]),
+            schema(2, [person]),
+            deletedColumns: [DeletedColumn('Person', 'nickname')],
+          ),
+    ),
+    (
+      'table renamed to an existing table',
+      () => SchemaDiffer(
+            schema(1, [table('A', [id]), table('B', [id])]),
+            schema(2, [table('B', [id])]),
+            renamedTables: [RenamedTable('A', 'B')],
+          ),
+    ),
+  ]) {
+    test('spec with $description fails', () {
+      expect(
+        () => differ().diffSchemas(),
+        throwsA(isA<SchemaDiffException>()),
+      );
+    });
+  }
+
+  test('deleted and added columns recreate the table once', () {
+    final oldSong = table('Song', [id, column('genre')]);
+    final newSong = table('Song', [id, column('year', defaultValue: '0')]);
+
+    final actual = SchemaDiffer(
+      schema(1, [oldSong]),
+      schema(2, [newSong]),
+      specName: 'Spec',
+      deletedColumns: [DeletedColumn('Song', 'genre')],
+    ).diffSchemas();
+
+    expect(actual.addedColumns, isEmpty);
+    expect(actual.complexChangedTables, hasLength(1));
+  });
+
+  test('added column with non-constant default value recreates the table', () {
+    final newPerson = table('Person', [
+      id,
+      column('name'),
+      column('createdAt', notNull: true, defaultValue: 'CURRENT_TIMESTAMP'),
+    ]);
+
+    final actual =
+        SchemaDiffer(schema(1, [person]), schema(2, [newPerson])).diffSchemas();
+
+    expect(actual.addedColumns, isEmpty);
+    expect(statements(actual), [
+      'CREATE TABLE IF NOT EXISTS `_new_Person` (`id` INTEGER NOT NULL, `name` TEXT, `createdAt` TEXT NOT NULL, PRIMARY KEY (`id`))',
+      'INSERT INTO `_new_Person` (`id`, `name`) SELECT `id`, `name` FROM `Person`',
+      'DROP TABLE `Person`',
+      'ALTER TABLE `_new_Person` RENAME TO `Person`',
+    ]);
+  });
+
   test('schema survives JSON round trip', () {
     final original = schema(1, [person], [ViewSchema('Names', 'CREATE VIEW')]);
 

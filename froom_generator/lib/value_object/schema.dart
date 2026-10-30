@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:froom_generator/misc/extension/foreign_key_action_extension.dart';
-import 'package:froom_generator/value_object/database.dart';
 import 'package:froom_generator/value_object/entity.dart';
 import 'package:froom_generator/value_object/index.dart';
 import 'package:froom_generator/value_object/view.dart';
@@ -19,14 +18,6 @@ class DatabaseSchema {
   final List<ViewSchema> views;
 
   DatabaseSchema(this.version, this.entities, this.views);
-
-  factory DatabaseSchema.fromDatabase(final Database database) {
-    return DatabaseSchema(
-      database.version,
-      database.entities.map(EntitySchema.fromEntity).toList(),
-      database.views.map(ViewSchema.fromView).toList(),
-    );
-  }
 
   factory DatabaseSchema.fromJson(final Map<String, Object?> json) {
     final database = json['database'] as Map<String, Object?>;
@@ -54,7 +45,7 @@ class DatabaseSchema {
   String toJsonString() =>
       '${const JsonEncoder.withIndent('  ').convert(toJson())}\n';
 
-  Map<String, EntitySchema> get entitiesByTableName =>
+  late final Map<String, EntitySchema> entitiesByTableName =
       {for (final entity in entities) entity.tableName: entity};
 }
 
@@ -167,7 +158,7 @@ class EntitySchema {
   /// The name of the table while recreating it, like Room.
   String get newTableName => '_new_$tableName';
 
-  Map<String, FieldSchema> get fieldsByColumnName =>
+  late final Map<String, FieldSchema> fieldsByColumnName =
       {for (final field in fields) field.columnName: field};
 
   /// The statement creating the table named [name].

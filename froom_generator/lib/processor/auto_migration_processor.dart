@@ -17,10 +17,14 @@ class AutoMigrationProcessor {
   final DatabaseSchema _currentSchema;
   final SchemaStore _schemaStore;
 
+  /// Whether the schema of the database is exported.
+  final bool _exportsSchema;
+
   AutoMigrationProcessor(
     this._classElement,
     this._currentSchema,
     this._schemaStore,
+    this._exportsSchema,
   );
 
   List<AutoMigration> process() {
@@ -31,12 +35,7 @@ class AutoMigrationProcessor {
         [];
     if (autoMigrations.isEmpty) return [];
 
-    final exportSchema = _classElement
-            .getAnnotation(annotations.Database)
-            ?.getField(AnnotationField.databaseExportSchema)
-            ?.toBoolValue() ??
-        true;
-    if (!exportSchema) {
+    if (!_exportsSchema) {
       throw InvalidGenerationSourceError(
         'Automatic migrations require the exported schemas of the database.',
         todo: 'Remove exportSchema: false from @Database.',

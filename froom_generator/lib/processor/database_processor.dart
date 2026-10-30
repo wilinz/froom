@@ -11,6 +11,7 @@ import 'package:froom_generator/processor/entity_processor.dart';
 import 'package:froom_generator/processor/error/database_processor_error.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/processor/view_processor.dart';
+import 'package:froom_generator/value_object/auto_migration.dart';
 import 'package:froom_generator/value_object/dao_getter.dart';
 import 'package:froom_generator/value_object/database.dart';
 import 'package:froom_generator/value_object/entity.dart';
@@ -57,21 +58,24 @@ class DatabaseProcessor extends Processor<Database> {
       [...entities, ...views],
     );
 
-    final database = Database(
-      _classElement,
-      databaseName,
-      entities,
-      views,
-      daoGetters,
-      version,
-      databaseTypeConverters,
-      allTypeConverters,
-    );
-
+    final autoMigrations = <AutoMigration>[];
     final schemaStore = _schemaStore;
-    if (schemaStore == null) return database;
-    final schema = DatabaseSchema.fromDatabase(database);
-    if (_exportsSchema()) schemaStore.write(schema);
+    if (schemaStore != null) {
+      final schema = DatabaseSchema(
+        version,
+        entities.map(EntitySchema.fromEntity).toList(),
+        views.map(ViewSchema.fromView).toList(),
+      );
+      final exportsSchema = _exportsSchema();
+      if (exportsSchema) schemaStore.write(schema);
+      autoMigrations.addAll(AutoMigrationProcessor(
+        _classElement,
+        schema,
+        schemaStore,
+        exportsSchema,
+      ).process());
+    }
+
     return Database(
       _classElement,
       databaseName,
@@ -81,8 +85,7 @@ class DatabaseProcessor extends Processor<Database> {
       version,
       databaseTypeConverters,
       allTypeConverters,
-      autoMigrations:
-          AutoMigrationProcessor(_classElement, schema, schemaStore).process(),
+      autoMigrations: autoMigrations,
     );
   }
 

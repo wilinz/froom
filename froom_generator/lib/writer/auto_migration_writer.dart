@@ -82,17 +82,10 @@ class AutoMigrationWriter {
   List<String> _getRecreateTableStatements(final ComplexChangedTable table) {
     final fromTable = table.fromTable;
     final toTable = table.toTable;
-    final fromColumns = fromTable.fieldsByColumnName;
 
-    // the columns of the new table which already exist in the old one
-    final columns = toTable.fields
-        .map((field) => field.columnName)
-        .where((column) =>
-            fromColumns.containsKey(column) ||
-            table.renamedColumns.containsKey(column))
-        .toList();
-    final selectedColumns =
-        columns.map((column) => table.renamedColumns[column] ?? column);
+    // the columns of the new table with data in the old one
+    final columns = table.columnSources.keys.toList();
+    final selectedColumns = columns.map((column) => table.columnSources[column]!);
     String escape(final Iterable<String> columns) =>
         columns.map((column) => '`$column`').join(', ');
 

@@ -56,10 +56,12 @@ class ComplexChangedTable {
   final EntitySchema fromTable;
   final EntitySchema toTable;
 
-  /// The old names of renamed columns, by their new names.
-  final Map<String, String> renamedColumns;
+  /// The columns of [fromTable] the data of the columns of [toTable] is
+  /// copied from, by the names of the columns of [toTable]. New columns get
+  /// their default values.
+  final Map<String, String> columnSources;
 
-  ComplexChangedTable(this.fromTable, this.toTable, this.renamedColumns);
+  ComplexChangedTable(this.fromTable, this.toTable, this.columnSources);
 }
 
 class AddedColumn {
