@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:froom_common/froom_common.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:test/test.dart';
 
@@ -503,6 +506,19 @@ void main() {
 
       expect(actual, emits(isEmpty));
     });
+  });
+
+  test('database at an absolute path', () async {
+    final directory = await Directory.systemTemp.createTemp('froom_path');
+    addTearDown(() => directory.delete(recursive: true));
+    final path = p.join(directory.path, 'user', 'data.db');
+    await Directory(p.dirname(path)).create(recursive: true);
+
+    final database = await $FroomTestDatabase.databaseBuilder(path).build();
+    await database.personDao.insertPerson(Person(1, 'Simon'));
+    await database.close();
+
+    expect(File(path).existsSync(), isTrue);
   });
 
   test('callback test', () async {

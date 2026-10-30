@@ -33,6 +33,9 @@
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13
 - **froom_generator**: Minimum Dart SDK raised to `>=3.9.0`
 
+### 📝 Documentation
+- Document passing an absolute path to `databaseBuilder()` for a custom database location ([#179](https://github.com/wilinz/froom/issues/179))
+
 ## 6.0.0
 
 ### ⬆️ Breaking Changes & Dependencies

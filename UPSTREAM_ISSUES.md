@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 17 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 18 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 17 | Bug or small feature to be fixed |
+| ⏳ Planned | 16 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -70,9 +70,9 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#576](https://github.com/pinchbv/floor/issues/576) | Return null on  scalar queries such as "Select count(*) from ..." | ✔️ Already resolved |  | Scalar queries return values (verified) |
 | [floor#582](https://github.com/pinchbv/floor/issues/582) | Can I ask for “ATTACH DATABASE” support？ | ➖ Not planned |  | Question, support or not applicable |
 | [floor#584](https://github.com/pinchbv/floor/issues/584) | How to fetch data from a databse placed in the assets? | 🧩 Large feature |  |  |
-| [floor#588](https://github.com/pinchbv/floor/issues/588) | GENERATED CODE _$AppDatabaseBuilder support database path | ⏳ Planned |  | Custom database path |
+| [floor#588](https://github.com/pinchbv/floor/issues/588) | GENERATED CODE _$AppDatabaseBuilder support database path | ✅ Fixed | [#179](https://github.com/wilinz/froom/issues/179) | Absolute paths are supported and documented |
 | [floor#590](https://github.com/pinchbv/floor/issues/590) | Nullable image list insert bug | ✔️ Already resolved |  | Converters of `List<Uint8List>?` work (verified) |
-| [floor#593](https://github.com/pinchbv/floor/issues/593) | XDG path for Linux database | ➖ Not planned |  | Changing the default path would move existing databases; use a custom path (floor#588) |
+| [floor#593](https://github.com/pinchbv/floor/issues/593) | XDG path for Linux database | ➖ Not planned |  | Changing the default path would move existing databases; pass an absolute path instead (floor#588) |
 | [floor#595](https://github.com/pinchbv/floor/issues/595) | Left join doesn't return List<Object> instead returns null | ➖ Not planned |  | Question, support or not applicable |
 | [floor#596](https://github.com/pinchbv/floor/issues/596) | when app use the floor version of 1.1.0 it flash back and report errors FMDatabase executeUpdate:error:withArgumentsInArray:orDictionary:orVAList | ➖ Not planned |  | Question, support or not applicable |
 | [floor#597](https://github.com/pinchbv/floor/issues/597) | Can you add sqflite_sqlcipher support? | 🧩 Large feature |  |  |
@@ -114,7 +114,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#798](https://github.com/pinchbv/floor/issues/798) | Dumplicate field name when entity implement form abstract class | 🔁 Duplicate | [#176](https://github.com/wilinz/froom/issues/176) | Same as floor#522 |
 | [floor#799](https://github.com/pinchbv/floor/issues/799) | duplicate field name when entity implement form abstract class | 🔁 Duplicate | [#176](https://github.com/wilinz/froom/issues/176) | Same as floor#522 |
 | [floor#802](https://github.com/pinchbv/floor/issues/802) | trying to get a SUM of a field with floor. | ⏳ Planned |  | Casting `int` values to `double` fails (verified) |
-| [floor#803](https://github.com/pinchbv/floor/issues/803) | Custom Database File Path | 🔁 Duplicate |  | Same as floor#588 |
+| [floor#803](https://github.com/pinchbv/floor/issues/803) | Custom Database File Path | 🔁 Duplicate | [#179](https://github.com/wilinz/froom/issues/179) | Same as floor#588 |
 | [floor#804](https://github.com/pinchbv/floor/issues/804) | sqlite wal | ➖ Not planned |  | Question, support or not applicable |
 | [floor#805](https://github.com/pinchbv/floor/issues/805) | How to update a List of an object as field of entity into table in Floor | ➖ Not planned |  | Question, support or not applicable |
 | [floor#810](https://github.com/pinchbv/floor/issues/810) | Are there any plans to adapt HarmonyOS | ➖ Not planned |  | Question, support or not applicable |

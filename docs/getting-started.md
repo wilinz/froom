@@ -133,7 +133,9 @@ To automatically run it, whenever a file changes, use `flutter packages pub run 
 
 For obtaining an instance of the database, use the generated `$FroomAppDatabase` class, which allows access to a database builder.
 The name is being composed by `$Froom` and the database class name.
-The string passed to `databaseBuilder()` will be the database file name.
+The string passed to `databaseBuilder()` will be the database file name, which is placed in the default databases directory of the platform.
+To store the database somewhere else, pass an absolute path instead, e.g. one based on `getApplicationSupportDirectory()` of the `path_provider` package.
+Make sure that its directory exists.
 For initializing the database, call `build()` and make sure to `await` the result.
 
 In order to retrieve the `PersonDao` instance, invoking the `persoDao` getter on the database instance is enough.

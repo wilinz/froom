@@ -51,6 +51,9 @@
 - ee30abd: 🐛 fix(froom_generator): suppress lints in generated code with ignore_for_file: type=lint
 - a4a1768: ⬆️ chore(froom_generator,example): bump analyzer to ^11.0.0 for Flutter 3.47
 
+### 📝 Documentation
+- **getting-started**: Document absolute database paths for `databaseBuilder()`, covered by a test (#179, upstream floor#588, floor#803)
+
 ## [6.0.0] - 2026-03-08
 
 ### 🔄 Breaking Changes
