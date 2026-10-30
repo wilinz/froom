@@ -38,6 +38,7 @@
 - **dao_processor**: Collect DAO methods from the closest to the most distant supertype (mixins in reverse order) and keep only the most specific declaration of overridden methods (#175, upstream floor#515)
 - **queryable_processor**: Collect fields from the closest to the most distant supertype and keep only the most specific declaration of overridden fields, respecting `@ignore` on overrides; the traversal is shared with the DAO processor (`InterfaceElementExtension.supertypesClosestFirst`) (#176, upstream floor#522, floor#798, floor#799)
 - **database_writer, migration_adapter**: Don't enable foreign keys in `onConfigure` when an upgrade is pending (`MigrationAdapter.isUpgradePending`), but after the migrations in `onOpen` following a `PRAGMA foreign_key_check` (`enableForeignKeysAfterMigrations`) (#178, upstream floor#534)
+- **query_processor, query_method_writer**: Accept list parameters as the only content of parentheses (row values), not only after `IN`, and bind `List<Object>` items as they are (#180, upstream floor#617)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

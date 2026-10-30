@@ -43,6 +43,10 @@ abstract class PersonDao {
   @Query('SELECT * FROM person WHERE custom_name IS :name')
   Future<List<Person>> findPersonsWithNullableName(String? name);
 
+  @Query(
+      'SELECT * FROM person WHERE (custom_name, id) > (:keySet) ORDER BY custom_name, id')
+  Future<List<Person>> findPersonsAfter(List<Object> keySet);
+
   @Query("SELECT * FROM person WHERE custom_name == ''")
   Future<List<Person>> findPersonsWithEmptyName();
 

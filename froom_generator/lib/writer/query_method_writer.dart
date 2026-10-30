@@ -142,7 +142,10 @@ class QueryMethodWriter implements Writer {
         );
         if (typeConverter != null) {
           return '...$displayName.map((element) => _${typeConverter.name.decapitalize()}.encode(element))';
-        } else if (flatType.isDefaultSqlType || flatType.isEnumType) {
+        } else if (flatType.isDefaultSqlType ||
+            flatType.isEnumType ||
+            // values of mixed types, e.g. of row values, are bound as they are
+            flatType.isDartCoreObject) {
           return '...$displayName';
         } else {
           throw InvalidGenerationSourceError(

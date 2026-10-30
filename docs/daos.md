@@ -63,7 +63,7 @@ Future<List<Person>> findPeople({int offset = 0, required int count}); // option
 ```
 
 Nullable parameters are bound as `NULL`. As `= NULL` is never true in SQL, compare them with `IS` to match `NULL` values.
-List parameters have to be non-nullable.
+List parameters have to be non-nullable and referenced in parentheses, either with `IN (:list)` or as a row value, e.g. `(name, id) > (:keySet)` with a `List<Object>` for values of different types.
 
 Query arguments, when using SQLite's `LIKE` operator, have to be supplied by the input of a method.
 It's not possible to define a pattern matching argument like `%foo%` in the query itself.

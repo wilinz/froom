@@ -28,6 +28,7 @@
 - **dao**: Methods overriding methods of DAO supertypes are generated only once ([#175](https://github.com/wilinz/froom/issues/175))
 - **entity**: Fields overriding fields of superclasses or interfaces are columns only once ([#176](https://github.com/wilinz/froom/issues/176))
 - **migrations**: Migrations run with foreign keys disabled and are checked for violations afterwards, e.g. for recreating tables ([#178](https://github.com/wilinz/froom/issues/178))
+- **query**: List parameters can be used as row values like `(a, b) > (:list)`, including `List<Object>` ([#180](https://github.com/wilinz/froom/issues/180))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13

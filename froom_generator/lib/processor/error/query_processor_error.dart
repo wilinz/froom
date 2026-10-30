@@ -36,9 +36,9 @@ class QueryProcessorError {
     final name = varName.substring(1);
     return ProcessorError(
       message:
-          'The parameter $name should be referenced like a list (`x IN ($varName)`)',
-      todo: 'Change the type of $name to not be a List<> or'
-          'reference it with ` IN ($varName)` (including the parentheses).',
+          'The parameter $name should be referenced like a list (`x IN ($varName)` or a row value `($varName)`)',
+      todo: 'Change the type of $name to not be a List<> or '
+          'reference it with ` IN ($varName)` or `($varName)` (including the parentheses).',
       element: _methodElement,
     );
   }

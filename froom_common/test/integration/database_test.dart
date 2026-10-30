@@ -208,6 +208,18 @@ void main() {
           expect(await personDao.findPersonsWithNullableName(null), isEmpty);
         });
 
+        test('query with list parameter as row value', () async {
+          final persons = [
+            Person(1, 'Anna'),
+            Person(2, 'Frank'),
+            Person(3, 'Frank'),
+          ];
+          await personDao.insertPersons(persons);
+
+          expect(await personDao.findPersonsAfter(['Frank', 2]),
+              equals([persons[2]]));
+        });
+
         test("query with ''", () async {
           final person = Person(1, 'Frank');
           final personNoName = Person(2, '');

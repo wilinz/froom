@@ -60,8 +60,8 @@ class QueryProcessor extends Processor<Query> {
         newQuery.write('?');
         newQuery.write(varIndexInMethod);
       } else {
-        //list variable/parameter
-        if (!varToken.isListVar) {
+        //list variable/parameter, either `IN (:list)` or a row value `(:list)`
+        if (!varToken.isListVar && !_isInParentheses(varToken)) {
           throw _processorError
               .queryMethodParameterIsListButVariableIsNot(varToken.name);
         }
@@ -77,6 +77,14 @@ class QueryProcessor extends Processor<Query> {
       newQuery.toString(),
       listParameters,
     );
+  }
+
+  /// Whether the variable is the only content of parentheses, e.g. of a row
+  /// value like `(a, b) > (:list)`, into which the list items are expanded.
+  bool _isInParentheses(final VariableToken varToken) {
+    final before = _query.substring(0, varToken.startPosition).trimRight();
+    final after = _query.substring(varToken.endPosition).trimLeft();
+    return before.endsWith('(') && after.startsWith(')');
   }
 
   /// Nullable values are bound as `NULL`, but lists have to be non-nullable

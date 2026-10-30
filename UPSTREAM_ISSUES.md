@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 18 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 19 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 16 | Bug or small feature to be fixed |
+| ⏳ Planned | 15 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -81,7 +81,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#605](https://github.com/pinchbv/floor/issues/605) | Can the "TypeConverter" support data of type "Future<T>"? | 🧩 Large feature |  |  |
 | [floor#611](https://github.com/pinchbv/floor/issues/611) | Add Column with a default value not working or not possible? | 🔁 Duplicate | [#165](https://github.com/wilinz/froom/issues/165) | Same as floor#256 |
 | [floor#614](https://github.com/pinchbv/floor/issues/614) | Is there a way to fallbackToDestructiveMigration? | 🔁 Duplicate | [#167](https://github.com/wilinz/froom/issues/167) | Same as floor#356 |
-| [floor#617](https://github.com/pinchbv/floor/issues/617) | Current validation of list sql parameter blocks valid syntax `(name, id) > (:keySet)`, where :keySet is a list | ⏳ Planned |  | List parameter validation blocks `(a, b) > (:list)` (verified) |
+| [floor#617](https://github.com/pinchbv/floor/issues/617) | Current validation of list sql parameter blocks valid syntax `(name, id) > (:keySet)`, where :keySet is a list | ✅ Fixed | [#180](https://github.com/wilinz/froom/issues/180) | List parameters can be row values `(:list)` |
 | [floor#618](https://github.com/pinchbv/floor/issues/618) | query parameter usage | ➖ Not planned |  | Question, support or not applicable |
 | [floor#643](https://github.com/pinchbv/floor/issues/643) | integer type ID can be negative? | ➖ Not planned |  | Question, support or not applicable |
 | [floor#644](https://github.com/pinchbv/floor/issues/644) | Generated code mishandles named constructors | 🔁 Duplicate | [#166](https://github.com/wilinz/froom/issues/166) | Same as floor#275 |

@@ -633,6 +633,39 @@ void main() {
           '''));
   });
 
+  test('Query with list parameter as row value', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT * FROM Person WHERE (name, id) > (:keySet) ORDER BY name, id LIMIT :count')
+      Future<List<Person>> findAfter(List<Object> keySet, int count);
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+          @override
+          Future<List<Person>> findAfter(
+            List<Object> keySet,
+            int count,
+          ) async {
+            const offset = 2;
+            final _sqliteVariablesForKeySet =
+                Iterable<String>.generate(keySet.length, (i) => '?${i + offset}')
+                    .join(',');
+            return _queryAdapter.queryList(
+                'SELECT * FROM Person WHERE (name, id) > (' +
+                    _sqliteVariablesForKeySet +
+                    ') ORDER BY name, id LIMIT ?1',
+                mapper: (Map<String, Object?> row) => Person(
+                    row['id'] as int,
+                    row['name'] as String,
+                    row['weight'] as double,
+                    (row['admin'] as int) != 0,
+                    row['avatar'] as Uint8List),
+                arguments: [count, ...keySet]);
+          }
+          '''));
+  });
+
   test('query boolean parameter', () async {
     final queryMethod = await _createQueryMethod('''
       @Query('SELECT * FROM Person WHERE flag = :flag')
