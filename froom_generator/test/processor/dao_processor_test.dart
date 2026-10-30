@@ -99,6 +99,29 @@ void main() {
     expect(actual.queryMethods, isEmpty);
   });
 
+  test('Prefers concrete methods of superclasses over interfaces', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends BaseDao implements ContractDao {}
+      
+      abstract class BaseDao extends RootDao {}
+      
+      abstract class RootDao {
+        Future<List<Person>> findAll() async => [];
+      }
+      
+      abstract class ContractDao {
+        @Query('SELECT * FROM person')
+        Future<List<Person>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, isEmpty);
+  });
+
   test('Rejects redeclarations with another signature without annotation',
       () async {
     final classElement = await _createDao('''
