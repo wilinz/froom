@@ -139,6 +139,44 @@ class Account {
 }
 ```
 
+### Full Text Search
+Like Room's `@Fts3` and `@Fts4`, annotating an entity with `@fts3`/`@Fts3()` or `@fts4`/`@Fts4()` stores it in an SQLite [FTS](https://www.sqlite.org/fts3.html) virtual table, which supports fast full text search with the `MATCH` operator.
+The tokenizer, e.g. `FtsTokenizer.unicode61` for non-ASCII text, and its arguments can be set with the `tokenizer` and `tokenizerArgs` attributes.
+
+FTS entities need a primary key like other entities, which is commonly mapped to a column named `rowid`, as shown below.
+
+```dart
+@Entity(tableName: 'mail')
+@Fts4(tokenizer: FtsTokenizer.unicode61)
+class Mail {
+  @PrimaryKey()
+  @ColumnInfo(name: 'rowid')
+  final int id;
+
+  final String text;
+
+  Mail(this.id, this.text);
+}
+
+@dao
+abstract class MailDao {
+  @Query('SELECT * FROM mail WHERE text MATCH :query')
+  Future<List<Mail>> findMails(String query);
+
+  @insert
+  Future<void> insertMail(Mail mail);
+}
+
+// usage
+await mailDao.findMails('flutter'); // contains the word "flutter"
+await mailDao.findMails('flut*'); // contains a word starting with "flut"
+```
+
+!!! attention
+    - FTS tables don't enforce constraints like unique primary keys or foreign keys, and index all columns.
+      Inserting an existing primary key adds another row, use `@upsert` to update existing rows instead.
+    - Indices and type affinities don't apply to FTS tables, so better keep searchable text in FTS entities and other data in regular entities.
+
 ### Ignoring Fields
 Getters, setters and all static fields of entities are ignored by default and thus excluded from the library's mapping.
 In case further fields should be ignored, the `@ignore` annotation should be used and applied as shown in the following snippet.

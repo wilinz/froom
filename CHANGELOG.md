@@ -44,6 +44,7 @@
 ### 📝 Documentation
 - Document passing an absolute path to `databaseBuilder()` for a custom database location ([#179](https://github.com/wilinz/froom/issues/179))
 - Import the entity in the DAO example of the getting started guide ([#181](https://github.com/wilinz/froom/issues/181))
+- Document full text search with `@Fts3`/`@Fts4` entities ([#190](https://github.com/wilinz/froom/issues/190))
 
 ## 6.0.0
 
