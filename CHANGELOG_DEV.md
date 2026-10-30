@@ -51,6 +51,7 @@
 - **cast**: Read `double` values as `(value as num).toDouble()` instead of `value as double`, which failed for integers SQLite returns e.g. for whole number expressions (#191, upstream floor#802, floor#814, floor#816, floor#828)
 - **query_method_processor**: Parse queries with `sqlparser` (new dependency of froom_generator, as of froom_common) and throw `invalidQuery` for invalid statements, which the runtime rejects as well; invalid SQL of test fixtures fixed (#192, upstream floor#820)
 - **query_method_writer**: Parse the streamed table name from the raw query, supporting double quotes, brackets and backticks as well as any whitespace after `FROM` (#193, upstream floor#833)
+- **migration_adapter**: `runMigrations` and `hasMigrationPath` search consecutive migrations from the start to the end version, preferring the highest end version and backtracking, instead of running all migrations starting at or after the start version
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

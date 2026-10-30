@@ -10,14 +10,16 @@ abstract class MigrationAdapter {
     final int endVersion,
     final List<Migration> migrations,
   ) async {
-    if (!hasMigrationPath(startVersion, endVersion, migrations)) {
+    final migrationPath =
+        _findMigrationPath(startVersion, endVersion, migrations);
+    if (migrationPath == null) {
       throw StateError(
         'There is no migration supplied to update the database to the current version.'
         ' Aborting the migration.',
       );
     }
 
-    for (final migration in _getRelevantMigrations(startVersion, migrations)) {
+    for (final migration in migrationPath) {
       await migration.migrate(migrationDatabase);
     }
   }
@@ -58,21 +60,33 @@ abstract class MigrationAdapter {
     final int endVersion,
     final List<Migration> migrations,
   ) {
-    final relevantMigrations =
-        _getRelevantMigrations(startVersion, migrations);
-    return relevantMigrations.isNotEmpty &&
-        relevantMigrations.last.endVersion == endVersion;
+    return _findMigrationPath(startVersion, endVersion, migrations) != null;
   }
 
-  static List<Migration> _getRelevantMigrations(
+  /// Returns consecutive [migrations] from [startVersion] to [endVersion],
+  /// preferring the ones reaching the highest version like Room, or null if
+  /// there are none.
+  static List<Migration>? _findMigrationPath(
     final int startVersion,
+    final int endVersion,
     final List<Migration> migrations,
   ) {
-    return migrations
-        .where((migration) => migration.startVersion >= startVersion)
+    if (startVersion == endVersion) return [];
+
+    final nextMigrations = migrations
+        .where((migration) =>
+            migration.startVersion == startVersion &&
+            migration.endVersion > startVersion &&
+            migration.endVersion <= endVersion)
         .toList()
-      ..sort(
-          (first, second) => first.startVersion.compareTo(second.startVersion));
+      ..sort((first, second) => second.endVersion.compareTo(first.endVersion));
+
+    for (final migration in nextMigrations) {
+      final remainingPath =
+          _findMigrationPath(migration.endVersion, endVersion, migrations);
+      if (remainingPath != null) return [migration, ...remainingPath];
+    }
+    return null;
   }
 
   /// Drops all tables and views of the [database], e.g. for a destructive

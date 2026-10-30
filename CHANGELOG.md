@@ -40,6 +40,7 @@
 - **query**: `double` values are read correctly when SQLite returns integers, e.g. for `COALESCE(SUM(x), 0)` ([#191](https://github.com/wilinz/froom/issues/191))
 - **query**: Queries which aren't valid SQL fail the code generation instead of only at runtime ([#192](https://github.com/wilinz/froom/issues/192))
 - **streams**: Streams of queries with double quoted or bracketed table names update ([#193](https://github.com/wilinz/froom/issues/193))
+- **migrations**: Migrations have to lead to the current version without gaps, and of several migrations starting at the same version only the one reaching the highest version runs, like in Room
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13

@@ -6,6 +6,8 @@ First, update your entity.
 Next, Increase the database version.
 Define a `Migration` which specifies a `startVersion`, an `endVersion` and a function that executes SQL to migrate the data.
 At last, use `addMigrations()` on the obtained database builder to add migrations.
+The migrations have to lead from the version of the database to the current one without gaps, e.g. `1 → 2` and `2 → 3`.
+Like in Room, of several migrations starting at the same version, the one reaching the highest version is used, e.g. a `1 → 3` migration instead of `1 → 2` and `2 → 3`.
 Don't forget to trigger the code generator again, to create the code for handling the new entity.
 
 ```dart
@@ -41,7 +43,7 @@ final database = await $FroomAppDatabase
 ```
 
 Migrations run with foreign keys disabled, as they can't be disabled within the transaction of the migrations, which e.g. [recreating a table](https://www.sqlite.org/lang_altertable.html#otheralter) requires.
-After the migrations, Froom checks that they didn't violate any foreign keys with `PRAGMA foreign_key_check`, fails opening the database otherwise and enables foreign keys again.
+After the migrations, Froom checks that they didn't violate any foreign keys with `PRAGMA foreign_key_check`, otherwise rolls them back together with the database version and fails opening the database, and enables foreign keys again.
 
 ## Destructive Migration
 
