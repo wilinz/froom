@@ -3,6 +3,7 @@ import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/processor/error/query_processor_error.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/value_object/query.dart';
+import 'package:sqlparser/sqlparser.dart' show isKeywordLexeme;
 
 // The migration is complete
 class QueryProcessor extends Processor<Query> {
@@ -81,10 +82,15 @@ class QueryProcessor extends Processor<Query> {
 
   /// Whether the variable is the only content of parentheses, e.g. of a row
   /// value like `(a, b) > (:list)`, into which the list items are expanded.
+  ///
+  /// The parentheses of function calls like `lower(:list)` don't count.
   bool _isInParentheses(final VariableToken varToken) {
     final before = _query.substring(0, varToken.startPosition).trimRight();
     final after = _query.substring(varToken.endPosition).trimLeft();
-    return before.endsWith('(') && after.startsWith(')');
+    if (!before.endsWith('(') || !after.startsWith(')')) return false;
+
+    final precedingWord = RegExp(r'(\w+)\s*\($').firstMatch(before)?.group(1);
+    return precedingWord == null || isKeywordLexeme(precedingWord);
   }
 
   /// Nullable values are bound as `NULL`, but lists have to be non-nullable
