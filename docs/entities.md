@@ -25,7 +25,7 @@ If you want a table's column to be nullable, mark the entity's field as nullable
 More information can be found in the [Null Safety](null-safety.md) section.
 
 !!! attention
-    - Froom automatically uses the **first** constructor defined in the entity class for creating in-memory objects from database rows.
+    - Froom uses the unnamed constructor of the entity class for creating in-memory objects from database rows. Without an unnamed constructor, the first public named constructor is used.
     - There needs to be a constructor.
     - Fields which aren't initialized by the constructor are assigned via their setters, so entities can also use a constructor without parameters and mutable fields.
 

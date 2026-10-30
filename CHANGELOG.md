@@ -15,6 +15,7 @@
 
 ### 🐛 Bug Fixes
 - **froom_generator**: Generated code suppresses lints with `// ignore_for_file: type=lint` ([#162](https://github.com/wilinz/froom/issues/162))
+- **queryable**: Use the unnamed constructor instead of the first declared one and call named constructors by their name ([#166](https://github.com/wilinz/froom/issues/166))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13

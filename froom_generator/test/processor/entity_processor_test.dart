@@ -228,6 +228,48 @@ void main() {
     expect(actual, equals(expected));
   });
 
+  test('Prefers the unnamed constructor over named ones declared before',
+      () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @primaryKey
+        final int? id;
+      
+        final String? name;
+      
+        Person.empty() : id = null, name = null;
+      
+        Person(this.id, this.name);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().constructor;
+
+    expect(actual, equals("Person(row['id'] as int?, row['name'] as String?)"));
+  });
+
+  test('Calls a named constructor by its name', () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        final String name;
+      
+        Person.fromDatabase(this.id, this.name);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().constructor;
+
+    expect(
+      actual,
+      equals("Person.fromDatabase(row['id'] as int, row['name'] as String)"),
+    );
+  });
+
   test('Assigns fields not initialized by the constructor via setters',
       () async {
     final classElement = await createClassElement('''

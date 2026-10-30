@@ -59,11 +59,15 @@ abstract class QueryableProcessor<T> extends Processor<T> {
 
   @protected
   String getConstructor(final List<Field> fields) {
-    final constructorParameters = classElement.constructors
-        .firstWhereOrNull((element) => element.isPublic && !element.isFactory)
-        ?.formalParameters;
+    final constructors = classElement.constructors
+        .where((element) => element.isPublic && !element.isFactory);
+    // prefer the unnamed constructor, the name of which is `new`
+    final constructor =
+        constructors.firstWhereOrNull((element) => element.name == 'new') ??
+            constructors.firstOrNull;
+    final constructorParameters = constructor?.formalParameters;
 
-    if (constructorParameters == null) {
+    if (constructor == null || constructorParameters == null) {
       throw _queryableProcessorError.missingUnnamedConstructor;
     } else {
       final parameterValues = constructorParameters
@@ -85,7 +89,11 @@ abstract class QueryableProcessor<T> extends Processor<T> {
         return '..${field.name} = ($value)';
       }).join();
 
-      return '${classElement.displayName}($parameterValues)$setterAssignments';
+      final constructorName = constructor.name == 'new'
+          ? classElement.displayName
+          : '${classElement.displayName}.${constructor.name}';
+
+      return '$constructorName($parameterValues)$setterAssignments';
     }
   }
 
