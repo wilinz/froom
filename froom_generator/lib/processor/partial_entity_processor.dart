@@ -68,7 +68,7 @@ class PartialEntityProcessor extends QueryableProcessor<PartialEntity> {
 
     final missingRequiredColumns = _entity.fields
         .where((field) => !primaryKey.fields.contains(field))
-        .where((field) => !field.isNullable)
+        .where((field) => !field.isNullable && field.defaultValue == null)
         .map((field) => field.columnName)
         .where((columnName) => !columnNames.contains(columnName))
         .toList();

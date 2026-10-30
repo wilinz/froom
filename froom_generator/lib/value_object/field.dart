@@ -11,14 +11,18 @@ class Field {
   final String sqlType;
   final TypeConverter? typeConverter;
 
+  /// The SQL default value of the column, quoted if required.
+  final String? defaultValue;
+
   Field(
     this.fieldElement,
     this.name,
     this.columnName,
     this.isNullable,
     this.sqlType,
-    this.typeConverter,
-  );
+    this.typeConverter, {
+    this.defaultValue,
+  });
 
   /// The database column definition.
   String getDatabaseDefinition(final bool autoGenerate) {
@@ -29,6 +33,9 @@ class Field {
     }
     if (!isNullable) {
       columnSpecification.write(' NOT NULL');
+    }
+    if (defaultValue != null) {
+      columnSpecification.write(' DEFAULT $defaultValue');
     }
 
     return '`$columnName` $sqlType$columnSpecification';
@@ -44,7 +51,8 @@ class Field {
           columnName == other.columnName &&
           isNullable == other.isNullable &&
           sqlType == other.sqlType &&
-          typeConverter == other.typeConverter;
+          typeConverter == other.typeConverter &&
+          defaultValue == other.defaultValue;
 
   @override
   int get hashCode =>
@@ -53,10 +61,11 @@ class Field {
       columnName.hashCode ^
       isNullable.hashCode ^
       sqlType.hashCode ^
-      typeConverter.hashCode;
+      typeConverter.hashCode ^
+      defaultValue.hashCode;
 
   @override
   String toString() {
-    return 'Field{fieldElement: $fieldElement, name: $name, columnName: $columnName, isNullable: $isNullable, sqlType: $sqlType, typeConverter: $typeConverter}';
+    return 'Field{fieldElement: $fieldElement, name: $name, columnName: $columnName, isNullable: $isNullable, sqlType: $sqlType, typeConverter: $typeConverter, defaultValue: $defaultValue}';
   }
 }

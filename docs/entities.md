@@ -17,6 +17,10 @@ For more information about primary keys and especially compound primary keys, re
 
 `@ColumnInfo` enables custom mapping of single table columns.
 With the annotation it's possible to give columns a custom name.
+`defaultValue` adds an SQL default value to the column, which is used when a row is inserted without a value for it, e.g. by a `@Query` `INSERT` statement or a partial entity of `@Upsert`.
+Like in Room, text values are quoted automatically, except for SQLite constants like `NULL` or `CURRENT_TIMESTAMP` and expressions in parentheses, e.g. `@ColumnInfo(defaultValue: 'Guest')` or `@ColumnInfo(defaultValue: '0')`.
+Inserting an entity always uses its field values.
+When adding such a column in a migration, declare the default value in the `ALTER TABLE ... ADD COLUMN ... DEFAULT ...` statement as well.
 If you want a table's column to be nullable, mark the entity's field as nullable.
 More information can be found in the [Null Safety](null-safety.md) section.
 

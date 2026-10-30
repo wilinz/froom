@@ -113,6 +113,20 @@ void main() {
     );
   });
 
+  test('Allows partial entity to omit columns with a default value',
+      () async {
+    final (actual, _) = await _process('''
+      @Upsert(entity: Article)
+      Future<void> upsertArticleTitle(ArticleTitle articleTitle);
+    ''');
+
+    expect(
+      actual.parameters.first.partialEntity?.fields
+          .map((field) => field.columnName),
+      equals(['id', 'title']),
+    );
+  });
+
   group('expected errors', () {
     test('when not returning Future', () async {
       final method = await '''
@@ -551,6 +565,27 @@ Future<(MethodElement, Map<String, Entity>, Set<TypeConverter>)> _resolve(
         int encode(DateTime value) {
           return value.millisecondsSinceEpoch ~/ 1000;
         }
+      }
+      
+      @entity
+      class Article {
+        @primaryKey
+        final int id;
+      
+        final String title;
+      
+        @ColumnInfo(defaultValue: 'draft')
+        final String status;
+      
+        Article(this.id, this.title, this.status);
+      }
+      
+      class ArticleTitle {
+        final int id;
+      
+        final String title;
+      
+        ArticleTitle(this.id, this.title);
       }
       
       class PersonWithDuplicateColumn {

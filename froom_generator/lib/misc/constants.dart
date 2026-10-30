@@ -9,6 +9,7 @@ abstract class AnnotationField {
   static const databaseViews = 'views';
 
   static const columnInfoName = 'name';
+  static const columnInfoDefaultValue = 'defaultValue';
 
   static const entityTableName = 'tableName';
   static const entityForeignKeys = 'foreignKeys';
