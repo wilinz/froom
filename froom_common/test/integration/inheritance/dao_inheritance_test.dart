@@ -5,6 +5,7 @@ import 'package:sqflite_common/sqlite_api.dart' as sqflite;
 import 'package:test/test.dart';
 
 import '../../test_util/database_factory.dart';
+import 'paged_dao.dart';
 
 part 'dao_inheritance_test.g.dart';
 
@@ -47,6 +48,14 @@ void main() {
       final actual = await personDao.findAllNames();
 
       expect(actual, equals(['overridden']));
+    });
+
+    test('inherited default value from another library', () async {
+      await personDao.insertItem(Person(1, 'Simon'));
+      await personDao.insertItem(Person(2, 'Frank'));
+
+      expect(await personDao.findPage(), equals([Person(1, 'Simon')]));
+      expect(await personDao.findPage(limit: 2), hasLength(2));
     });
 
     test('entity overriding fields of supertypes has each column once',
@@ -114,7 +123,7 @@ class User extends IdEntity implements NamedEntity {
   User(this.id, this.name) : super(id);
 }
 
-abstract class AbstractDao<T> {
+abstract class AbstractDao<T> extends PagedDao<T> {
   @insert
   Future<void> insertItem(T item);
 
