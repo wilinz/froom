@@ -34,9 +34,7 @@ abstract class QueryableProcessor<T> extends Processor<T> {
 
   @protected
   List<Field> getFields() {
-    if (classElement.mixins.isNotEmpty) {
-      throw _queryableProcessorError.prohibitedMixinUsage;
-    }
+    // supertypes include the applied mixins
     final fields = [
       ...classElement.fields,
       ...classElement.allSupertypes.expand((type) => type.element.fields),

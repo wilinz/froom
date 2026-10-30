@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
-import 'package:froom_generator/processor/error/queryable_processor_error.dart';
 import 'package:froom_generator/processor/field_processor.dart';
 import 'package:froom_generator/processor/queryable_processor.dart';
 import 'package:froom_generator/value_object/field.dart';
@@ -285,7 +284,7 @@ void main() {
       expect(actual.constructor, equals(expectedConstructor));
     });
 
-    test('Throws when queryable inherits from mixin', () async {
+    test('Process fields of mixins', () async {
       final classElement = await createClassElement('''
         class TestEntity with TestMixin {
           final int id;
@@ -293,15 +292,20 @@ void main() {
           TestEntity(this.id);
         }
         
-        class TestMixin {
-          String name;
+        mixin TestMixin {
+          String? name;
+        
+          List<Object?> get props => [name];
         }      
     ''');
 
-      final actual = () => TestProcessor(classElement).process();
+      final actual = TestProcessor(classElement).process();
 
-      final error = QueryableProcessorError(classElement).prohibitedMixinUsage;
-      expect(actual, throwsInvalidGenerationSourceError(error));
+      expect(actual.fields.map((field) => field.name), equals(['id', 'name']));
+      expect(
+        actual.constructor,
+        equals("TestEntity(row['id'] as int)..name = (row['name'] as String?)"),
+      );
     });
   });
 
