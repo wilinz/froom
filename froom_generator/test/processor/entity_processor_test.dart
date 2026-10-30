@@ -437,6 +437,26 @@ void main() {
     );
   });
 
+  test('Throws when a compound primary key column does not exist', () async {
+    final classElement = await createClassElement('''
+      @Entity(primaryKeys: ['foreign_id', 'time'])
+      class Example {
+        final int foreignId;
+      
+        final int time;
+      
+        Example(this.foreignId, this.time);
+      }
+    ''');
+
+    final actual = () => EntityProcessor(classElement, {}).process();
+
+    expect(
+        actual,
+        throwsInvalidGenerationSourceError(EntityProcessorError(classElement)
+            .noMatchingPrimaryKeyColumn('foreign_id')));
+  });
+
   group('foreign keys', () {
     test('foreign key holds correct values', () async {
       final classElements = await _createClassElements('''
@@ -709,7 +729,8 @@ void main() {
       expect(
           processor.process,
           throwsInvalidGenerationSourceError(
-              EntityProcessorError(classElements).missingPrimaryKey));
+              EntityProcessorError(classElements)
+                  .noMatchingPrimaryKeyColumn('notAField')));
     });
     test('missing parent columns', () async {
       final classElements = await _createClassElements('''

@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 27 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 28 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 7 | Bug or small feature to be fixed |
+| ⏳ Planned | 6 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -109,7 +109,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#786](https://github.com/pinchbv/floor/issues/786) | Access database in isolates | ➖ Not planned |  | Question, support or not applicable |
 | [floor#787](https://github.com/pinchbv/floor/issues/787) | can not generate code without @ignore metadata | 🧩 Large feature |  |  |
 | [floor#788](https://github.com/pinchbv/floor/issues/788) | #775 still an issue | 🔁 Duplicate | [#187](https://github.com/wilinz/froom/issues/187) | Same as floor#775 |
-| [floor#789](https://github.com/pinchbv/floor/issues/789) | No warning when one of multiple primary keys is missing | ⏳ Planned |  | No error for misspelled `primaryKeys` (verified) |
+| [floor#789](https://github.com/pinchbv/floor/issues/789) | No warning when one of multiple primary keys is missing | ✅ Fixed | [#189](https://github.com/wilinz/froom/issues/189) | Unknown compound primary key columns are reported |
 | [floor#792](https://github.com/pinchbv/floor/issues/792) | Improve FTS documentation and add some examples | ⏳ Planned |  | Docs: FTS |
 | [floor#798](https://github.com/pinchbv/floor/issues/798) | Dumplicate field name when entity implement form abstract class | 🔁 Duplicate | [#176](https://github.com/wilinz/froom/issues/176) | Same as floor#522 |
 | [floor#799](https://github.com/pinchbv/floor/issues/799) | duplicate field name when entity implement form abstract class | 🔁 Duplicate | [#176](https://github.com/wilinz/froom/issues/176) | Same as floor#522 |

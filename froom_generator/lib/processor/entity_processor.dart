@@ -250,14 +250,18 @@ class EntityProcessor extends QueryableProcessor<Entity> {
       return null;
     }
 
+    for (final primaryKeyColumnName in compoundPrimaryKeyColumnNames) {
+      if (!fields.any((field) => field.columnName == primaryKeyColumnName)) {
+        throw _processorError.noMatchingPrimaryKeyColumn(
+          primaryKeyColumnName ?? 'null',
+        );
+      }
+    }
+
     final compoundPrimaryKeyFields = fields.where((field) {
       return compoundPrimaryKeyColumnNames.any(
           (primaryKeyColumnName) => field.columnName == primaryKeyColumnName);
     }).toList();
-
-    if (compoundPrimaryKeyFields.isEmpty) {
-      throw _processorError.missingPrimaryKey;
-    }
 
     return PrimaryKey(compoundPrimaryKeyFields, false);
   }

@@ -46,6 +46,7 @@
 - **example**: Create tasks with the status `open`, so they are shown by the default filter and cycle through all statuses (#186, upstream floor#763)
 - **index**: Generate `CREATE INDEX IF NOT EXISTS`, so creating the schema again, e.g. for new tables in migrations, doesn't fail (#187, upstream floor#775, floor#788)
 - **transaction_method_writer**: Keep the nullability of the type argument of `transaction<T>`, e.g. `transaction<Person?>` for `Future<Person?>` (#188, upstream floor#783)
+- **entity_processor**: Throw `noMatchingPrimaryKeyColumn` for compound primary key columns without a matching field, which were silently dropped from the primary key (#189, upstream floor#789)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

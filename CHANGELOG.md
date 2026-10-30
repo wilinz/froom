@@ -35,6 +35,7 @@
 - **dao**: `@transaction` on query and change methods no longer generates them twice ([#185](https://github.com/wilinz/froom/issues/185))
 - **index**: Indices are created with `IF NOT EXISTS` like tables ([#187](https://github.com/wilinz/froom/issues/187))
 - **transaction**: `@transaction` methods with nullable return values generate compiling code ([#188](https://github.com/wilinz/froom/issues/188))
+- **entity**: Report columns of `@Entity(primaryKeys: ...)` that don't exist instead of ignoring them ([#189](https://github.com/wilinz/froom/issues/189))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13

@@ -60,6 +60,17 @@ class EntityProcessorError {
     );
   }
 
+  InvalidGenerationSourceError noMatchingPrimaryKeyColumn(
+    final String columnName,
+  ) {
+    return InvalidGenerationSourceError(
+      'No matching column found for the primary key column `$columnName` of the entity ${_classElement.displayName}.',
+      todo:
+          'Make sure the primaryKeys of @Entity() contain column names of the entity, e.g. the names of @ColumnInfo.',
+      element: _classElement,
+    );
+  }
+
   InvalidGenerationSourceError noMatchingColumn(
     final String columnName,
   ) {
