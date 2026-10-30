@@ -30,6 +30,16 @@ void main() {
 
       expect(actual, equals(person));
     });
+
+    test('use overriding query function', () async {
+      final persons = [Person(1, 'Simon'), Person(2, 'Frank')];
+      await personDao.insertItem(persons[0]);
+      await personDao.insertItem(persons[1]);
+
+      final actual = await personDao.findAll();
+
+      expect(actual, equals([persons[1]]));
+    });
   });
 }
 
@@ -42,11 +52,18 @@ abstract class TestDatabase extends FroomDatabase {
 abstract class PersonDao extends AbstractDao<Person> {
   @Query('SELECT * FROM Person WHERE id = :id')
   Future<Person?> findPersonById(int id);
+
+  @override
+  @Query('SELECT * FROM Person WHERE id > 1')
+  Future<List<Person>> findAll();
 }
 
 abstract class AbstractDao<T> {
   @insert
   Future<void> insertItem(T item);
+
+  @Query('SELECT * FROM Person')
+  Future<List<T>> findAll();
 }
 
 @entity

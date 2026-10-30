@@ -34,6 +34,7 @@
 - **dao_writer**: Pass the change listener to `QueryAdapter` whenever the database has streams, so changes of `@Query` statements notify streams of other DAOs (#169, upstream floor#383, floor#603)
 - **database_writer**: Drop and recreate the declared views after running migrations, so changed view queries take effect (#170, upstream floor#400)
 - **query_processor, query_method_writer**: Allow nullable scalar query parameters (nullable lists are still rejected), bound as `NULL`; nullable `bool`/enum parameters and nullable parameters with a converter of the non-nullable type map `null` to `NULL`; `QueryAdapter` takes `List<Object?>` arguments (#173, upstream floor#507)
+- **dao_processor**: Collect DAO methods from the closest to the most distant supertype (mixins in reverse order) and keep only the most specific declaration of overridden methods (#175, upstream floor#515)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

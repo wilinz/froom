@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -47,11 +48,7 @@ class DaoProcessor extends Processor<Dao> {
   @override
   Dao process() {
     final name = _classElement.displayName;
-    final allSupertypesMethods = _classElement.allSupertypes.expand((type) => type.methods).toList();
-    final methods = <MethodElement>[
-      ..._classElement.methods,
-      ...allSupertypesMethods
-    ];
+    final methods = _getMethods();
 
     final typeConverters = Set.of(_typeConverters)
       ..addAll(_classElement.getTypeConverters(TypeConverterScope.dao));
@@ -82,6 +79,37 @@ class DaoProcessor extends Processor<Dao> {
       streamViews,
       typeConverters,
     );
+  }
+
+  /// Returns the methods of the DAO and its supertypes, of which only the
+  /// most specific declaration is kept for overridden methods.
+  List<MethodElement> _getMethods() {
+    final methods = <String, MethodElement>{};
+    void addMethods(final Iterable<MethodElement> declaredMethods) {
+      for (final method in declaredMethods) {
+        methods.putIfAbsent(method.name!, () => method);
+      }
+    }
+
+    // supertypes ordered from the closest to the most distant one, later
+    // mixins override earlier ones
+    List<InterfaceType> directSupertypesOf(final InterfaceType type) => [
+          ...type.mixins.reversed,
+          if (type.superclass != null) type.superclass!,
+          ...type.interfaces,
+        ];
+
+    addMethods(_classElement.methods);
+    final visited = <InterfaceElement>{};
+    final supertypes = directSupertypesOf(_classElement.thisType);
+    for (var index = 0; index < supertypes.length; index++) {
+      final supertype = supertypes[index];
+      if (!visited.add(supertype.element)) continue;
+      addMethods(supertype.methods);
+      supertypes.addAll(directSupertypesOf(supertype));
+    }
+
+    return methods.values.toList();
   }
 
   List<QueryMethod> _getQueryMethods(

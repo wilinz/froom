@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 12 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 13 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 22 | Bug or small feature to be fixed |
+| ⏳ Planned | 21 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -55,7 +55,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#507](https://github.com/pinchbv/floor/issues/507) | Query method parameters have to be non-nullable | ✅ Fixed | [#173](https://github.com/wilinz/froom/issues/173) | Nullable query parameters bound as `NULL` |
 | [floor#508](https://github.com/pinchbv/floor/issues/508) | Feature: use the same TypeConverter for nullable and not-nullable variant of a type | ✅ Fixed | [#174](https://github.com/wilinz/froom/issues/174) | Converters of non-nullable types convert nullable values |
 | [floor#514](https://github.com/pinchbv/floor/issues/514) | Change Query with the name of the return type table | ➖ Not planned |  | Question, support or not applicable |
-| [floor#515](https://github.com/pinchbv/floor/issues/515) | Method is generated twice if you override the method in a base class | ⏳ Planned |  | Overridden DAO methods generated twice (verified) |
+| [floor#515](https://github.com/pinchbv/floor/issues/515) | Method is generated twice if you override the method in a base class | ✅ Fixed | [#175](https://github.com/wilinz/froom/issues/175) | Overridden DAO methods are generated once |
 | [floor#516](https://github.com/pinchbv/floor/issues/516) | [floor_generator]-  Null check operator used on a null value | ➖ Not planned |  | Question, support or not applicable |
 | [floor#522](https://github.com/pinchbv/floor/issues/522) | Duplicate fields are added when an entity `implements` a class | ⏳ Planned |  | Duplicate columns with `implements` / overridden fields (verified) |
 | [floor#527](https://github.com/pinchbv/floor/issues/527) | How do I tell floor that the primary key is unset and should be generated? | ⏳ Planned |  | Treat `0` of auto generated primary keys as unset, like Room |

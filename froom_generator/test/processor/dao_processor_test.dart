@@ -42,6 +42,59 @@ void main() {
     expect(actual, equals(2));
   });
 
+  test('Includes overridden methods only once', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends AbstractDao<Person> {
+        @override
+        @Query('SELECT * FROM person WHERE id > 0')
+        Future<List<Person>> findAll();
+      }
+      
+      abstract class AbstractDao<T> extends AnotherAbstractDao<T> {
+        @override
+        @Query('SELECT * FROM person WHERE id > 1')
+        Future<List<T>> findAll();
+      }
+      
+      abstract class AnotherAbstractDao<T> {
+        @Query('SELECT * FROM person')
+        Future<List<T>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, hasLength(1));
+    expect(actual.queryMethods.first.query.sql,
+        equals('SELECT * FROM person WHERE id > 0'));
+  });
+
+  test('Prefers methods of later mixins', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao with FirstMixin, SecondMixin {}
+      
+      mixin FirstMixin {
+        @Query('SELECT * FROM person WHERE id > 1')
+        Future<List<Person>> findAll();
+      }
+      
+      mixin SecondMixin {
+        @Query('SELECT * FROM person WHERE id > 2')
+        Future<List<Person>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, hasLength(1));
+    expect(actual.queryMethods.first.query.sql,
+        equals('SELECT * FROM person WHERE id > 2'));
+  });
+
   test("Includes methods from abstract parent's abstract parent class",
       () async {
     final classElement = await _createDao('''
