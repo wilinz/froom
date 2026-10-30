@@ -19,6 +19,7 @@
   - Unlike Room, a conflict that leaves no row to update by primary key (e.g. on another unique index) rethrows the original exception instead of silently dropping the item
   - Performance: `void` upserts use one batch of native `INSERT ... ON CONFLICT(pk) DO UPDATE` statements when SQLite >= 3.24.0 and the table is not virtual (FTS doesn't support UPSERT), checked once per database and table; methods returning ids keep the Room approach, as native upserts can't tell inserted from updated rows. 10k existing rows with FFI: 180–506 ms → 43–56 ms
 - **database**: Add `FroomDatabase.clearAllTables()`, deleting all rows of all entity tables in one transaction with deferred foreign keys and resetting `sqlite_sequence`; the generated database provides `entityTableNames` (#163, upstream floor#166, floor#834)
+- **queryable_processor**: Assign fields not initialized by the constructor via setters (`Entity()..field = value`) when mapping rows (#164, upstream floor#175, floor#839)
 
 ### 🐛 Bug Fixes
 - **insertion_method_processor**: Reject `Future<List<void>>` return types, which generated non-compiling code

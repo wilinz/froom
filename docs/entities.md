@@ -23,6 +23,7 @@ More information can be found in the [Null Safety](null-safety.md) section.
 !!! attention
     - Froom automatically uses the **first** constructor defined in the entity class for creating in-memory objects from database rows.
     - There needs to be a constructor.
+    - Fields which aren't initialized by the constructor are assigned via their setters, so entities can also use a constructor without parameters and mutable fields.
 
 ```dart
 @Entity(tableName: 'person')

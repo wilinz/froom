@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/extension/set_extension.dart';
@@ -71,7 +72,20 @@ abstract class QueryableProcessor<T> extends Processor<T> {
           .where((parameterValue) => parameterValue != null)
           .join(', ');
 
-      return '${classElement.displayName}($parameterValues)';
+      // fields which aren't initialized by the constructor but have a setter
+      final constructorParameterNames = constructorParameters
+          .map((parameterElement) => parameterElement.displayName)
+          .toSet();
+      final setterAssignments = fields
+          .where((field) => !constructorParameterNames.contains(field.name))
+          .where((field) => field.fieldElement.setter != null)
+          .map((field) {
+        final value =
+            _getDecodedValue(field, field.fieldElement.type, field.fieldElement);
+        return '..${field.name} = ($value)';
+      }).join();
+
+      return '${classElement.displayName}($parameterValues)$setterAssignments';
     }
   }
 
@@ -85,35 +99,11 @@ abstract class QueryableProcessor<T> extends Processor<T> {
         // null whenever field is @ignored
         fields.firstWhereOrNull((field) => field.name == parameterName);
     if (field != null) {
-      final databaseValue = "row['${field.columnName}']";
-
-      String parameterValue;
-
-      final typeConverter = [...queryableTypeConverters, field.typeConverter]
-          .nonNulls
-          .getClosestOrNull(parameterElement.type);
-
-      if (typeConverter != null) {
-        final castedDatabaseValue = databaseValue.cast(
-          typeConverter.databaseType,
-          parameterElement,
-        );
-
-        parameterValue =
-            '_${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
-      } else if (parameterElement.type.isDefaultSqlType ||
-          parameterElement.type.isEnumType) {
-        parameterValue = databaseValue.cast(
-          parameterElement.type,
-          parameterElement,
-        );
-      } else {
-        throw InvalidGenerationSourceError(
-          'Column type is not supported for ${parameterElement.type}',
-          todo:
-              'Either use a supported type https://wilinz.github.io/froom/entities/#supported-types or supply a type converter.',
-        );
-      }
+      final parameterValue = _getDecodedValue(
+        field,
+        parameterElement.type,
+        parameterElement,
+      );
 
       if (parameterElement.isNamed) {
         return '$parameterName: $parameterValue';
@@ -130,6 +120,35 @@ abstract class QueryableProcessor<T> extends Processor<T> {
     return [...queryableTypeConverters, field.typeConverter]
         .nonNulls
         .getClosestOrNull(field.fieldElement.type);
+  }
+
+  /// Decodes the database value of [field] into a value of [type].
+  String _getDecodedValue(
+    final Field field,
+    final DartType type,
+    final Element element,
+  ) {
+    final databaseValue = "row['${field.columnName}']";
+
+    final typeConverter = [...queryableTypeConverters, field.typeConverter]
+        .nonNulls
+        .getClosestOrNull(type);
+
+    if (typeConverter != null) {
+      final castedDatabaseValue = databaseValue.cast(
+        typeConverter.databaseType,
+        element,
+      );
+      return '_${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
+    } else if (type.isDefaultSqlType || type.isEnumType) {
+      return databaseValue.cast(type, element);
+    } else {
+      throw InvalidGenerationSourceError(
+        'Column type is not supported for $type',
+        todo:
+            'Either use a supported type https://wilinz.github.io/froom/entities/#supported-types or supply a type converter.',
+      );
+    }
   }
 
   /// Maps the fields of an item to its database column values.

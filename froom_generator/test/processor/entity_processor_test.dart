@@ -228,6 +228,53 @@ void main() {
     expect(actual, equals(expected));
   });
 
+  test('Assigns fields not initialized by the constructor via setters',
+      () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @primaryKey
+        int? id;
+      
+        String? name;
+      
+        bool active = false;
+      
+        final String constant = 'constant';
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().constructor;
+
+    expect(
+      actual,
+      equals("Person()..id = (row['id'] as int?)"
+          "..name = (row['name'] as String?)"
+          "..active = ((row['active'] as int) != 0)"),
+    );
+  });
+
+  test('Assigns only fields the constructor does not initialize', () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        String? name;
+      
+        Person(this.id);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().constructor;
+
+    expect(
+      actual,
+      equals("Person(row['id'] as int)..name = (row['name'] as String?)"),
+    );
+  });
+
   group('foreign keys', () {
     test('foreign key holds correct values', () async {
       final classElements = await _createClassElements('''
