@@ -666,6 +666,17 @@ void main() {
           '''));
   });
 
+  test('query stream selecting a column ending with from', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT validFrom FROM Person')
+      Stream<List<String>> findValidFromAsStream();
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write().body.toString();
+
+    expect(actual, contains("queryableName: 'Person'"));
+  });
+
   for (final table in ['"Person"', '[Person]', '`Person`', '   Person']) {
     test('query stream from quoted table $table', () async {
       final queryMethod = await _createQueryMethod('''

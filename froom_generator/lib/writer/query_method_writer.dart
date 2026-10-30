@@ -256,7 +256,7 @@ class QueryMethodWriter implements Writer {
 
   String _parseTableName(String query) {
     // the table name can be quoted like `table`, "table" or [table]
-    return RegExp(r'FROM\s+[`"\[]?(\w+)', caseSensitive: false)
+    return RegExp(r'\bFROM\s+[`"\[]?(\w+)', caseSensitive: false)
             .firstMatch(query)
             ?.group(1) ??
         'no_table_name';
