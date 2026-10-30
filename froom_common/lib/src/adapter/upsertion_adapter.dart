@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:froom_common/src/extension/change_listener_extension.dart';
 import 'package:froom_common/src/util/primary_key_helper.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 
@@ -70,7 +71,7 @@ class UpsertionAdapter<T> {
       batch.rawInsert(sql, values.values.toList());
     }
     await batch.commit(noResult: true);
-    _changeListener?.add(_entityName);
+    _changeListener?.notifyChange(_entityName);
   }
 
   /// Returns the row id of the inserted entity or `-1` if it got updated.
@@ -79,7 +80,7 @@ class UpsertionAdapter<T> {
     final id = await _runInTransaction(
       (executor) => _upsert(executor, item, tableInfo),
     );
-    _changeListener?.add(_entityName);
+    _changeListener?.notifyChange(_entityName);
     return id;
   }
 
@@ -95,7 +96,7 @@ class UpsertionAdapter<T> {
       }
       return ids;
     });
-    _changeListener?.add(_entityName);
+    _changeListener?.notifyChange(_entityName);
     return ids;
   }
 

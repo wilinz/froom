@@ -180,6 +180,7 @@ void main() {
       valueMapper,
       mockStreamController,
     );
+    when(mockStreamController.isClosed).thenReturn(false);
     stubDatabase(version: '3.45.1', sql: 'CREATE TABLE person');
 
     await adapter.upsert(person1);

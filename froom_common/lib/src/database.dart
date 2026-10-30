@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:froom_common/src/extension/change_listener_extension.dart';
 import 'package:meta/meta.dart';
 import 'package:sqflite_common/sqlite_api.dart' as sqflite;
 
@@ -45,9 +46,7 @@ abstract class FroomDatabase {
       await clear(database);
     }
 
-    // the database might have been closed meanwhile
-    if (changeListener.isClosed) return;
-    entityTableNames.forEach(changeListener.add);
+    entityTableNames.forEach(changeListener.notifyChange);
   }
 
   /// Closes the database.

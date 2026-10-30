@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:froom_annotation/froom_annotation.dart';
+import 'package:froom_common/src/extension/change_listener_extension.dart';
 import 'package:froom_common/src/extension/on_conflict_strategy_extensions.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 
@@ -42,7 +43,7 @@ class InsertionAdapter<T> {
       );
     }
     await batch.commit(noResult: true);
-    _changeListener?.add(_entityName);
+    _changeListener?.notifyChange(_entityName);
   }
 
   Future<int> insertAndReturnId(
@@ -66,7 +67,7 @@ class InsertionAdapter<T> {
       );
     }
     final result = (await batch.commit(noResult: false)).cast<int>();
-    if (result.isNotEmpty) _changeListener?.add(_entityName);
+    if (result.isNotEmpty) _changeListener?.notifyChange(_entityName);
     return result;
   }
 
@@ -79,7 +80,7 @@ class InsertionAdapter<T> {
       _valueMapper(item),
       conflictAlgorithm: onConflictStrategy.asSqfliteConflictAlgorithm(),
     );
-    if (result != 0) _changeListener?.add(_entityName);
+    if (result != 0) _changeListener?.notifyChange(_entityName);
     return result;
   }
 }

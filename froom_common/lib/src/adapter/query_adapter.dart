@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:froom_common/src/extension/change_listener_extension.dart';
 import 'package:froom_common/src/util/string_utils.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqlparser/sqlparser.dart';
@@ -170,7 +171,7 @@ class QueryAdapter {
   ) {
     final count = result.firstOrNull?[changedRowsKey];
     if (tableName.isNotEmpty && count is int && count > 0) {
-      _changeListener?.add(tableName);
+      _changeListener?.notifyChange(tableName);
     }
   }
 
