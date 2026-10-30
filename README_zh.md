@@ -128,6 +128,8 @@ class Person {
 
 import 'package:froom/froom.dart';
 
+import '../entity/person.dart';
+
 @dao
 abstract class PersonDao {
   @Query('SELECT * FROM Person')

@@ -129,6 +129,8 @@ The abstract class contains the method signatures for querying the database whic
 
 import 'package:froom/froom.dart';
 
+import '../entity/person.dart';
+
 @dao
 abstract class PersonDao {
   @Query('SELECT * FROM Person')

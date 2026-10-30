@@ -54,6 +54,7 @@
 
 ### 📝 Documentation
 - **getting-started**: Document absolute database paths for `databaseBuilder()`, covered by a test (#179, upstream floor#588, floor#803)
+- **getting-started, READMEs**: Import the entity in the DAO example (#181, upstream floor#645)
 
 ## [6.0.0] - 2026-03-08
 

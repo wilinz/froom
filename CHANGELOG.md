@@ -36,6 +36,7 @@
 
 ### 📝 Documentation
 - Document passing an absolute path to `databaseBuilder()` for a custom database location ([#179](https://github.com/wilinz/froom/issues/179))
+- Import the entity in the DAO example of the getting started guide ([#181](https://github.com/wilinz/froom/issues/181))
 
 ## 6.0.0
 
