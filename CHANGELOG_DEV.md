@@ -44,6 +44,7 @@
 - **query_adapter**: Streams skip results of re-queries finishing after they got closed, ignore `database_closed` errors and forward other errors to listeners instead of leaving them unhandled; both stream methods share `_createStream` (#184, upstream floor#745)
 - **dao_processor**: Don't treat query, insertion, update, upsertion and deletion methods annotated with `@transaction` as transaction methods, which generated them twice (#185, upstream floor#748)
 - **example**: Create tasks with the status `open`, so they are shown by the default filter and cycle through all statuses (#186, upstream floor#763)
+- **index**: Generate `CREATE INDEX IF NOT EXISTS`, so creating the schema again, e.g. for new tables in migrations, doesn't fail (#187, upstream floor#775, floor#788)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

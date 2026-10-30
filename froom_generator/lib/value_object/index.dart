@@ -24,7 +24,7 @@ class Index {
 
     final whereSql = where != null ? ' WHERE $where' : '';
 
-    return 'CREATE$uniqueSql INDEX `$name`'
+    return 'CREATE$uniqueSql INDEX IF NOT EXISTS `$name`'
         ' ON `$tableName` ($escapedColumnNames)$whereSql';
   }
 

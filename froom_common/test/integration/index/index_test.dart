@@ -33,6 +33,7 @@ void main() {
       await expectLater(actual, throwsA(isA<sqflite.DatabaseException>()));
       expect(await accountDao.findAllAccounts(), hasLength(3));
     });
+
   });
 }
 
