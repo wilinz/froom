@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 30 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 31 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 4 | Bug or small feature to be fixed |
+| ⏳ Planned | 3 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -120,7 +120,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#810](https://github.com/pinchbv/floor/issues/810) | Are there any plans to adapt HarmonyOS | ➖ Not planned |  | Question, support or not applicable |
 | [floor#814](https://github.com/pinchbv/floor/issues/814) | #802 still an issue. any help? | 🔁 Duplicate | [#191](https://github.com/wilinz/froom/issues/191) | Same as floor#802 |
 | [floor#816](https://github.com/pinchbv/floor/issues/816) | Casting to double might not work; | 🔁 Duplicate | [#191](https://github.com/wilinz/froom/issues/191) | Same as floor#802 |
-| [floor#820](https://github.com/pinchbv/floor/issues/820) | Invalid query (failing to parse) does not throw an error | ⏳ Planned |  | Invalid query not reported by the generator (verified) |
+| [floor#820](https://github.com/pinchbv/floor/issues/820) | Invalid query (failing to parse) does not throw an error | ✅ Fixed | [#192](https://github.com/wilinz/froom/issues/192) | Invalid queries fail the generator |
 | [floor#823](https://github.com/pinchbv/floor/issues/823) | onCreate callback is not being called, "tbl not found" exception | ➖ Not planned |  | Question, support or not applicable |
 | [floor#828](https://github.com/pinchbv/floor/issues/828) | type missmatch int <-> double | 🔁 Duplicate | [#191](https://github.com/wilinz/froom/issues/191) | Same as floor#802 |
 | [floor#833](https://github.com/pinchbv/floor/issues/833) | No stream updates with quoted table name | ⏳ Planned |  | No stream updates with double quoted table names (verified) |

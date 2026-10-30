@@ -205,7 +205,7 @@ void main() {
 
     test('Parse query with multiple IN clauses', () async {
       final methodElement = await _createQueryMethodElement('''
-      @Query('update sports set rated = 1 where id in (:ids) and where foo in (:bar)')
+      @Query('update sports set rated = 1 where id in (:ids) and foo in (:bar)')
       Future<void> setRated(List<int> ids, List<int> bar);
     ''');
 
@@ -216,11 +216,11 @@ void main() {
         actual.sql,
         equals(
           r'update sports set rated = 1 where id in (:varlist) '
-          r'and where foo in (:varlist)',
+          r'and foo in (:varlist)',
         ),
       );
       expect(actual.listParameters,
-          equals([ListParameter(41, 'ids'), ListParameter(69, 'bar')]));
+          equals([ListParameter(41, 'ids'), ListParameter(63, 'bar')]));
     });
 
     test('Parse query with IN clause and other parameter', () async {
@@ -276,16 +276,13 @@ void main() {
 
     test('Parse query with commas', () async {
       final methodElement = await _createQueryMethodElement('''
-      @Query('SELECT * FROM :table, :otherTable')
-      Future<List<Person>> findPersonsWithNamesLike(String table, String otherTable);
+      @Query('SELECT * FROM Person WHERE name IN (:name, :otherName)')
+      Future<List<Person>> findPersonsWithNames(String name, String otherName);
     ''');
 
       final actual =
           QueryMethodProcessor(methodElement, [], {}).process().query.sql;
-      // note: this will throw an error at runtime, because
-      // sqlite variables can not be used in place of table
-      // names. But the Processor is not aware of this.
-      expect(actual, equals('SELECT * FROM ?1, ?2'));
+      expect(actual, equals('SELECT * FROM Person WHERE name IN (?1, ?2)'));
     });
   });
 
@@ -381,6 +378,21 @@ void main() {
       final error =
           QueryProcessorError(methodElement).unknownQueryVariable(':name');
       expect(actual, throwsProcessorError(error));
+    });
+
+    test('exception when query is invalid', () async {
+      final methodElement = await _createQueryMethodElement('''
+      @Query('DELETE * FROM Person')
+      Future<void> deleteAll();
+    ''');
+
+      final actual = () =>
+          QueryMethodProcessor(methodElement, [...entities, ...views], {})
+              .process();
+
+      final error = QueryMethodProcessorError(methodElement)
+          .invalidQuery('DELETE * FROM Person');
+      expect(actual, throwsInvalidGenerationSourceError(error));
     });
 
     test('exception when return type can not be resolved', () async {

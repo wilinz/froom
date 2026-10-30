@@ -418,7 +418,7 @@ void main() {
         TypeConverterScope.database,
       );
       final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE id = :id')
+      @Query('SELECT * FROM `Order` WHERE id = :id')
       Future<Order?> findById(int id);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -428,7 +428,7 @@ void main() {
       expect(actual, equalsDart(r'''
       @override
       Future<Order?> findById(int id) async {
-        return _queryAdapter.query('SELECT * FROM Order WHERE id = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [id]);
+        return _queryAdapter.query('SELECT * FROM `Order` WHERE id = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [id]);
       }
     '''));
     });
@@ -441,7 +441,7 @@ void main() {
         TypeConverterScope.database,
       );
       final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE dateTime IS :dateTime')
+      @Query('SELECT * FROM `Order` WHERE dateTime IS :dateTime')
       Future<List<Order>> findByDateTime(DateTime? dateTime);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -451,7 +451,7 @@ void main() {
       expect(actual, equalsDart(r'''
       @override
       Future<List<Order>> findByDateTime(DateTime? dateTime) async {
-        return _queryAdapter.queryList('SELECT * FROM Order WHERE dateTime IS ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [dateTime == null ? null : _dateTimeConverter.encode(dateTime)]);
+        return _queryAdapter.queryList('SELECT * FROM `Order` WHERE dateTime IS ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [dateTime == null ? null : _dateTimeConverter.encode(dateTime)]);
       }
     '''));
     });
@@ -465,7 +465,7 @@ void main() {
         TypeConverterScope.database,
       );
       final queryMethod = await '''
-      @Query('SELECT MAX(dateTime) FROM Order')
+      @Query('SELECT MAX(dateTime) FROM `Order`')
       Future<DateTime?> findLatest();
     '''
           .asOrderQueryMethod({typeConverter});
@@ -475,7 +475,7 @@ void main() {
       expect(actual, equalsDart(r'''
       @override
       Future<DateTime?> findLatest() async {
-        return _queryAdapter.query<DateTime?>('SELECT MAX(dateTime) FROM Order', mapper: (Map<String, Object?> row) => row.values.first == null ? null : _dateTimeConverter.decode(row.values.first as int));
+        return _queryAdapter.query<DateTime?>('SELECT MAX(dateTime) FROM `Order`', mapper: (Map<String, Object?> row) => row.values.first == null ? null : _dateTimeConverter.decode(row.values.first as int));
       }
     '''));
     });
@@ -489,7 +489,7 @@ void main() {
       );
       final queryMethod = await '''
       @TypeConverters([DateTimeConverter])
-      @Query('SELECT * FROM Order WHERE dateTime = :dateTime')
+      @Query('SELECT * FROM `Order` WHERE dateTime = :dateTime')
       Future<Order?> findByDateTime(DateTime dateTime);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -499,7 +499,7 @@ void main() {
       expect(actual, equalsDart(r'''
       @override
       Future<Order?> findByDateTime(DateTime dateTime) async {
-        return _queryAdapter.query('SELECT * FROM Order WHERE dateTime = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _externalTypeConverter.decode(row['dateTime'] as int)), arguments: [_dateTimeConverter.encode(dateTime)]);
+        return _queryAdapter.query('SELECT * FROM `Order` WHERE dateTime = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _externalTypeConverter.decode(row['dateTime'] as int)), arguments: [_dateTimeConverter.encode(dateTime)]);
       }
     '''));
     });
@@ -513,7 +513,7 @@ void main() {
         TypeConverterScope.database,
       );
       final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE dateTime = :dateTime')
+      @Query('SELECT * FROM `Order` WHERE dateTime = :dateTime')
       Future<Order?> findByDateTime(@TypeConverters([DateTimeConverter]) DateTime dateTime);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -523,7 +523,7 @@ void main() {
       expect(actual, equalsDart(r'''
       @override
       Future<Order?> findByDateTime(DateTime dateTime) async {
-        return _queryAdapter.query('SELECT * FROM Order WHERE dateTime = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _externalTypeConverter.decode(row['dateTime'] as int)), arguments: [_dateTimeConverter.encode(dateTime)]);
+        return _queryAdapter.query('SELECT * FROM `Order` WHERE dateTime = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _externalTypeConverter.decode(row['dateTime'] as int)), arguments: [_dateTimeConverter.encode(dateTime)]);
       }
     '''));
     });
@@ -537,7 +537,7 @@ void main() {
         TypeConverterScope.database,
       );
       final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE date IN (:dates)')
+      @Query('SELECT * FROM `Order` WHERE date IN (:dates)')
       Future<List<Order>> findByDates(List<DateTime> dates);
     '''
           .asOrderQueryMethod({typeConverter});
@@ -549,7 +549,7 @@ void main() {
       Future<List<Order>> findByDates(List<DateTime> dates) async {
         const offset = 1;
         final _sqliteVariablesForDates=Iterable<String>.generate(dates.length, (i)=>'?${i+offset}').join(',');
-        return _queryAdapter.queryList('SELECT * FROM Order WHERE date IN (' + _sqliteVariablesForDates + ')', 
+        return _queryAdapter.queryList('SELECT * FROM `Order` WHERE date IN (' + _sqliteVariablesForDates + ')', 
           mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)),
           arguments: [...dates.map((element) => _dateTimeConverter.encode(element))]);
       }
@@ -591,7 +591,7 @@ void main() {
       TypeConverterScope.database,
     );
     final queryMethod = await '''
-      @Query('SELECT * FROM Order WHERE id IN (:ids) AND id IN (:dateTimeList) OR foo in (:ids) AND bar = :foo OR name = :name')
+      @Query('SELECT * FROM `Order` WHERE id IN (:ids) AND id IN (:dateTimeList) OR foo in (:ids) AND bar = :foo OR name = :name')
       Future<List<Order>> findWithIds(List<int> ids, String name, @TypeConverters([DateTimeConverter]) List<DateTime> dateTimeList, DateTime foo);
     '''
         .asOrderQueryMethod({typeConverter});
@@ -614,7 +614,7 @@ void main() {
                 Iterable<String>.generate(dateTimeList.length, (i) => '?${i + offset}')
                     .join(',');
             return _queryAdapter.queryList(
-                'SELECT * FROM Order WHERE id IN (' +
+                'SELECT * FROM `Order` WHERE id IN (' +
                     _sqliteVariablesForIds +
                     ') AND id IN (' +
                     _sqliteVariablesForDateTimeList +

@@ -48,6 +48,7 @@
 - **transaction_method_writer**: Keep the nullability of the type argument of `transaction<T>`, e.g. `transaction<Person?>` for `Future<Person?>` (#188, upstream floor#783)
 - **entity_processor**: Throw `noMatchingPrimaryKeyColumn` for compound primary key columns without a matching field, which were silently dropped from the primary key (#189, upstream floor#789)
 - **cast**: Read `double` values as `(value as num).toDouble()` instead of `value as double`, which failed for integers SQLite returns e.g. for whole number expressions (#191, upstream floor#802, floor#814, floor#816, floor#828)
+- **query_method_processor**: Parse queries with `sqlparser` (new dependency of froom_generator, as of froom_common) and throw `invalidQuery` for invalid statements, which the runtime rejects as well; invalid SQL of test fixtures fixed (#192, upstream floor#820)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

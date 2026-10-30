@@ -17,6 +17,14 @@ class QueryMethodProcessorError {
     );
   }
 
+  InvalidGenerationSourceError invalidQuery(final String query) {
+    return InvalidGenerationSourceError(
+      'The query of ${_methodElement.displayName} is not valid SQL: $query',
+      todo: 'Fix the syntax of the query.',
+      element: _methodElement,
+    );
+  }
+
   InvalidGenerationSourceError get unresolvedReturnType {
     return InvalidGenerationSourceError(
       'The return type of the query method ${_methodElement.displayName} can not be resolved.',
