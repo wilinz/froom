@@ -411,6 +411,55 @@ void main() {
     );
   });
 
+  test('Process index on expressions', () async {
+    final classElement = await createClassElement('''
+      @Entity(indices: [Index(value: ['y + z', 'x'])])
+      class Foo {
+        @primaryKey
+        final int x;
+      
+        final int y;
+      
+        final int z;
+      
+        Foo(this.x, this.y, this.z);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().indices;
+
+    expect(
+      actual,
+      equals([
+        Index('index_Foo_y_z_x', 'Foo', false, ['y + z', 'x'],
+            expressions: {'y + z'}),
+      ]),
+    );
+  });
+
+  test('Process index on column name containing special characters',
+      () async {
+    final classElement = await createClassElement('''
+      @Entity(indices: [Index(value: ['first name'])])
+      class Foo {
+        @primaryKey
+        final int id;
+      
+        @ColumnInfo(name: 'first name')
+        final String firstName;
+      
+        Foo(this.id, this.firstName);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process().indices;
+
+    expect(
+      actual,
+      equals([Index('index_Foo_first name', 'Foo', false, ['first name'])]),
+    );
+  });
+
   test('Process partial index', () async {
     final classElement = await createClassElement('''
       @Entity(indices: [

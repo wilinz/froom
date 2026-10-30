@@ -16,6 +16,9 @@ class Index {
 
   /// List of column names in the Index.
   ///
+  /// Entries which aren't column names of the entity, like `'lower(email)'`,
+  /// are indexed as [expressions](https://www.sqlite.org/expridx.html).
+  ///
   /// The order of columns is important as it defines when SQLite can use a
   /// particular index.
   /// See <a href="https://www.sqlite.org/optoverview.html">SQLite documentation</a>

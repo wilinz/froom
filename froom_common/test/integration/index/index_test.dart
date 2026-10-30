@@ -34,11 +34,32 @@ void main() {
       expect(await accountDao.findAllAccounts(), hasLength(3));
     });
 
+    test('unique index on expression', () async {
+      await accountDao.insertAccount(Account(1, 'a@b.c'));
+
+      final actual = accountDao.insertAccount(Account(2, 'A@B.C'));
+
+      await expectLater(actual, throwsA(isA<sqflite.DatabaseException>()));
+      expect(await accountDao.findAllAccounts(), hasLength(1));
+    });
+
+    test('creates index on expression with generated name', () async {
+      final actual = await database.database.rawQuery(
+          "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'index_Account_lower_email_'");
+
+      expect(actual, [
+        {
+          'sql': 'CREATE UNIQUE INDEX `index_Account_lower_email_`'
+              ' ON `Account` (lower(email))'
+        },
+      ]);
+    });
   });
 }
 
 @Entity(indices: [
   Index(value: ['email'], unique: true, where: 'email IS NOT NULL'),
+  Index(value: ['lower(email)'], unique: true),
 ])
 class Account {
   @primaryKey

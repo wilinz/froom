@@ -187,14 +187,21 @@ class EntityProcessor extends QueryableProcessor<Entity> {
             throw _processorError.missingIndexColumnName;
           }
 
+          final expressions = <String>{};
           for (final indexColumnName in indexColumnNames) {
-            if (!fields.any((field) => field.columnName == indexColumnName)) {
+            if (fields.any((field) => field.columnName == indexColumnName)) {
+              continue;
+            }
+            // anything else than a plain name is an expression like `y + z`
+            if (RegExp(r'\W').hasMatch(indexColumnName)) {
+              expressions.add(indexColumnName);
+            } else {
               throw _processorError.noMatchingColumn(indexColumnName);
             }
           }
 
           final name = indexObject.getField(IndexField.name)?.toStringValue() ??
-              _generateIndexName(tableName, indexColumnNames);
+              _generateIndexName(tableName, indexColumnNames, expressions);
 
           final where = indexObject.getField(IndexField.where)?.toStringValue();
 
@@ -204,6 +211,7 @@ class EntityProcessor extends QueryableProcessor<Entity> {
             unique,
             indexColumnNames,
             where: where != null && where.trim().isNotEmpty ? where : null,
+            expressions: expressions,
           );
         }).toList() ??
         [];
@@ -212,8 +220,14 @@ class EntityProcessor extends QueryableProcessor<Entity> {
   String _generateIndexName(
     final String tableName,
     final List<String> columnNames,
+    final Set<String> expressions,
   ) {
-    return Index.defaultPrefix + tableName + '_' + columnNames.join('_');
+    // expressions can contain any characters
+    final names = columnNames.map((columnName) =>
+        expressions.contains(columnName)
+            ? columnName.replaceAll(RegExp(r'\W+'), '_')
+            : columnName);
+    return Index.defaultPrefix + tableName + '_' + names.join('_');
   }
 
   List<String> _getColumns(

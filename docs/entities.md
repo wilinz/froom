@@ -139,6 +139,15 @@ class Account {
 }
 ```
 
+Besides column names, an index can contain [expressions](https://www.sqlite.org/expridx.html).
+Any value which isn't a column name of the entity is used as an expression, e.g. a case-insensitive unique index on `email`:
+
+```dart
+@Entity(indices: [
+  Index(value: ['lower(email)'], unique: true),
+])
+```
+
 ### Full Text Search
 Like Room's `@Fts3` and `@Fts4`, annotating an entity with `@fts3`/`@Fts3()` or `@fts4`/`@Fts4()` stores it in an SQLite [FTS](https://www.sqlite.org/fts3.html) virtual table, which supports fast full text search with the `MATCH` operator.
 The tokenizer, e.g. `FtsTokenizer.unicode61` for non-ASCII text, and its arguments can be set with the `tokenizer` and `tokenizerArgs` attributes.

@@ -9,18 +9,25 @@ class Index {
   /// The expression of a partial index.
   final String? where;
 
+  /// The entries of [columnNames] that are expressions like `y + z` or
+  /// `lower(name)` rather than column names.
+  final Set<String> expressions;
+
   Index(
     this.name,
     this.tableName,
     this.unique,
     this.columnNames, {
     this.where,
+    this.expressions = const {},
   });
 
   String createQuery() {
     final uniqueSql = unique ? ' UNIQUE' : '';
-    final escapedColumnNames =
-        columnNames.map((columnName) => '`$columnName`').join(', ');
+    final escapedColumnNames = columnNames
+        .map((columnName) =>
+            expressions.contains(columnName) ? columnName : '`$columnName`')
+        .join(', ');
 
     final whereSql = where != null ? ' WHERE $where' : '';
 
@@ -39,7 +46,8 @@ class Index {
           tableName == other.tableName &&
           unique == other.unique &&
           const ListEquality<String>().equals(columnNames, other.columnNames) &&
-          where == other.where;
+          where == other.where &&
+          const SetEquality<String>().equals(expressions, other.expressions);
 
   @override
   int get hashCode =>
@@ -47,10 +55,11 @@ class Index {
       tableName.hashCode ^
       unique.hashCode ^
       columnNames.hashCode ^
-      where.hashCode;
+      where.hashCode ^
+      expressions.hashCode;
 
   @override
   String toString() {
-    return 'Index{name: $name, tableName: $tableName, unique: $unique, columnNames: $columnNames, where: $where}';
+    return 'Index{name: $name, tableName: $tableName, unique: $unique, columnNames: $columnNames, where: $where, expressions: $expressions}';
   }
 }

@@ -39,4 +39,15 @@ void main() {
           'CREATE UNIQUE INDEX IF NOT EXISTS `foo` ON `bar` (`email`) WHERE email IS NOT NULL'),
     );
   });
+
+  test('create index on expressions', () {
+    final actual = Index('foo', 'bar', false, ['y + z', 'lower(name)', 'id'],
+        expressions: {'y + z', 'lower(name)'}).createQuery();
+
+    expect(
+      actual,
+      equals(
+          'CREATE INDEX IF NOT EXISTS `foo` ON `bar` (y + z, lower(name), `id`)'),
+    );
+  });
 }
