@@ -13,7 +13,9 @@ class ColumnInfo {
   /// Values of `TEXT` columns are quoted, unless they are `NULL`,
   /// `CURRENT_TIME`, `CURRENT_DATE`, `CURRENT_TIMESTAMP`, `TRUE`, `FALSE` or
   /// expressions in parentheses. Surround them with single quotes to use them
-  /// as strings. Values of other columns are used as given, e.g. `'0'`.
+  /// as strings. Single quotes within the value are escaped, unless it's
+  /// already an SQL string literal like `"'it''s'"`. Values of other columns
+  /// are used as given, e.g. `'0'`.
   ///
   /// ```dart
   /// @ColumnInfo(defaultValue: 'Guest')

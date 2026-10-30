@@ -199,6 +199,21 @@ void main() {
             "@ColumnInfo(defaultValue: \"O'Brien\") final String name;"),
         equals("'O''Brien'"),
       );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"'it''s'\") final String name;"),
+        equals("'it''s'"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"x'\") final String name;"),
+        equals("'x'''"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"'a'b'\") final String name;"),
+        equals("'''a''b'''"),
+      );
     });
 
     test('keeps SQLite constants and expressions of text columns', () async {

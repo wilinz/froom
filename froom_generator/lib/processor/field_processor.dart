@@ -69,8 +69,10 @@ class FieldProcessor extends Processor<Field> {
         _sqliteValueConstants.contains(normalizedValue)) {
       return value;
     }
-    final unquotedValue = value.trim().replaceAll(RegExp(r"^'+|'+$"), '');
-    return "'${unquotedValue.replaceAll("'", "''")}'";
+    // a string literal is used as is, any other value gets quoted
+    final trimmedValue = value.trim();
+    if (RegExp(r"^'([^']|'')*'$").hasMatch(trimmedValue)) return trimmedValue;
+    return "'${trimmedValue.replaceAll("'", "''")}'";
   }
 
   static const _sqliteValueConstants = {
