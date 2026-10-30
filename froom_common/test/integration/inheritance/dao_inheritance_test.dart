@@ -41,6 +41,14 @@ void main() {
       expect(actual, equals([persons[1]]));
     });
 
+    test('concrete overriding method replaces the inherited query', () async {
+      await personDao.insertItem(Person(1, 'Simon'));
+
+      final actual = await personDao.findAllNames();
+
+      expect(actual, equals(['overridden']));
+    });
+
     test('entity overriding fields of supertypes has each column once',
         () async {
       final user = User(1, 'Simon');
@@ -67,6 +75,13 @@ abstract class PersonDao extends AbstractDao<Person> {
   @override
   @Query('SELECT * FROM Person WHERE id > 1')
   Future<List<Person>> findAll();
+
+  // redeclared without annotation, keeps the inherited @insert
+  @override
+  Future<void> insertItem(Person item);
+
+  @override
+  Future<List<String>> findAllNames() async => ['overridden'];
 
   @insert
   Future<void> insertUser(User user);
@@ -105,6 +120,9 @@ abstract class AbstractDao<T> {
 
   @Query('SELECT * FROM Person')
   Future<List<T>> findAll();
+
+  @Query('SELECT name FROM Person')
+  Future<List<String>> findAllNames();
 }
 
 @entity

@@ -83,11 +83,21 @@ class DaoProcessor extends Processor<Dao> {
 
   /// Returns the methods of the DAO and its supertypes, of which only the
   /// most specific declaration is kept for overridden methods.
+  ///
+  /// An abstract redeclaration without annotation keeps the annotation of the
+  /// overridden method, while a concrete one replaces it.
   List<MethodElement> _getMethods() {
     final methods = <String, MethodElement>{};
     void addMethods(final Iterable<MethodElement> declaredMethods) {
       for (final method in declaredMethods) {
-        methods.putIfAbsent(method.name!, () => method);
+        final name = method.name!;
+        final declared = methods[name];
+        if (declared == null ||
+            (declared.isAbstract &&
+                !_isAnnotated(declared) &&
+                _isAnnotated(method))) {
+          methods[name] = method;
+        }
       }
     }
 
@@ -160,6 +170,11 @@ class DaoProcessor extends Processor<Dao> {
         .map((methodElement) =>
             DeletionMethodProcessor(methodElement, _entities).process())
         .toList();
+  }
+
+  bool _isAnnotated(final MethodElement methodElement) {
+    return _isQueryOrChangeMethod(methodElement) ||
+        methodElement.hasAnnotation(annotations.transaction.runtimeType);
   }
 
   bool _isQueryOrChangeMethod(final MethodElement methodElement) {
