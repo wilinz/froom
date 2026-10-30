@@ -97,6 +97,15 @@ class DatabaseWriter implements Writer {
         .map((view) => view.getCreateViewStatement().toLiteral())
         .map((statement) => 'await database.execute($statement);')
         .join('\n');
+    // views don't hold data, so they are recreated with their current queries
+    final recreateViewStatements = database.views.isEmpty
+        ? ''
+        : [
+            ...database.views
+                .map((view) => 'DROP VIEW IF EXISTS `${view.name}`'.toLiteral())
+                .map((statement) => 'await database.execute($statement);'),
+            createViewStatements,
+          ].join('\n');
 
     final pathParameter = Parameter((builder) => builder
       ..name = 'path'
@@ -150,6 +159,7 @@ class DatabaseWriter implements Writer {
               }
 
               await MigrationAdapter.runMigrations(database, startVersion, endVersion, migrations);
+              $recreateViewStatements
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
             },

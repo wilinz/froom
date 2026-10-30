@@ -32,6 +32,9 @@ You can then query the view via a DAO function like an entity.
 
 It is possible for DatabaseViews to inherit common fields from a base class, just like in entities.
 
+When upgrading the database with migrations, the views of the database are recreated with their current queries after the migrations, as views don't hold any data.
+Thus, changing the query of a view only requires a database version increase with a migration, which doesn't have to touch the view.
+
 !!! attention
     It is now possible to return a `Stream` object from a DAO method which queries a database view. But it will fire on **any**
     `@update`, `@insert`, `@upsert`, `@delete` events in the whole database, which can get quite taxing on the runtime. Please add it only if you know what you are doing!

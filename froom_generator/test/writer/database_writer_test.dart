@@ -338,6 +338,9 @@ void main() {
 
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
+              await database.execute('DROP VIEW IF EXISTS `names`');
+              await database.execute(
+                  'CREATE VIEW IF NOT EXISTS `names` AS SELECT custom_name as name FROM person');
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
             },

@@ -19,6 +19,7 @@
 - **queryable**: Use the unnamed constructor instead of the first declared one and call named constructors by their name ([#166](https://github.com/wilinz/froom/issues/166))
 - **dao**: Query and transaction methods support optional positional and named parameters with default values ([#168](https://github.com/wilinz/froom/issues/168))
 - **dao**: `INSERT`, `UPDATE` and `DELETE` statements of `@Query` methods update streams declared in other DAOs too ([#169](https://github.com/wilinz/froom/issues/169))
+- **views**: Database views are recreated with their current queries after migrations ([#170](https://github.com/wilinz/froom/issues/170))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13
