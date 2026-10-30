@@ -50,9 +50,11 @@ Violations which existed before the migrations are ignored.
 ## Automatic Migrations
 
 Like Room's `@AutoMigration`, Froom can generate migrations by comparing the schemas of two versions of the database.
-When generating the code, Froom exports the schema of the current version to `froom_schemas/<path of the library>/<database class>/<version>.json`.
+When generating the code of a database with automatic migrations or `exportSchema: true`, Froom exports the schema of the current version to `froom_schemas/<path of the library>/<database class>/<version>.json`.
 **Commit these files**, as the automatic migrations of later versions are generated from them.
-Set `exportSchema: false` on `@Database` to disable the export, which automatic migrations require, or configure another directory in the `build.yaml` of your project:
+Enable `exportSchema: true` before increasing the version for the first automatic migration, so that the schema of the version to migrate from is exported.
+Otherwise, generate the code of the previous version with `exportSchema: true` once, or migrate from it with a manual `Migration`.
+The schemas are exported to another directory when configuring it in the `build.yaml` of your project:
 
 ```yaml
 targets:

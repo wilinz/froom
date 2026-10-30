@@ -135,9 +135,11 @@ class AutoMigrationProcessor {
       throw InvalidGenerationSourceError(
         'The schema of version $version of the database for the automatic '
         'migration is missing at ${_schemaStore.describe(version)}.',
-        todo: 'The schema of each version is exported when generating the '
-            'code of the database with that version. Commit the exported '
-            'schemas.',
+        todo: 'The schema of a version is exported when generating the code '
+            'of the database with that version and automatic migrations or '
+            'exportSchema: true. Generate the code of version $version with '
+            'exportSchema: true and commit the exported schema, or migrate '
+            'from version $version with a manual Migration.',
         element: _classElement,
       );
     }

@@ -90,7 +90,7 @@ void main() {
 
   test('exports the schema of the database version', () async {
     final database = await createClassElement('''
-      @Database(version: 2, entities: [Person])
+      @Database(version: 2, entities: [Person], exportSchema: true)
       abstract class TestDatabase extends FroomDatabase {}
       
       @entity
@@ -116,6 +116,29 @@ void main() {
     final entities = (schema['database'] as Map)['entities'] as List;
     expect((entities.single as Map)['createSql'],
         contains(r'CREATE TABLE IF NOT EXISTS `${TABLE_NAME}`'));
+  });
+
+  test('exports no schema by default without automatic migrations', () async {
+    final database = await createClassElement('''
+      @Database(version: 1, entities: [Person])
+      abstract class TestDatabase extends FroomDatabase {}
+      
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        Person(this.id);
+      }
+    ''');
+
+    await createGenerator().generateForAnnotatedElement(
+      database,
+      ConstantReader(null),
+      _FakeBuildStep(),
+    );
+
+    expect(schemaDirectory.listSync(), isEmpty);
   });
 
   test('exports no schema with exportSchema: false', () async {

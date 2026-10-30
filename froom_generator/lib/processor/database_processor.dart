@@ -67,17 +67,19 @@ class DatabaseProcessor extends Processor<Database> {
         views.map(ViewSchema.fromView).toList(),
       );
       final annotation = _classElement.getAnnotation(annotations.Database);
+      final autoMigrationObjects = annotation
+              ?.getField(AnnotationField.databaseAutoMigrations)
+              ?.toListValue() ??
+          [];
+      // by default, only databases with automatic migrations export it
       final exportsSchema = annotation
               ?.getField(AnnotationField.databaseExportSchema)
               ?.toBoolValue() ??
-          true;
+          autoMigrationObjects.isNotEmpty;
       if (exportsSchema) schemaStore.write(schema);
       autoMigrations.addAll(AutoMigrationProcessor(
         _classElement,
-        annotation
-                ?.getField(AnnotationField.databaseAutoMigrations)
-                ?.toListValue() ??
-            [],
+        autoMigrationObjects,
         schema,
         schemaStore,
         exportsSchema,

@@ -19,7 +19,10 @@ class Database {
   ///
   /// The schema of each version is exported to
   /// `froom_schemas/<path of the library>/<database class>/<version>.json`.
-  final bool exportSchema;
+  /// By default, it's only exported when there are [autoMigrations]. Enable
+  /// it before adding the first automatic migration, so that the schema of
+  /// the version to migrate from is available.
+  final bool? exportSchema;
 
   /// Marks a class as a FroomDatabase.
   const Database({
@@ -27,6 +30,6 @@ class Database {
     required this.entities,
     this.views = const [],
     this.autoMigrations = const [],
-    this.exportSchema = true,
+    this.exportSchema,
   });
 }
