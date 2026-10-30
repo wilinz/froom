@@ -12,6 +12,8 @@ void main() {
     final List<IndexSchema> indices = const [],
     final List<ForeignKeySchema> foreignKeys = const [],
     final String? fts,
+    final bool autoGenerate = false,
+    final bool withoutRowid = false,
   }) {
     final columns = fields
         .map((field) =>
@@ -24,10 +26,10 @@ void main() {
       name,
       createSql,
       fields,
-      PrimaryKeySchema(primaryKey, false),
+      PrimaryKeySchema(primaryKey, autoGenerate),
       indices,
       foreignKeys,
-      false,
+      withoutRowid,
       fts,
     );
   }
@@ -460,6 +462,24 @@ void main() {
             renamedTables: [RenamedTable('A', 'B')],
           ),
     ),
+    (
+      'column both deleted and renamed',
+      () => SchemaDiffer(
+            schema(1, [table('T', [id, column('a')])]),
+            schema(2, [table('T', [id, column('b')])]),
+            renamedColumns: [RenamedColumn('T', 'a', 'b')],
+            deletedColumns: [DeletedColumn('T', 'a')],
+          ),
+    ),
+    (
+      'renamed column of a deleted table',
+      () => SchemaDiffer(
+            schema(1, [table('T', [id, column('a')])]),
+            schema(2, [table('T', [id, column('b')])]),
+            renamedColumns: [RenamedColumn('T', 'a', 'b')],
+            deletedTables: [DeletedTable('T')],
+          ),
+    ),
   ]) {
     test('spec with $description fails', () {
       expect(
@@ -590,6 +610,289 @@ void main() {
       'DROP INDEX IF EXISTS `index_Person_name`',
       'CREATE INDEX IF NOT EXISTS `index_Person_age` ON `Person` (`age`)',
     ]);
+  });
+
+  test('column becoming NOT NULL without default value fails', () {
+    final newPerson = table('Person', [id, column('name', notNull: true)]);
+
+    expect(
+      () => SchemaDiffer(schema(1, [person]), schema(2, [newPerson]))
+          .diffSchemas(),
+      throwsA(isA<SchemaDiffException>()
+          .having((e) => e.message, 'message', contains('defaultValue'))),
+    );
+  });
+
+  test('column becoming NOT NULL gets the default value for NULL', () {
+    final newPerson = table(
+      'Person',
+      [id, column('name', notNull: true, defaultValue: "''")],
+    );
+
+    final actual =
+        SchemaDiffer(schema(1, [person]), schema(2, [newPerson])).diffSchemas();
+
+    expect(
+      statements(actual),
+      contains("INSERT INTO `_new_Person` (`id`, `name`) "
+          "SELECT `id`, IFNULL(`name`, '') FROM `Person`"),
+    );
+  });
+
+  test('row id becoming NOT NULL needs no default value', () {
+    final nullableId = column('id', affinity: 'INTEGER');
+    final oldPerson = table('Person', [nullableId, column('name')]);
+    final newPerson =
+        table('Person', [id, column('name', affinity: 'INTEGER')]);
+
+    final actual =
+        SchemaDiffer(schema(1, [oldPerson]), schema(2, [newPerson]))
+            .diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Person` (`id`, `name`) '
+          'SELECT `id`, `name` FROM `Person`'),
+    );
+  });
+
+  test('FTS column becoming NOT NULL needs no default value', () {
+    final oldMail = table('Mail', [column('text')], fts: 'USING fts4');
+    final newMail =
+        table('Mail', [column('text', notNull: true)], fts: 'USING fts4');
+
+    final actual =
+        SchemaDiffer(schema(1, [oldMail]), schema(2, [newMail])).diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Mail` (rowid, `text`) '
+          'SELECT rowid, `text` FROM `Mail`'),
+    );
+  });
+
+  test('recreated table with a column named rowid copies row ids by alias', () {
+    final rowid = column('rowid', affinity: 'INTEGER');
+    final oldItem = table('Item', [column('id'), rowid, column('name')]);
+    final newItem = table(
+      'Item',
+      [column('id'), rowid, column('name', affinity: 'INTEGER')],
+    );
+
+    final actual =
+        SchemaDiffer(schema(1, [oldItem]), schema(2, [newItem])).diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Item` (_rowid_, `id`, `rowid`, `name`) '
+          'SELECT _rowid_, `id`, `rowid`, `name` FROM `Item`'),
+    );
+  });
+
+  test('old row id becoming NOT NULL in a composite key needs no default',
+      () {
+    final nullableId = column('id', affinity: 'INTEGER');
+    final oldPerson = table('Person', [nullableId, column('name')]);
+    final newPerson = table(
+      'Person',
+      [id, column('name', notNull: true, defaultValue: "''")],
+      primaryKey: ['id', 'name'],
+    );
+
+    final actual =
+        SchemaDiffer(schema(1, [oldPerson]), schema(2, [newPerson]))
+            .diffSchemas();
+
+    expect(
+      statements(actual),
+      contains("INSERT INTO `_new_Person` (rowid, `id`, `name`) "
+          "SELECT rowid, `id`, IFNULL(`name`, '') FROM `Person`"),
+    );
+  });
+
+  test('nullable column becoming the INTEGER primary key gets new row ids',
+      () {
+    final oldPerson = table(
+      'Person',
+      [column('code'), column('ref', affinity: 'INTEGER')],
+      primaryKey: ['code'],
+    );
+    final newPerson = table(
+      'Person',
+      [column('code'), column('ref', affinity: 'INTEGER', notNull: true)],
+      primaryKey: ['ref'],
+    );
+
+    final actual =
+        SchemaDiffer(schema(1, [oldPerson]), schema(2, [newPerson]))
+            .diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Person` (`code`, `ref`) '
+          'SELECT `code`, `ref` FROM `Person`'),
+    );
+  });
+
+  test('recreated FTS table with auto generated key has no sequence', () {
+    final oldMail = table('Mail', [column('rowid', affinity: 'INTEGER')],
+        primaryKey: ['rowid'], fts: 'USING fts4', autoGenerate: true);
+    final newMail = table(
+      'Mail',
+      [column('rowid', affinity: 'INTEGER'), column('text')],
+      primaryKey: ['rowid'],
+      fts: 'USING fts4',
+      autoGenerate: true,
+    );
+
+    final actual =
+        SchemaDiffer(schema(1, [oldMail]), schema(2, [newMail])).diffSchemas();
+
+    expect(
+      statements(actual).where((s) => s.contains('sqlite_sequence')),
+      isEmpty,
+    );
+  });
+
+  test('new NOT NULL FTS column needs no default value', () {
+    final oldMail = table('Mail', [column('text')], fts: 'USING fts4');
+    final newMail = table(
+      'Mail',
+      [column('text'), column('title', notNull: true)],
+      fts: 'USING fts4',
+    );
+
+    final actual =
+        SchemaDiffer(schema(1, [oldMail]), schema(2, [newMail])).diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Mail` (rowid, `text`) '
+          'SELECT rowid, `text` FROM `Mail`'),
+    );
+  });
+
+  test('FTS table becoming a regular table keeps its NOT NULL columns', () {
+    final oldMail =
+        table('Mail', [column('text', notNull: true)], fts: 'USING fts4');
+    final newMail = table('Mail', [id, column('text', notNull: true)]);
+
+    final actual =
+        SchemaDiffer(schema(1, [oldMail]), schema(2, [newMail])).diffSchemas();
+
+    // the old row ids become the new INTEGER primary key
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Mail` (rowid, `text`) '
+          'SELECT rowid, `text` FROM `Mail`'),
+    );
+  });
+
+  test('nullable primary key of a new WITHOUT ROWID table needs a default',
+      () {
+    final oldCode = table('Code', [column('code')], primaryKey: ['code']);
+    final newCode = table(
+      'Code',
+      [column('code')],
+      primaryKey: ['code'],
+      withoutRowid: true,
+    );
+
+    expect(
+      () => SchemaDiffer(schema(1, [oldCode]), schema(2, [newCode]))
+          .diffSchemas(),
+      throwsA(isA<SchemaDiffException>()),
+    );
+  });
+
+  test('changed duplicate foreign keys recreate the table', () {
+    ForeignKeySchema foreignKey(final String onDelete) =>
+        ForeignKeySchema('Person', ['ownerId'], ['id'], 'NO ACTION', onDelete);
+    final fields = [id, column('ownerId', affinity: 'INTEGER')];
+    final oldPet = table('Pet', fields,
+        foreignKeys: [foreignKey('CASCADE'), foreignKey('CASCADE')]);
+    final newPet = table('Pet', fields,
+        foreignKeys: [foreignKey('CASCADE'), foreignKey('RESTRICT')]);
+
+    final actual =
+        SchemaDiffer(schema(1, [person, oldPet]), schema(2, [person, newPet]))
+            .diffSchemas();
+
+    expect(actual.complexChangedTables.single.toTable.tableName, 'Pet');
+  });
+
+  test('recreated FTS table keeps its row ids', () {
+    final oldMail = table('Mail', [column('text')], fts: 'USING fts4');
+    final newMail = table('Mail', [column('body')], fts: 'USING fts4');
+
+    final actual = SchemaDiffer(
+      schema(1, [oldMail]),
+      schema(2, [newMail]),
+      specName: 'Spec',
+      renamedColumns: [RenamedColumn('Mail', 'text', 'body')],
+    ).diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Mail` (rowid, `body`) '
+          'SELECT rowid, `text` FROM `Mail`'),
+    );
+  });
+
+  test('recreated table with INTEGER primary key copies no row ids', () {
+    final newPerson =
+        table('Person', [id, column('name', affinity: 'INTEGER')]);
+
+    final actual =
+        SchemaDiffer(schema(1, [person]), schema(2, [newPerson])).diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Person` (`id`, `name`) '
+          'SELECT `id`, `name` FROM `Person`'),
+    );
+  });
+
+  test('recreated table with AUTOINCREMENT keeps its sequence', () {
+    final oldPerson = table('Person', [id, column('name')], autoGenerate: true);
+    final newPerson = table(
+      'Person',
+      [id, column('name', affinity: 'INTEGER')],
+      autoGenerate: true,
+    );
+
+    final actual =
+        SchemaDiffer(schema(1, [oldPerson]), schema(2, [newPerson]))
+            .diffSchemas();
+
+    expect(statements(actual), [
+      'CREATE TABLE IF NOT EXISTS `_new_Person` (`id` INTEGER NOT NULL, `name` INTEGER, PRIMARY KEY (`id`))',
+      'INSERT INTO `_new_Person` (`id`, `name`) SELECT `id`, `name` FROM `Person`',
+      "UPDATE sqlite_sequence SET seq = MAX(seq, IFNULL((SELECT seq FROM sqlite_sequence WHERE name = 'Person'), 0)) WHERE name = '_new_Person'",
+      "INSERT INTO sqlite_sequence (name, seq) SELECT '_new_Person', seq FROM sqlite_sequence WHERE name = 'Person' AND NOT EXISTS (SELECT 1 FROM sqlite_sequence WHERE name = '_new_Person')",
+      'DROP TABLE `Person`',
+      'ALTER TABLE `_new_Person` RENAME TO `Person`',
+    ]);
+  });
+
+  test('sequence of a table with a quote in its name is kept', () {
+    final oldTable = table("O'Brien", [id, column('name')], autoGenerate: true);
+    final newTable = table(
+      "O'Brien",
+      [id, column('name', affinity: 'INTEGER')],
+      autoGenerate: true,
+    );
+
+    final actual =
+        SchemaDiffer(schema(1, [oldTable]), schema(2, [newTable]))
+            .diffSchemas();
+
+    expect(
+      statements(actual),
+      contains("INSERT INTO sqlite_sequence (name, seq) SELECT '_new_O''Brien', "
+          "seq FROM sqlite_sequence WHERE name = 'O''Brien' AND NOT EXISTS "
+          "(SELECT 1 FROM sqlite_sequence WHERE name = '_new_O''Brien')"),
+    );
   });
 
   test('schema survives JSON round trip', () {

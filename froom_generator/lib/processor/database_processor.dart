@@ -60,22 +60,24 @@ class DatabaseProcessor extends Processor<Database> {
 
     final autoMigrations = <AutoMigration>[];
     final schemaStore = _schemaStore;
-    if (schemaStore != null) {
+    final annotation = _classElement.getAnnotation(annotations.Database);
+    final autoMigrationObjects = annotation
+            ?.getField(AnnotationField.databaseAutoMigrations)
+            ?.toListValue() ??
+        [];
+    // by default, only databases with automatic migrations export it
+    final exportsSchema = annotation
+            ?.getField(AnnotationField.databaseExportSchema)
+            ?.toBoolValue() ??
+        autoMigrationObjects.isNotEmpty;
+    // the schema is only built when it's used
+    if (schemaStore != null &&
+        (exportsSchema || autoMigrationObjects.isNotEmpty)) {
       final schema = DatabaseSchema(
         version,
         entities.map(EntitySchema.fromEntity).toList(),
         views.map(ViewSchema.fromView).toList(),
       );
-      final annotation = _classElement.getAnnotation(annotations.Database);
-      final autoMigrationObjects = annotation
-              ?.getField(AnnotationField.databaseAutoMigrations)
-              ?.toListValue() ??
-          [];
-      // by default, only databases with automatic migrations export it
-      final exportsSchema = annotation
-              ?.getField(AnnotationField.databaseExportSchema)
-              ?.toBoolValue() ??
-          autoMigrationObjects.isNotEmpty;
       if (exportsSchema) schemaStore.write(schema);
       autoMigrations.addAll(AutoMigrationProcessor(
         _classElement,

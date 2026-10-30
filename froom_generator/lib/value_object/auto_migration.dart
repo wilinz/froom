@@ -65,6 +65,10 @@ class ComplexChangedTable {
   /// their default values.
   final Map<String, String> columnSources;
 
+  /// The values replacing NULL when copying the columns which became NOT
+  /// NULL, by the names of the columns of [toTable].
+  final Map<String, String> nullReplacements = {};
+
   ComplexChangedTable(this.fromTable, this.toTable, this.columnSources);
 }
 

@@ -163,6 +163,27 @@ class EntitySchema {
 
   bool get isFts => fts != null;
 
+  /// Whether the table has an `INTEGER PRIMARY KEY` column, which is an
+  /// alias of the row id and therefore never NULL.
+  bool get hasRowidAlias =>
+      !isFts &&
+      !withoutRowid &&
+      primaryKey.columnNames.length == 1 &&
+      fieldsByColumnName[primaryKey.columnNames.single]?.affinity == 'INTEGER';
+
+  bool isRowidAlias(final String columnName) =>
+      hasRowidAlias && primaryKey.columnNames.single == columnName;
+
+  /// Whether SQLite rejects NULL for the column [columnName], which is NOT
+  /// NULL or a primary key of a `WITHOUT ROWID` table, except in FTS tables,
+  /// which ignore NOT NULL, and for row ids, which replace NULL by a new row
+  /// id.
+  bool enforcesNotNull(final String columnName) =>
+      (fieldsByColumnName[columnName]!.notNull ||
+          withoutRowid && primaryKey.columnNames.contains(columnName)) &&
+      !isFts &&
+      !isRowidAlias(columnName);
+
   /// The prefix of the names of tables while recreating or renaming them.
   static const newTableNamePrefix = '_new_';
 

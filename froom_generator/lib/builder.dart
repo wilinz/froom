@@ -11,10 +11,9 @@ import 'package:source_gen/source_gen.dart';
 /// The schemas of the databases are exported to the directory configured by
 /// the `schema_location` option, `froom_schemas` by default.
 Builder froomBuilder(final BuilderOptions options) {
-  final schemaLocation = options.config['schema_location'] as String?;
-  final froom = schemaLocation == null
-      ? FroomGenerator()
-      : FroomGenerator(schemaLocation: schemaLocation);
-  print(froom.hashCode); // enable debug
+  final froom = FroomGenerator(
+    schemaLocation: options.config['schema_location'] as String? ??
+        FroomGenerator.defaultSchemaLocation,
+  );
   return SharedPartBuilder([froom], 'froom');
 }

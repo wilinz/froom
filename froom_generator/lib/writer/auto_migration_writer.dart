@@ -103,23 +103,87 @@ class AutoMigrationWriter {
   List<String> _getRecreateTableStatements(final ComplexChangedTable table) {
     final fromTable = table.fromTable;
     final toTable = table.toTable;
+    final oldTableName = fromTable.tableName;
+    final newTableName = toTable.newTableName;
 
     // the columns of the new table with data in the old one
     final columns = table.columnSources.keys.toList();
-    final selectedColumns = columns.map((column) => table.columnSources[column]!);
-    String escape(final Iterable<String> columns) =>
-        columns.map((column) => '`$column`').join(', ');
+    final selectedValues = columns.map((column) {
+      final source = '`${table.columnSources[column]!}`';
+      // columns which became NOT NULL get their default value instead
+      final nullReplacement = table.nullReplacements[column];
+      return nullReplacement == null
+          ? source
+          : 'IFNULL($source, $nullReplacement)';
+    }).toList();
+    final escapedColumns = columns.map((column) => '`$column`').toList();
+
+    // keep the row ids, e.g. referenced document ids of FTS tables
+    final rowid = _getCopiedRowid(table);
+    if (columns.isNotEmpty && rowid != null) {
+      escapedColumns.insert(0, rowid);
+      selectedValues.insert(0, rowid);
+    }
 
     final copyStatement =
-        'INSERT INTO `${toTable.newTableName}` (${escape(columns)}) '
-        'SELECT ${escape(selectedColumns)} FROM `${fromTable.tableName}`';
-    // renamed to the name of the new table with the other moved tables
+        'INSERT INTO `$newTableName` (${escapedColumns.join(', ')}) '
+        'SELECT ${selectedValues.join(', ')} FROM `$oldTableName`';
     return [
-      toTable.createTable(toTable.newTableName),
+      toTable.createTable(newTableName),
       // e.g. not if all old columns were deleted
       if (columns.isNotEmpty) copyStatement,
-      'DROP TABLE `${fromTable.tableName}`',
+      // virtual tables have no AUTOINCREMENT
+      if (fromTable.primaryKey.autoGenerate &&
+          toTable.primaryKey.autoGenerate &&
+          !fromTable.isFts &&
+          !toTable.isFts)
+        ..._getKeepSequenceStatements(oldTableName, newTableName),
+      // renamed to the name of the new table with the other moved tables
+      'DROP TABLE `$oldTableName`',
     ];
+  }
+
+  /// The name the row ids of the recreated [table] are copied by, or null if
+  /// they aren't copied, which is not possible for tables without row ids
+  /// and not required for tables whose `INTEGER PRIMARY KEY` is the row id
+  /// copied from the old table.
+  String? _getCopiedRowid(final ComplexChangedTable table) {
+    final fromTable = table.fromTable;
+    final toTable = table.toTable;
+    if (fromTable.withoutRowid ||
+        toTable.withoutRowid ||
+        toTable.hasRowidAlias &&
+            table.columnSources
+                .containsKey(toTable.primaryKey.columnNames.single)) {
+      return null;
+    }
+    // a column of the name of an alias of the row id hides it
+    final columnNames = [...fromTable.fields, ...toTable.fields]
+        .map((field) => field.columnName.toLowerCase())
+        .toSet();
+    return const ['rowid', '_rowid_', 'oid']
+        .where((alias) => !columnNames.contains(alias))
+        .firstOrNull;
+  }
+
+  /// Keeps the `AUTOINCREMENT` counter of the old table, which would be
+  /// reset to the highest copied id otherwise, reusing ids of deleted rows.
+  List<String> _getKeepSequenceStatements(
+    final String oldTableName,
+    final String newTableName,
+  ) {
+    final oldName = oldTableName.toSqlLiteral();
+    final newName = newTableName.toSqlLiteral();
+    final oldSequence = 'SELECT seq FROM sqlite_sequence WHERE name = $oldName';
+    // the new table only has an entry if rows were copied
+    final updateStatement =
+        'UPDATE sqlite_sequence SET seq = MAX(seq, IFNULL(($oldSequence), 0)) '
+        'WHERE name = $newName';
+    final insertStatement =
+        'INSERT INTO sqlite_sequence (name, seq) SELECT $newName, seq '
+        'FROM sqlite_sequence WHERE name = $oldName AND NOT EXISTS '
+        '(SELECT 1 FROM sqlite_sequence WHERE name = $newName)';
+    return [updateStatement, insertStatement];
   }
 }
 

@@ -20,10 +20,12 @@ import 'package:source_gen/source_gen.dart';
 // The migration is complete
 /// Froom generator that produces the implementation of the persistence code.
 class FroomGenerator extends GeneratorForAnnotation<annotations.Database> {
+  static const defaultSchemaLocation = 'froom_schemas';
+
   /// The directory the schemas of the databases are exported to.
   final String schemaLocation;
 
-  FroomGenerator({this.schemaLocation = 'froom_schemas'});
+  FroomGenerator({this.schemaLocation = defaultSchemaLocation});
   @override
   FutureOr<String> generateForAnnotatedElement(
     final Element element,

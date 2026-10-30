@@ -160,6 +160,11 @@ class SchemaDiffer {
       );
     }
     for (final column in _renamedColumnEntries) {
+      check(
+        !_deletedTables.contains(column.tableName),
+        'The column ${column.fromColumnName} of the deleted table '
+        '${column.tableName} is renamed.',
+      );
       final fromTable = fromTables[column.tableName];
       check(
         fromTable?.fieldsByColumnName.containsKey(column.fromColumnName) ??
@@ -212,6 +217,11 @@ class SchemaDiffer {
         !_deletedTables.contains(column.tableName),
         'The column ${column.columnName} of the deleted table '
         '${column.tableName} is deleted as well.',
+      );
+      check(
+        _getRenamedColumn(column.tableName, column.columnName) == null,
+        'The column ${column.columnName} of the table ${column.tableName} is '
+        'both deleted and renamed.',
       );
     }
   }
@@ -294,11 +304,11 @@ class SchemaDiffer {
             _getColumnSource(fromTable, toColumn.columnName) == null)
         .toList();
     for (final toColumn in addedColumns) {
-      if (toColumn.notNull && toColumn.defaultValue == null) {
-        throw SchemaDiffException(
+      if (toTable.enforcesNotNull(toColumn.columnName) &&
+          toColumn.defaultValue == null) {
+        throw _missingDefaultValue(
           'The new NOT NULL column ${toColumn.columnName} of the table '
-          '${toTable.tableName} has no default value. Specify it with '
-          '@ColumnInfo(defaultValue: ...).',
+          '${toTable.tableName} has no default value.',
         );
       }
     }
@@ -346,7 +356,28 @@ class SchemaDiffer {
   void _addColumnSources(final ComplexChangedTable table) {
     for (final toColumn in table.toTable.fields) {
       final source = _getColumnSource(table.fromTable, toColumn.columnName);
-      if (source != null) table.columnSources[toColumn.columnName] = source;
+      if (source == null) continue;
+
+      table.columnSources[toColumn.columnName] = source;
+
+      // NULL values are replaced by the default value when copied, except
+      // for old row ids, which are never NULL
+      final fromTable = table.fromTable;
+      if (fromTable.fieldsByColumnName[source]!.notNull ||
+          fromTable.enforcesNotNull(source) ||
+          fromTable.isRowidAlias(source) ||
+          !table.toTable.enforcesNotNull(toColumn.columnName)) {
+        continue;
+      }
+      final defaultValue = toColumn.defaultValue;
+      if (defaultValue == null) {
+        throw _missingDefaultValue(
+          'The column ${toColumn.columnName} of the table '
+          '${table.toTable.tableName} became NOT NULL without a default value '
+          'for its existing NULL values.',
+        );
+      }
+      table.nullReplacements[toColumn.columnName] = defaultValue;
     }
   }
 
@@ -424,9 +455,16 @@ class SchemaDiffer {
     final List<ForeignKeySchema> fromForeignKeys,
     final List<ForeignKeySchema> toForeignKeys,
   ) {
-    return fromForeignKeys.length == toForeignKeys.length &&
-        fromForeignKeys.every((fromForeignKey) => toForeignKeys
-            .any((toForeignKey) => fromForeignKey.isSchemaEqual(toForeignKey)));
+    if (fromForeignKeys.length != toForeignKeys.length) return false;
+    // each foreign key matches another one, even if some are duplicated
+    final unmatchedForeignKeys = [...toForeignKeys];
+    for (final fromForeignKey in fromForeignKeys) {
+      final index = unmatchedForeignKeys.indexWhere(
+          (toForeignKey) => fromForeignKey.isSchemaEqual(toForeignKey));
+      if (index == -1) return false;
+      unmatchedForeignKeys.removeAt(index);
+    }
+    return true;
   }
 
   /// The indices to drop and create instead of recreating the table, if
@@ -507,6 +545,11 @@ class SchemaDiffer {
     }
     return renamedColumns.firstOrNull;
   }
+
+  SchemaDiffException _missingDefaultValue(final String description) =>
+      SchemaDiffException(
+        '$description Specify it with @ColumnInfo(defaultValue: ...).',
+      );
 
   String _deletedOrRenamedTableFound(final String tableName) {
     return '${_failurePrefix()}The table $tableName has been either deleted '

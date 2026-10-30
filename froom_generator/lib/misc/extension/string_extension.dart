@@ -7,6 +7,13 @@ import 'package:strings/strings.dart';
 
 // The migration is complete
 extension StringExtension on String {
+  /// Returns this string as a SQL string literal.
+  ///
+  /// ```dart
+  /// print("O'Brien".toSqlLiteral()) // 'O''Brien'
+  /// ```
+  String toSqlLiteral() => "'${replaceAll("'", "''")}'";
+
   /// Returns a copy of this string having its first letter lowercased, or the
   /// original string, if it's empty or already starts with a lower case letter.
   ///
