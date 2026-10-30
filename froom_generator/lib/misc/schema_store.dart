@@ -58,7 +58,16 @@ class FileSchemaStore implements SchemaStore {
     final json = schema.toJsonString();
     // keep the file untouched if it didn't change, e.g. for file watchers
     try {
-      if (file.existsSync() && file.readAsStringSync() == json) return;
+      if (file.existsSync()) {
+        if (file.readAsStringSync() == json) return;
+        // without a runtime check like Room's identity hash, installations
+        // of the released version would miss the changes
+        log.warning(
+          'The schema of version ${schema.version} of the database changed, '
+          'so ${file.path} is overwritten. Increase the version of the '
+          'database if version ${schema.version} has been released already.',
+        );
+      }
       file.parent.createSync(recursive: true);
       file.writeAsStringSync(json);
     } on FileSystemException catch (exception) {

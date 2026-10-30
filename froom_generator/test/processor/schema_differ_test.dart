@@ -253,13 +253,54 @@ void main() {
     ]);
   });
 
-  test('new table with the prefix of recreated tables fails', () {
+  test('table with the temporary name of a recreated table fails', () {
+    final newPerson =
+        table('Person', [id, column('name', affinity: 'INTEGER')]);
+
     final actual = () => SchemaDiffer(
           schema(1, [person]),
-          schema(2, [person, table('_new_Song', [id])]),
+          schema(2, [newPerson, table('_new_Person', [id])]),
         ).diffSchemas();
 
     expect(actual, throwsA(isA<SchemaDiffException>()));
+  });
+
+  test('table with the temporary name of a renamed table fails', () {
+    final unchanged = table('_new_Artist', [id]);
+
+    final actual = () => SchemaDiffer(
+          schema(1, [table('Singer', [id]), unchanged]),
+          schema(2, [table('Artist', [id]), unchanged]),
+          renamedTables: [RenamedTable('Singer', 'Artist')],
+        ).diffSchemas();
+
+    expect(actual, throwsA(isA<SchemaDiffException>()));
+  });
+
+  test('new table with the prefix of temporary names without conflict', () {
+    final actual = SchemaDiffer(
+      schema(1, [person]),
+      schema(2, [person, table('_new_items', [id])]),
+    ).diffSchemas();
+
+    expect(actual.addedTables.single.tableName, '_new_items');
+  });
+
+  test('recreated table without old columns copies no data', () {
+    final oldSong = table('Song', [id, column('genre')]);
+    final newSong = table('Song', [column('id'), column('year')]);
+
+    final actual = SchemaDiffer(
+      schema(1, [oldSong]),
+      schema(2, [newSong]),
+      specName: 'Spec',
+      deletedColumns: [DeletedColumn('Song', 'id'), DeletedColumn('Song', 'genre')],
+    ).diffSchemas();
+
+    expect(
+      statements(actual).where((statement) => statement.startsWith('INSERT')),
+      isEmpty,
+    );
   });
 
   test('deleted column of a renamed table', () {
@@ -384,6 +425,31 @@ void main() {
             schema(1, [person]),
             schema(2, [person]),
             deletedColumns: [DeletedColumn('Person', 'nickname')],
+          ),
+    ),
+    (
+      'column renamed to an existing column',
+      () => SchemaDiffer(
+            schema(1, [table('T', [id, column('a'), column('b')])]),
+            schema(2, [table('T', [id, column('b')])]),
+            renamedColumns: [RenamedColumn('T', 'a', 'b')],
+          ),
+    ),
+    (
+      'deleted column of a deleted table',
+      () => SchemaDiffer(
+            schema(1, [table('T', [id, column('x')])]),
+            schema(2, [table('T', [id])]),
+            deletedTables: [DeletedTable('T')],
+            deletedColumns: [DeletedColumn('T', 'x')],
+          ),
+    ),
+    (
+      'tables renamed to the same table',
+      () => SchemaDiffer(
+            schema(1, [table('A', [id]), table('B', [id])]),
+            schema(2, [table('C', [id])]),
+            renamedTables: [RenamedTable('A', 'C'), RenamedTable('B', 'C')],
           ),
     ),
     (

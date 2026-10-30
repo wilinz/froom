@@ -125,11 +125,10 @@ class AutoMigrationProcessor {
     try {
       schema = _schemaStore.read(version);
     } on FormatException catch (exception) {
-      throw InvalidGenerationSourceError(
-        'The schema of version $version of the database at '
-        '${_schemaStore.describe(version)} is invalid: ${exception.message}',
-        element: _classElement,
-      );
+      throw _invalidSchema(version, exception.message);
+    } on TypeError catch (error) {
+      // e.g. missing or mistyped values of an edited schema
+      throw _invalidSchema(version, '$error');
     }
     if (schema == null) {
       throw InvalidGenerationSourceError(
@@ -144,6 +143,17 @@ class AutoMigrationProcessor {
       );
     }
     return schema;
+  }
+
+  InvalidGenerationSourceError _invalidSchema(
+    final int version,
+    final String reason,
+  ) {
+    return InvalidGenerationSourceError(
+      'The schema of version $version of the database at '
+      '${_schemaStore.describe(version)} is invalid: $reason',
+      element: _classElement,
+    );
   }
 
   void _checkSpec(final ClassElement spec, final bool isSpecProvided) {

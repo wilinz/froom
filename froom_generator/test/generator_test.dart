@@ -141,6 +141,44 @@ void main() {
     expect(schemaDirectory.listSync(), isEmpty);
   });
 
+  test('invalid schema file fails with the path of the schema', () async {
+    final file = File('${schemaDirectory.path}/lib/database/TestDatabase/1.json')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+          '{"formatVersion": 1, "database": {"version": "1"}}');
+    final database = await createClassElement('''
+      @Database(
+        version: 2,
+        entities: [Person],
+        autoMigrations: [AutoMigration(from: 1, to: 2)],
+      )
+      abstract class TestDatabase extends FroomDatabase {}
+      
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        Person(this.id);
+      }
+    ''');
+
+    final actual = () => createGenerator().generateForAnnotatedElement(
+          database,
+          ConstantReader(null),
+          _FakeBuildStep(),
+        );
+
+    expect(
+      actual,
+      throwsA(isA<InvalidGenerationSourceError>().having(
+        (error) => error.message,
+        'message',
+        allOf(contains('is invalid'), contains(file.path)),
+      )),
+    );
+  });
+
   test('exports no schema with exportSchema: false', () async {
     final database = await createClassElement('''
       @Database(version: 1, entities: [Person], exportSchema: false)

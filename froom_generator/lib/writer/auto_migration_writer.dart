@@ -116,7 +116,8 @@ class AutoMigrationWriter {
     // renamed to the name of the new table with the other moved tables
     return [
       toTable.createTable(toTable.newTableName),
-      copyStatement,
+      // e.g. not if all old columns were deleted
+      if (columns.isNotEmpty) copyStatement,
       'DROP TABLE `${fromTable.tableName}`',
     ];
   }

@@ -82,6 +82,7 @@ class SchemaDiffer {
     }
 
     _complexChangedTables.values.forEach(_addColumnSources);
+    _checkTemporaryTableNames();
 
     // the indices of recreated tables are recreated as well
     final indexChanges = [
@@ -131,6 +132,13 @@ class SchemaDiffer {
         '${table.toTableName} is not found in the new version of the '
         'database.',
       );
+      check(
+        _renamedTableEntries
+                .where((other) => other.toTableName == table.toTableName)
+                .length ==
+            1,
+        'Multiple tables are renamed to ${table.toTableName}.',
+      );
       final existingTable = fromTables[table.toTableName];
       check(
         existingTable == null ||
@@ -166,6 +174,30 @@ class SchemaDiffer {
         '${column.toColumnName} of the table ${column.tableName} is not found '
         'in the new version of the database.',
       );
+      // the data of the existing column would be overwritten otherwise
+      final isExistingColumnKept = (fromTable?.fieldsByColumnName
+                  .containsKey(column.toColumnName) ??
+              false) &&
+          !_isColumnDeleted(column.tableName, column.toColumnName) &&
+          !_renamedColumnEntries.any((other) =>
+              other.tableName == column.tableName &&
+              other.fromColumnName == column.toColumnName);
+      check(
+        !isExistingColumnKept,
+        'The column ${column.fromColumnName} of the table ${column.tableName} '
+        'is renamed to the existing column ${column.toColumnName}, which is '
+        'neither deleted nor renamed.',
+      );
+      check(
+        _renamedColumnEntries
+                .where((other) =>
+                    other.tableName == column.tableName &&
+                    other.toColumnName == column.toColumnName)
+                .length ==
+            1,
+        'Multiple columns of the table ${column.tableName} are renamed to '
+        '${column.toColumnName}.',
+      );
     }
     for (final column in _deletedColumns) {
       check(
@@ -175,6 +207,11 @@ class SchemaDiffer {
             false,
         'The deleted column ${column.columnName} of the table '
         '${column.tableName} is not found in the old version of the database.',
+      );
+      check(
+        !_deletedTables.contains(column.tableName),
+        'The column ${column.columnName} of the deleted table '
+        '${column.tableName} is deleted as well.',
       );
     }
   }
@@ -246,7 +283,6 @@ class SchemaDiffer {
   ) {
     final fromTable = _getOldTable(toTable.tableName);
     if (fromTable == null) {
-      _checkTableName(toTable);
       _addedTables.add(toTable);
       return;
     }
@@ -417,18 +453,28 @@ class SchemaDiffer {
     final EntitySchema toTable,
   ) {
     _renamedTables.remove(fromTable.tableName);
-    return _complexChangedTables.putIfAbsent(fromTable.tableName, () {
-      if (_toSchema.entitiesByTableName.containsKey(toTable.newTableName)) {
-        throw SchemaDiffException(
-            _tableWithConflictingPrefix(toTable.newTableName));
-      }
-      return ComplexChangedTable(fromTable, toTable, {});
-    });
+    return _complexChangedTables.putIfAbsent(
+      fromTable.tableName,
+      () => ComplexChangedTable(fromTable, toTable, {}),
+    );
   }
 
-  void _checkTableName(final EntitySchema table) {
-    if (table.tableName.startsWith(EntitySchema.newTableNamePrefix)) {
-      throw SchemaDiffException(_tableWithConflictingPrefix(table.tableName));
+  /// Checks that the temporary names of renamed and recreated tables are
+  /// free in both versions.
+  void _checkTemporaryTableNames() {
+    final temporaryNames = [
+      ..._renamedTables.values,
+      ..._complexChangedTables.values.map((table) => table.toTable.tableName),
+    ].map((tableName) => '${EntitySchema.newTableNamePrefix}$tableName');
+    for (final temporaryName in temporaryNames) {
+      if (_fromSchema.entitiesByTableName.containsKey(temporaryName) ||
+          _toSchema.entitiesByTableName.containsKey(temporaryName)) {
+        throw SchemaDiffException(
+          'The database contains the table $temporaryName, whose name is '
+          'used temporarily for renaming or recreating a table in the '
+          'automatic migration. Use another name.',
+        );
+      }
     }
   }
 
@@ -461,11 +507,6 @@ class SchemaDiffer {
     }
     return renamedColumns.firstOrNull;
   }
-
-  String _tableWithConflictingPrefix(final String tableName) =>
-      'The new version of the database contains the table $tableName with '
-      "the prefix '${EntitySchema.newTableNamePrefix}', which conflicts with recreating tables in "
-      'automatic migrations. Use another name.';
 
   String _deletedOrRenamedTableFound(final String tableName) {
     return '${_failurePrefix()}The table $tableName has been either deleted '
