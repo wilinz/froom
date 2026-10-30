@@ -137,6 +137,8 @@ class _$FlutterDatabase extends FlutterDatabase {
           return;
         }
 
+        final foreignKeyViolations =
+            await MigrationAdapter.getForeignKeyViolations(database);
         await MigrationAdapter.runMigrations(
           database,
           startVersion,
@@ -145,7 +147,7 @@ class _$FlutterDatabase extends FlutterDatabase {
         );
 
         await callback?.onUpgrade?.call(database, startVersion, endVersion);
-        await MigrationAdapter.checkForeignKeys(database);
+        await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
       },
       onDowngrade: fallbackToDestructiveMigration
           ? (database, startVersion, endVersion) => recreateSchema(database)

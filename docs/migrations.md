@@ -43,7 +43,9 @@ final database = await $FroomAppDatabase
 ```
 
 Migrations run with foreign keys disabled, as they can't be disabled within the transaction of the migrations, which e.g. [recreating a table](https://www.sqlite.org/lang_altertable.html#otheralter) requires.
-After the migrations, Froom checks that they didn't violate any foreign keys with `PRAGMA foreign_key_check`, otherwise rolls them back together with the database version and fails opening the database, and enables foreign keys again.
+Therefore, foreign key actions like `ON DELETE CASCADE` don't run during migrations, so delete dependent rows explicitly.
+After the migrations, Froom checks that they didn't add foreign key violations with `PRAGMA foreign_key_check`, otherwise rolls them back together with the database version and fails opening the database, and enables foreign keys again.
+Violations which existed before the migrations are ignored.
 
 ## Destructive Migration
 

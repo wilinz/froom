@@ -87,6 +87,24 @@ void main() {
       await expectLater(retry, throwsStateError);
     });
 
+    test('violations existing before the migrations are kept', () async {
+      final existing = await sqfliteDatabaseFactory.openDatabase(path);
+      await existing.execute('INSERT INTO Child (id, parentId) VALUES (3, 42)');
+      await existing.close();
+      final migration = Migration(1, 2, (database) async {
+        await database
+            .execute('ALTER TABLE Parent RENAME COLUMN title TO name');
+      });
+
+      final database = await $FroomTestDatabase
+          .databaseBuilder(name)
+          .addMigrations([migration]).build();
+
+      expect(await database.familyDao.findAllChildren(), hasLength(2));
+      expect(await foreignKeysEnabled(database), equals(1));
+      await database.close();
+    });
+
     test('foreign keys are enabled without migrations', () async {
       final database = await $FroomTestDatabase.inMemoryDatabaseBuilder().build();
 

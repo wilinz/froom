@@ -79,11 +79,12 @@ void main() {
                 return;
               }
 
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
-              await MigrationAdapter.checkForeignKeys(database);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)
@@ -181,11 +182,12 @@ void main() {
                 return;
               }
 
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
-              await MigrationAdapter.checkForeignKeys(database);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)
@@ -279,11 +281,12 @@ void main() {
                 return;
               }
 
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
-              await MigrationAdapter.checkForeignKeys(database);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)
@@ -383,6 +386,7 @@ void main() {
                 return;
               }
 
+              final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
               await MigrationAdapter.runMigrations(
                   database, startVersion, endVersion, migrations);
               await database.execute('DROP VIEW IF EXISTS `names`');
@@ -390,7 +394,7 @@ void main() {
                   'CREATE VIEW IF NOT EXISTS `names` AS SELECT custom_name as name FROM person');
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
-              await MigrationAdapter.checkForeignKeys(database);
+              await MigrationAdapter.checkForeignKeys(database, foreignKeyViolations);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)

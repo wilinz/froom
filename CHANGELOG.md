@@ -42,6 +42,7 @@
 - **streams**: Streams of queries with double quoted or bracketed table names update ([#193](https://github.com/wilinz/froom/issues/193))
 
 ### ⬆️ Breaking Changes & Dependencies
+- **migrations**: Migrations run with foreign keys disabled, so foreign key actions like `ON DELETE CASCADE` don't run during migrations; opening the database fails if the migrations add foreign key violations ([#178](https://github.com/wilinz/froom/issues/178))
 - **migrations**: Like in Room, migrations have to lead from the database version to the current one without gaps, otherwise opening the database fails (or recreates it with `fallbackToDestructiveMigration()`); of several migrations starting at the same version, only the one reaching the highest version runs
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13
 - **froom_generator**: Minimum Dart SDK raised to `>=3.9.0`

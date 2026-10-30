@@ -38,15 +38,34 @@ abstract class MigrationAdapter {
     return currentVersion != 0 && currentVersion < version;
   }
 
+  /// Returns the number of foreign key violations per table, e.g. for
+  /// comparing them before and after migrations with [checkForeignKeys].
+  static Future<Map<String, int>> getForeignKeyViolations(
+    final DatabaseExecutor database,
+  ) async {
+    final violations = <String, int>{};
+    for (final violation
+        in await database.rawQuery('PRAGMA foreign_key_check')) {
+      final table = violation['table'] as String;
+      violations[table] = (violations[table] ?? 0) + 1;
+    }
+    return violations;
+  }
+
   /// Checks that the migrations, which ran with foreign keys disabled, didn't
-  /// violate them, as recommended by SQLite for schema changes.
+  /// violate them, as recommended by SQLite for schema changes. Violations
+  /// which existed before the migrations, [previousViolations], are ignored.
   ///
   /// Throws within the transaction of the migrations, so that they get rolled
   /// back together with the database version.
-  static Future<void> checkForeignKeys(final DatabaseExecutor database) async {
-    final violations = await database.rawQuery('PRAGMA foreign_key_check');
-    if (violations.isNotEmpty) {
-      final tables = violations.map((violation) => violation['table']).toSet();
+  static Future<void> checkForeignKeys(
+    final DatabaseExecutor database, [
+    final Map<String, int> previousViolations = const {},
+  ]) async {
+    final violations = await getForeignKeyViolations(database);
+    final tables = violations.keys
+        .where((table) => violations[table]! > (previousViolations[table] ?? 0));
+    if (tables.isNotEmpty) {
       throw StateError(
         'The migrations violated foreign keys of the tables ${tables.join(', ')}.',
       );
