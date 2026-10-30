@@ -14,6 +14,9 @@ import 'package:source_gen/source_gen.dart';
 /// the [_schemaStore].
 class AutoMigrationProcessor {
   final ClassElement _classElement;
+
+  /// The `AutoMigration` objects of the `@Database` annotation.
+  final List<DartObject> _autoMigrations;
   final DatabaseSchema _currentSchema;
   final SchemaStore _schemaStore;
 
@@ -22,18 +25,14 @@ class AutoMigrationProcessor {
 
   AutoMigrationProcessor(
     this._classElement,
+    this._autoMigrations,
     this._currentSchema,
     this._schemaStore,
     this._exportsSchema,
   );
 
   List<AutoMigration> process() {
-    final autoMigrations = _classElement
-            .getAnnotation(annotations.Database)
-            ?.getField(AnnotationField.databaseAutoMigrations)
-            ?.toListValue() ??
-        [];
-    if (autoMigrations.isEmpty) return [];
+    if (_autoMigrations.isEmpty) return [];
 
     if (!_exportsSchema) {
       throw InvalidGenerationSourceError(
@@ -43,7 +42,7 @@ class AutoMigrationProcessor {
       );
     }
 
-    return autoMigrations.map(_processAutoMigration).toList();
+    return _autoMigrations.map(_processAutoMigration).toList();
   }
 
   AutoMigration _processAutoMigration(final DartObject autoMigration) {
@@ -122,7 +121,16 @@ class AutoMigrationProcessor {
   }
 
   DatabaseSchema _readSchema(final int version) {
-    final schema = _schemaStore.read(version);
+    final DatabaseSchema? schema;
+    try {
+      schema = _schemaStore.read(version);
+    } on FormatException catch (exception) {
+      throw InvalidGenerationSourceError(
+        'The schema of version $version of the database at '
+        '${_schemaStore.describe(version)} is invalid: ${exception.message}',
+        element: _classElement,
+      );
+    }
     if (schema == null) {
       throw InvalidGenerationSourceError(
         'The schema of version $version of the database for the automatic '

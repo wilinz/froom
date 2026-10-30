@@ -1,6 +1,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/value_object/auto_migration.dart';
+import 'package:froom_generator/value_object/schema.dart';
 
 /// Writes the [Migration] performing an automatic migration, like Room's
 /// `AutoMigrationWriter`.
@@ -42,30 +43,50 @@ class AutoMigrationWriter {
   }
 
   /// The SQL statements migrating the database.
+  ///
+  /// Renamed and recreated tables are moved to temporary names before
+  /// getting their new names, so that their old names can be taken by other
+  /// tables regardless of their order.
   List<String> getStatements() {
     final diff = _autoMigration.diff;
+    // FTS tables are recreated last, as they can be based on other tables
+    final recreatedTables = [
+      ...diff.complexChangedTables.where((table) => !table.toTable.isFts),
+      ...diff.complexChangedTables.where((table) => table.toTable.isFts),
+    ];
+    final movedTableNames = [
+      ...diff.renamedTables.values,
+      ...recreatedTables.map((table) => table.toTable.tableName),
+    ];
+
     return [
       // views can refer to any changed table
       for (final view in diff.fromViews)
         'DROP VIEW IF EXISTS `${view.viewName}`',
       for (final tableName in diff.deletedTables) 'DROP TABLE `$tableName`',
       for (final entry in diff.renamedTables.entries)
-        'ALTER TABLE `${entry.key}` RENAME TO `${entry.value}`',
+        _rename(entry.key, '${EntitySchema.newTableNamePrefix}${entry.value}'),
+      for (final table in recreatedTables) ..._getRecreateTableStatements(table),
+      for (final tableName in movedTableNames)
+        _rename('${EntitySchema.newTableNamePrefix}$tableName', tableName),
+      for (final indexChange in diff.indexChanges)
+        for (final indexName in indexChange.droppedIndices)
+          'DROP INDEX IF EXISTS `$indexName`',
       for (final addedColumn in diff.addedColumns)
         _getAddColumnStatement(addedColumn),
+      for (final table in recreatedTables) ...table.toTable.createIndices(),
+      for (final indexChange in diff.indexChanges)
+        ...indexChange.createdIndices,
       for (final table in diff.addedTables) ...[
         table.createTable(table.tableName),
         ...table.createIndices(),
       ],
-      // FTS tables are recreated last, as they can be based on other tables
-      for (final table in [
-        ...diff.complexChangedTables.where((table) => !table.toTable.isFts),
-        ...diff.complexChangedTables.where((table) => table.toTable.isFts),
-      ])
-        ..._getRecreateTableStatements(table),
       for (final view in diff.toViews) view.createSql,
     ];
   }
+
+  String _rename(final String fromTableName, final String toTableName) =>
+      'ALTER TABLE `$fromTableName` RENAME TO `$toTableName`';
 
   String _getAddColumnStatement(final AddedColumn addedColumn) {
     final field = addedColumn.field;
@@ -92,12 +113,11 @@ class AutoMigrationWriter {
     final copyStatement =
         'INSERT INTO `${toTable.newTableName}` (${escape(columns)}) '
         'SELECT ${escape(selectedColumns)} FROM `${fromTable.tableName}`';
+    // renamed to the name of the new table with the other moved tables
     return [
       toTable.createTable(toTable.newTableName),
       copyStatement,
       'DROP TABLE `${fromTable.tableName}`',
-      'ALTER TABLE `${toTable.newTableName}` RENAME TO `${toTable.tableName}`',
-      ...toTable.createIndices(),
     ];
   }
 }

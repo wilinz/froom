@@ -133,7 +133,8 @@ void main() {
 
     expect(statements(actual), [
       'DROP TABLE `Album`',
-      'ALTER TABLE `Singer` RENAME TO `Artist`',
+      'ALTER TABLE `Singer` RENAME TO `_new_Artist`',
+      'ALTER TABLE `_new_Artist` RENAME TO `Artist`',
     ]);
   });
 
@@ -294,7 +295,8 @@ void main() {
     ).diffSchemas();
 
     expect(statements(actual), [
-      'ALTER TABLE `A` RENAME TO `B`',
+      'ALTER TABLE `A` RENAME TO `_new_B`',
+      'ALTER TABLE `_new_B` RENAME TO `B`',
       'CREATE TABLE IF NOT EXISTS `A` (`id` INTEGER NOT NULL, `name` TEXT, PRIMARY KEY (`id`))',
     ]);
   });
@@ -313,7 +315,8 @@ void main() {
 
     expect(statements(actual), [
       'DROP TABLE `B`',
-      'ALTER TABLE `A` RENAME TO `B`',
+      'ALTER TABLE `A` RENAME TO `_new_B`',
+      'ALTER TABLE `_new_B` RENAME TO `B`',
     ]);
   });
 
@@ -431,6 +434,95 @@ void main() {
       'INSERT INTO `_new_Person` (`id`, `name`) SELECT `id`, `name` FROM `Person`',
       'DROP TABLE `Person`',
       'ALTER TABLE `_new_Person` RENAME TO `Person`',
+    ]);
+  });
+
+  test('renamed tables swapping their names', () {
+    final a = table('A', [id, column('a')]);
+    final b = table('B', [id, column('b')]);
+
+    final actual = SchemaDiffer(
+      schema(1, [a, b]),
+      schema(2, [table('B', [id, column('a')]), table('A', [id, column('b')])]),
+      specName: 'Spec',
+      renamedTables: [RenamedTable('A', 'B'), RenamedTable('B', 'A')],
+    ).diffSchemas();
+
+    expect(statements(actual), [
+      'ALTER TABLE `A` RENAME TO `_new_B`',
+      'ALTER TABLE `B` RENAME TO `_new_A`',
+      'ALTER TABLE `_new_B` RENAME TO `B`',
+      'ALTER TABLE `_new_A` RENAME TO `A`',
+    ]);
+  });
+
+  test('table renamed to the old name of a recreated table', () {
+    final a = table('A', [id]);
+    final b = table('B', [id, column('name')]);
+
+    final actual = SchemaDiffer(
+      schema(1, [a, b]),
+      schema(2, [table('B', [id]), table('C', [id, column('title')])]),
+      specName: 'Spec',
+      renamedTables: [RenamedTable('A', 'B'), RenamedTable('B', 'C')],
+      renamedColumns: [RenamedColumn('B', 'name', 'title')],
+    ).diffSchemas();
+
+    expect(statements(actual), [
+      'ALTER TABLE `A` RENAME TO `_new_B`',
+      'CREATE TABLE IF NOT EXISTS `_new_C` (`id` INTEGER NOT NULL, `title` TEXT, PRIMARY KEY (`id`))',
+      'INSERT INTO `_new_C` (`id`, `title`) SELECT `id`, `name` FROM `B`',
+      'DROP TABLE `B`',
+      'ALTER TABLE `_new_B` RENAME TO `B`',
+      'ALTER TABLE `_new_C` RENAME TO `C`',
+    ]);
+  });
+
+  test('new table with the old name of a recreated renamed table', () {
+    final x = table('X', [id]);
+
+    final actual = SchemaDiffer(
+      schema(1, [x]),
+      schema(2, [table('Y', [id, column('name')]), table('X', [id])]),
+      specName: 'Spec',
+      renamedTables: [RenamedTable('X', 'Y')],
+    ).diffSchemas();
+
+    final creations = statements(actual);
+    expect(creations.indexOf('DROP TABLE `X`'),
+        lessThan(creations.indexWhere((statement) => statement.startsWith('CREATE TABLE IF NOT EXISTS `X`'))));
+  });
+
+  test('table both deleted and renamed fails', () {
+    final actual = () => SchemaDiffer(
+          schema(1, [table('A', [id])]),
+          schema(2, [table('B', [id])]),
+          renamedTables: [RenamedTable('A', 'B')],
+          deletedTables: [DeletedTable('A')],
+        ).diffSchemas();
+
+    expect(actual, throwsA(isA<SchemaDiffException>()));
+  });
+
+  test('changed indices are dropped and created without recreating the table',
+      () {
+    IndexSchema index(final String column) => IndexSchema(
+        'index_Person_$column',
+        false,
+        [column],
+        'CREATE INDEX IF NOT EXISTS `index_Person_$column` ON `\${TABLE_NAME}` (`$column`)');
+    final oldPerson = table('Person', [id, column('name'), column('age')],
+        indices: [index('name')]);
+    final newPerson = table('Person', [id, column('name'), column('age')],
+        indices: [index('age')]);
+
+    final actual =
+        SchemaDiffer(schema(1, [oldPerson]), schema(2, [newPerson])).diffSchemas();
+
+    expect(actual.complexChangedTables, isEmpty);
+    expect(statements(actual), [
+      'DROP INDEX IF EXISTS `index_Person_name`',
+      'CREATE INDEX IF NOT EXISTS `index_Person_age` ON `Person` (`age`)',
     ]);
   });
 

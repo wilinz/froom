@@ -66,10 +66,18 @@ class DatabaseProcessor extends Processor<Database> {
         entities.map(EntitySchema.fromEntity).toList(),
         views.map(ViewSchema.fromView).toList(),
       );
-      final exportsSchema = _exportsSchema();
+      final annotation = _classElement.getAnnotation(annotations.Database);
+      final exportsSchema = annotation
+              ?.getField(AnnotationField.databaseExportSchema)
+              ?.toBoolValue() ??
+          true;
       if (exportsSchema) schemaStore.write(schema);
       autoMigrations.addAll(AutoMigrationProcessor(
         _classElement,
+        annotation
+                ?.getField(AnnotationField.databaseAutoMigrations)
+                ?.toListValue() ??
+            [],
         schema,
         schemaStore,
         exportsSchema,
@@ -87,14 +95,6 @@ class DatabaseProcessor extends Processor<Database> {
       allTypeConverters,
       autoMigrations: autoMigrations,
     );
-  }
-
-  bool _exportsSchema() {
-    return _classElement
-            .getAnnotation(annotations.Database)
-            ?.getField(AnnotationField.databaseExportSchema)
-            ?.toBoolValue() ??
-        true;
   }
 
   int _getDatabaseVersion() {

@@ -20,6 +20,14 @@ class DatabaseSchema {
   DatabaseSchema(this.version, this.entities, this.views);
 
   factory DatabaseSchema.fromJson(final Map<String, Object?> json) {
+    final jsonFormatVersion = json['formatVersion'];
+    if (jsonFormatVersion != formatVersion) {
+      throw FormatException(
+        'The schema format version $jsonFormatVersion is not supported by '
+        'this version of froom_generator, which supports version '
+        '$formatVersion.',
+      );
+    }
     final database = json['database'] as Map<String, Object?>;
     return DatabaseSchema(
       database['version'] as int,
@@ -155,8 +163,11 @@ class EntitySchema {
 
   bool get isFts => fts != null;
 
-  /// The name of the table while recreating it, like Room.
-  String get newTableName => '_new_$tableName';
+  /// The prefix of the names of tables while recreating or renaming them.
+  static const newTableNamePrefix = '_new_';
+
+  /// The name of the table while recreating or renaming it, like Room.
+  String get newTableName => '$newTableNamePrefix$tableName';
 
   late final Map<String, FieldSchema> fieldsByColumnName =
       {for (final field in fields) field.columnName: field};

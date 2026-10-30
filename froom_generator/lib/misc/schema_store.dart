@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:build/build.dart';
 import 'package:froom_generator/value_object/schema.dart';
 import 'package:path/path.dart' as p;
 
@@ -56,9 +57,14 @@ class FileSchemaStore implements SchemaStore {
     final file = _file(schema.version);
     final json = schema.toJsonString();
     // keep the file untouched if it didn't change, e.g. for file watchers
-    if (file.existsSync() && file.readAsStringSync() == json) return;
-    file.parent.createSync(recursive: true);
-    file.writeAsStringSync(json);
+    try {
+      if (file.existsSync() && file.readAsStringSync() == json) return;
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync(json);
+    } on FileSystemException catch (exception) {
+      // generating the code doesn't depend on exporting the schema
+      log.warning('Exporting the schema to ${file.path} failed: $exception');
+    }
   }
 
   @override

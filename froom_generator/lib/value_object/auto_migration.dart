@@ -37,6 +37,9 @@ class SchemaDiff {
 
   /// The tables which have to be recreated.
   final List<ComplexChangedTable> complexChangedTables;
+
+  /// The changed indices of tables which aren't recreated.
+  final List<IndexChange> indexChanges;
   final List<ViewSchema> fromViews;
   final List<ViewSchema> toViews;
 
@@ -46,6 +49,7 @@ class SchemaDiff {
     required this.deletedTables,
     required this.addedColumns,
     required this.complexChangedTables,
+    this.indexChanges = const [],
     required this.fromViews,
     required this.toViews,
   });
@@ -62,6 +66,14 @@ class ComplexChangedTable {
   final Map<String, String> columnSources;
 
   ComplexChangedTable(this.fromTable, this.toTable, this.columnSources);
+}
+
+/// The indices of a table to drop and create, by their names and statements.
+class IndexChange {
+  final List<String> droppedIndices;
+  final List<String> createdIndices;
+
+  IndexChange(this.droppedIndices, this.createdIndices);
 }
 
 class AddedColumn {

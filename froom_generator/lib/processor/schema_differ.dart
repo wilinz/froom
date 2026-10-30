@@ -36,6 +36,9 @@ class SchemaDiffer {
   final _complexChangedTables = <String, ComplexChangedTable>{};
   final _addedColumns = <AddedColumn>[];
 
+  // the tables of the new version by their names in the old version
+  final _matchedTables = <String, EntitySchema>{};
+
   SchemaDiffer(
     this._fromSchema,
     this._toSchema, {
@@ -80,12 +83,24 @@ class SchemaDiffer {
 
     _complexChangedTables.values.forEach(_addColumnSources);
 
+    // the indices of recreated tables are recreated as well
+    final indexChanges = [
+      for (final entry in _matchedTables.entries)
+        if (!_complexChangedTables.containsKey(entry.key))
+          _getIndexChange(
+            _fromSchema.entitiesByTableName[entry.key]!,
+            entry.value,
+          ),
+    ].where((change) =>
+        change.droppedIndices.isNotEmpty || change.createdIndices.isNotEmpty);
+
     return SchemaDiff(
       addedTables: _addedTables,
       renamedTables: _renamedTables,
       deletedTables: _deletedTables.toList(),
       addedColumns: _addedColumns,
       complexChangedTables: _complexChangedTables.values.toList(),
+      indexChanges: indexChanges.toList(),
       fromViews: _fromSchema.views,
       toViews: _toSchema.views,
     );
@@ -131,6 +146,10 @@ class SchemaDiffer {
         'The deleted table $tableName is not found in the old version of the '
         'database.',
       );
+      check(
+        _getRenamedTable(tableName) == null,
+        'The table $tableName is both deleted and renamed.',
+      );
     }
     for (final column in _renamedColumnEntries) {
       final fromTable = fromTables[column.tableName];
@@ -165,6 +184,7 @@ class SchemaDiffer {
     final renamedTable = _getRenamedTable(fromTable.tableName);
     if (renamedTable != null) {
       final toTable = _toSchema.entitiesByTableName[renamedTable.toTableName]!;
+      _matchedTables[fromTable.tableName] = toTable;
       if (_containsComplexChanges(fromTable, toTable)) {
         _addComplexChangedTable(fromTable, toTable);
       } else {
@@ -181,6 +201,7 @@ class SchemaDiffer {
       _potentiallyDeletedTables.add(fromTable.tableName);
       return null;
     }
+    _matchedTables[fromTable.tableName] = toTable;
     if (_containsComplexChanges(fromTable, toTable)) {
       _addComplexChangedTable(fromTable, toTable);
     }
@@ -355,8 +376,7 @@ class SchemaDiffer {
     }
     if (!fromTable.primaryKey.isSchemaEqual(toTable.primaryKey) ||
         fromTable.withoutRowid != toTable.withoutRowid ||
-        !_areForeignKeysEqual(fromTable.foreignKeys, toTable.foreignKeys) ||
-        !_areIndicesEqual(fromTable.indices, toTable.indices)) {
+        !_areForeignKeysEqual(fromTable.foreignKeys, toTable.foreignKeys)) {
       return true;
     }
     // the foreign keys have to reference the new name of the table
@@ -373,13 +393,23 @@ class SchemaDiffer {
             .any((toForeignKey) => fromForeignKey.isSchemaEqual(toForeignKey)));
   }
 
-  bool _areIndicesEqual(
-    final List<IndexSchema> fromIndices,
-    final List<IndexSchema> toIndices,
+  /// The indices to drop and create instead of recreating the table, if
+  /// only its indices changed.
+  IndexChange _getIndexChange(
+    final EntitySchema fromTable,
+    final EntitySchema toTable,
   ) {
-    return fromIndices.length == toIndices.length &&
-        fromIndices.every((fromIndex) =>
-            toIndices.any((toIndex) => fromIndex.isSchemaEqual(toIndex)));
+    final droppedIndices = fromTable.indices.where((fromIndex) =>
+        !toTable.indices.any((toIndex) => toIndex.isSchemaEqual(fromIndex)));
+    final createdIndices = toTable.indices.where((toIndex) =>
+        !fromTable.indices.any((fromIndex) => fromIndex.isSchemaEqual(toIndex)));
+    return IndexChange(
+      droppedIndices.map((index) => index.name).toList(),
+      createdIndices
+          .map((index) => index.createSql.replaceFirst(
+              EntitySchema.tableNamePlaceholder, toTable.tableName))
+          .toList(),
+    );
   }
 
   ComplexChangedTable _addComplexChangedTable(
@@ -397,7 +427,7 @@ class SchemaDiffer {
   }
 
   void _checkTableName(final EntitySchema table) {
-    if (table.tableName.startsWith('_new_')) {
+    if (table.tableName.startsWith(EntitySchema.newTableNamePrefix)) {
       throw SchemaDiffException(_tableWithConflictingPrefix(table.tableName));
     }
   }
@@ -434,7 +464,7 @@ class SchemaDiffer {
 
   String _tableWithConflictingPrefix(final String tableName) =>
       'The new version of the database contains the table $tableName with '
-      "the prefix '_new_', which conflicts with recreating tables in "
+      "the prefix '${EntitySchema.newTableNamePrefix}', which conflicts with recreating tables in "
       'automatic migrations. Use another name.';
 
   String _deletedOrRenamedTableFound(final String tableName) {
