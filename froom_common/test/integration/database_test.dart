@@ -105,6 +105,78 @@ void main() {
         });
       });
 
+      group('upsert', () {
+        test('upsert inserts new person', () async {
+          final person = Person(1, 'Simon');
+
+          await personDao.upsertPerson(person);
+
+          final actual = await personDao.findAllPersons();
+          expect(actual, equals([person]));
+        });
+
+        test('upsert updates existing person', () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+          final updatedPerson = Person(person.id, person.name.reversed());
+
+          await personDao.upsertPerson(updatedPerson);
+
+          final actual = await personDao.findAllPersons();
+          expect(actual, equals([updatedPerson]));
+        });
+
+        test('upsert inserts and updates persons', () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+          final persons = [
+            Person(person.id, person.name.reversed()),
+            Person(2, 'Frank'),
+          ];
+
+          await personDao.upsertPersons(persons);
+
+          final actual = await personDao.findAllPersons();
+          expect(actual, equals(persons));
+        });
+
+        test('upsert returns id of inserted and -1 for updated person',
+            () async {
+          final person = Person(1, 'Simon');
+
+          final insertedId = await personDao.upsertPersonWithReturn(person);
+          final updatedId = await personDao.upsertPersonWithReturn(
+            Person(person.id, person.name.reversed()),
+          );
+
+          expect(insertedId, equals(person.id));
+          expect(updatedId, equals(-1));
+        });
+
+        test('upsert persons returns ids and -1 for updated persons',
+            () async {
+          await personDao.insertPerson(Person(1, 'Simon'));
+          final persons = [Person(1, 'Nomis'), Person(2, 'Frank')];
+
+          final actual = await personDao.upsertPersonsWithReturn(persons);
+
+          expect(actual, equals([-1, 2]));
+        });
+
+        test('upsert does not cascade delete dog of existing person',
+            () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+          final dog = Dog(2, 'Peter', 'Pete', person.id!);
+          await dogDao.insertDog(dog);
+
+          await personDao.upsertPerson(Person(person.id, 'Frank'));
+
+          final actual = await dogDao.findAllDogs();
+          expect(actual, equals([dog]));
+        });
+      });
+
       group('querying', () {
         test('query with two parameters (int, String)', () async {
           final person = Person(1, 'Frank');

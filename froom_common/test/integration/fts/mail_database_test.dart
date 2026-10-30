@@ -43,5 +43,37 @@ void main() {
 
       expect(mailList.length, equals(3));
     });
+
+    test('upsert into virtual table', () async {
+      await mailDao.upsertMail(Mail(1, 'first'));
+      await mailDao.upsertMail(Mail(2, 'second'));
+
+      final actual = await mailDao.findAllMails();
+
+      expect(actual, equals([Mail(1, 'first'), Mail(2, 'second')]));
+    });
+
+    test('upsert updates existing row of virtual table', () async {
+      await mailDao.insertMail(Mail(1, 'first'));
+
+      await mailDao.upsertMail(Mail(1, 'changed'));
+      await mailDao.upsertMails([Mail(1, 'changed again'), Mail(2, 'second')]);
+
+      final actual = await mailDao.findAllMails();
+
+      expect(actual, equals([Mail(1, 'changed again'), Mail(2, 'second')]));
+    });
+
+    test('upsert returns -1 for updated row of virtual table', () async {
+      await mailDao.insertMail(Mail(1, 'first'));
+
+      final actual = await mailDao.upsertMailsWithReturn(
+        [Mail(1, 'changed'), Mail(2, 'second')],
+      );
+
+      expect(actual, equals([-1, 2]));
+      expect(await mailDao.findAllMails(),
+          equals([Mail(1, 'changed'), Mail(2, 'second')]));
+    });
   });
 }

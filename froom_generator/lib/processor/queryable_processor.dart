@@ -10,13 +10,12 @@ import 'package:froom_generator/processor/error/queryable_processor_error.dart';
 import 'package:froom_generator/processor/field_processor.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/value_object/field.dart';
-import 'package:froom_generator/value_object/queryable.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:meta/meta.dart';
 import 'package:source_gen/source_gen.dart';
 
 // The migration is complete
-abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
+abstract class QueryableProcessor<T> extends Processor<T> {
   final QueryableProcessorError _queryableProcessorError;
 
   @protected
@@ -45,10 +44,16 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
     return fields
         .where((fieldElement) => fieldElement.shouldBeIncluded())
         .map((field) {
-      final typeConverter =
-          queryableTypeConverters.getClosestOrNull(field.type);
+      final typeConverter = getFieldTypeConverter(field);
       return FieldProcessor(field, typeConverter).process();
     }).toList();
+  }
+
+  /// The type converter to use for [fieldElement] unless the field declares
+  /// its own one.
+  @protected
+  TypeConverter? getFieldTypeConverter(final FieldElement fieldElement) {
+    return queryableTypeConverters.getClosestOrNull(fieldElement.type);
   }
 
   @protected
@@ -117,6 +122,56 @@ abstract class QueryableProcessor<T extends Queryable> extends Processor<T> {
     } else {
       return null;
     }
+  }
+
+  /// The type converter encoding the value of [field] for the database.
+  @protected
+  TypeConverter? getValueTypeConverter(final Field field) {
+    return [...queryableTypeConverters, field.typeConverter]
+        .nonNulls
+        .getClosestOrNull(field.fieldElement.type);
+  }
+
+  /// Maps the fields of an item to its database column values.
+  @protected
+  String getValueMapping(final List<Field> fields) {
+    final keyValueList = fields.map((field) {
+      final columnName = field.columnName;
+      final attributeValue = _getAttributeValue(field);
+      return "'$columnName': $attributeValue";
+    }).toList();
+
+    return '<String, Object?>{${keyValueList.join(', ')}}';
+  }
+
+  String _getAttributeValue(final Field field) {
+    final fieldElement = field.fieldElement;
+    final parameterName = fieldElement.displayName;
+    final fieldType = fieldElement.type;
+    final typeConverter = getValueTypeConverter(field);
+    String attributeValue = 'item.$parameterName';
+
+    if (typeConverter != null) {
+      attributeValue =
+          '_${typeConverter.name.decapitalize()}.encode(item.$parameterName)';
+    } else if (fieldType.isDartCoreBool) {
+      attributeValue = _serializeBoolean(field, attributeValue);
+    } else if (fieldType.isEnumType) {
+      attributeValue = _serializeEnum(attributeValue, field);
+    }
+    return attributeValue;
+  }
+
+  String _serializeBoolean(Field field, String attributeValue) {
+    return field.isNullable
+        // force! underlying non-nullable type as null check has been done
+        ? '$attributeValue == null ? null : ($attributeValue! ? 1 : 0)'
+        : '$attributeValue ? 1 : 0';
+  }
+
+  String _serializeEnum(String attributeValue, Field field) {
+    final operator = field.isNullable ? '?.' : '.';
+    return '$attributeValue${operator}index';
   }
 }
 

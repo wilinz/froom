@@ -64,6 +64,18 @@ abstract class PersonDao {
   @update
   Future<int> updatePersonsWithReturn(List<Person> persons);
 
+  @upsert
+  Future<void> upsertPerson(Person person);
+
+  @upsert
+  Future<void> upsertPersons(List<Person> persons);
+
+  @upsert
+  Future<int> upsertPersonWithReturn(Person person);
+
+  @upsert
+  Future<List<int>> upsertPersonsWithReturn(List<Person> persons);
+
   @delete
   Future<void> deletePerson(Person person);
 

@@ -114,6 +114,32 @@ void main() {
       });
     });
 
+    group('upsertion change', () {
+      test('upsert new item', () async {
+        final person = Person(1, 'Simon');
+
+        final actual = personDao.findAllPersonsAsStream();
+        expect(actual, emits(<Person>[]));
+
+        await personDao.upsertPerson(person);
+        expect(actual, emits([person]));
+      });
+
+      test('upsert existing items', () async {
+        final persons = [Person(1, 'Simon'), Person(2, 'Frank')];
+        final updatedPersons = persons
+            .map((person) => Person(person.id, person.name.reversed()))
+            .toList();
+        await personDao.insertPersons(persons);
+
+        final actual = personDao.findAllPersonsAsStream();
+        expect(actual, emits(persons));
+
+        await personDao.upsertPersons(updatedPersons);
+        expect(actual, emits(updatedPersons));
+      });
+    });
+
     group('deletion change', () {
       test('delete item', () async {
         final person = Person(1, 'Simon');

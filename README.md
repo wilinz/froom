@@ -122,6 +122,7 @@ The abstract class contains the method signatures for querying the database whic
   The SQL statement has to get added in parenthesis.
   The method must return a `Future` or `Stream` of the `Entity` you're querying for.
 - `@insert` marks a method as an insertion method.
+- `@upsert` marks a method as an upsert method, which inserts an entity or updates it if it already exists. See [Upsert](https://wilinz.github.io/froom/daos/#upsert).
 
 ```dart
 // dao/person_dao.dart

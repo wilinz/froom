@@ -271,10 +271,12 @@ After running the automated migration, you should manually review:
 
 While Froom maintains API compatibility with Floor, there are some key improvements:
 
-1. **Better analyzer support** - Compatible with analyzer 7.x
+1. **Better analyzer support** - Compatible with analyzer 11.x
 2. **Modern dependencies** - Updated to work with latest Flutter versions
 3. **Improved error handling** - Better debugging experience
 4. **Active maintenance** - Regular updates and bug fixes
+5. **Upsert** - `@upsert` inserts or updates entities like Room's `@Upsert`, including multiple parameters and partial entities (see [Upsert](daos.md#upsert))
+6. **Lint friendly generated code** - Generated files contain `// ignore_for_file: type=lint`, so strict lint rule sets like `very_good_analysis` don't report issues in them
 
 ## Troubleshooting
 

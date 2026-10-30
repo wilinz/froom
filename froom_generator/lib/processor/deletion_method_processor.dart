@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_generator/misc/change_method_processor_helper.dart';
 import 'package:froom_generator/processor/error/change_method_processor_error.dart';
 import 'package:froom_generator/processor/processor.dart';
@@ -26,14 +25,16 @@ class DeletionMethodProcessor implements Processor<DeletionMethod> {
     final name = _methodElement.name!;
     final returnType = _methodElement.returnType;
 
-    _assertMethodReturnsFuture(returnType);
+    if (!_helper.returnsFuture) {
+      throw _errors.doesNotReturnFuture;
+    }
+    if (_helper.returnsList) {
+      throw _errors.shouldNotReturnList;
+    }
 
-    final flattenedReturnType = _getFlattenedReturnType(returnType);
-    _assertMethodReturnsNoList(flattenedReturnType);
-    final returnsVoid = flattenedReturnType is VoidType;
-    final returnsInt = flattenedReturnType.isDartCoreInt;
+    final flattenedReturnType = _helper.flattenedReturnType;
 
-    if (!returnsVoid && !returnsInt) {
+    if (!_helper.returnsVoid && !_helper.returnsInt) {
       throw _errors.doesNotReturnVoidNorInt;
     }
 
@@ -51,21 +52,5 @@ class DeletionMethodProcessor implements Processor<DeletionMethod> {
       parameterElement,
       entity,
     );
-  }
-
-  DartType _getFlattenedReturnType(final DartType returnType) {
-    return _methodElement.library.typeSystem.flatten(returnType);
-  }
-
-  void _assertMethodReturnsNoList(final DartType flattenedReturnType) {
-    if (flattenedReturnType.isDartCoreList) {
-      throw _errors.shouldNotReturnList;
-    }
-  }
-
-  void _assertMethodReturnsFuture(final DartType returnType) {
-    if (!returnType.isDartAsyncFuture) {
-      throw _errors.doesNotReturnFuture;
-    }
   }
 }

@@ -9,6 +9,8 @@ import 'package:sqflite_common/src/sql_builder.dart' as _i4;
 
 class _FakeBatch extends _i1.Fake implements _i2.Batch {}
 
+class _FakeDatabase extends _i1.Fake implements _i2.Database {}
+
 class _FakeStreamSink<S> extends _i1.Fake implements _i3.StreamSink<S> {}
 
 /// A class which mocks [DatabaseExecutor].
@@ -115,6 +117,10 @@ class MockDatabaseExecutor extends _i1.Mock implements _i2.DatabaseExecutor {
   @override
   _i2.Batch batch() => (super.noSuchMethod(Invocation.method(#batch, []),
       returnValue: _FakeBatch()) as _i2.Batch);
+
+  @override
+  _i2.Database get database => (super.noSuchMethod(Invocation.getter(#database),
+      returnValue: _FakeDatabase()) as _i2.Database);
 }
 
 /// A class which mocks [Batch].

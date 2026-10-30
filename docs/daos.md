@@ -70,7 +70,7 @@ await dao.findPeopleWithNamesLike(name);
 ```
 
 ## Data Changes
-Use the `@insert`, `@update` and `@delete` annotations for inserting and changing persistent data.
+Use the `@insert`, `@update`, `@upsert` and `@delete` annotations for inserting and changing persistent data.
 All these methods accept single or multiple entity instances.
 
 ### Insert
@@ -106,6 +106,58 @@ Future<void> updatePerson(Person person);
 
 @update
 Future<int> updatePeople(List<Person> people);
+```
+
+### Upsert
+
+`@upsert` marks a method as an upsert method, just like Room's `@Upsert`.
+It first tries to insert the entity.
+When the insertion fails because of a unique constraint conflict (e.g. the primary key already exists), the existing row is updated instead.
+If no row with the primary key exists, e.g. because the conflict was caused by another unique index, the original exception is rethrown instead of silently dropping the item.
+Unlike `@Insert(onConflict: OnConflictStrategy.replace)`, the existing row is not deleted, so foreign key `ON DELETE` actions (e.g. cascading deletes) are not triggered.
+Each upsert method runs in a single transaction.
+Upsert methods returning `void` use a single batch of native `INSERT ... ON CONFLICT DO UPDATE` statements when SQLite supports them (version 3.24.0 and above, except for virtual tables like FTS tables), which is considerably faster for large lists and behaves the same.
+As virtual tables like FTS tables don't enforce unique primary keys, their entities are updated by primary key first and only inserted when no row got updated.
+These methods can return a `Future` of either `void`, `int` or `List<int>`.
+- `void` return nothing
+- `int` return primary key of inserted item or `-1` if the item got updated (single item parameter only)
+- `List<int>` return primary keys of inserted items or `-1` for updated items (single list parameter only)
+
+```dart
+@upsert
+Future<void> upsertPerson(Person person);
+
+@upsert
+Future<List<int>> upsertPeople(List<Person> people);
+```
+
+Upsert methods can take multiple parameters, each being an entity or a list of entities.
+All of them are upserted in the same transaction, so a failure rolls back every parameter.
+Such methods have to return `Future<void>`.
+
+```dart
+@upsert
+Future<void> upsertPublisherAndBooks(Publisher publisher, List<Book> books);
+```
+
+When specifying a target `entity`, the parameters can be partial entities.
+A partial entity is a class containing a subset of the columns of the target entity, matched by column name.
+Only its columns are inserted or updated, the other columns keep their values or defaults.
+It has to contain the primary key columns, unless the primary key is auto generated, and all non-nullable columns of the target entity.
+Fields of non-nullable columns have to be non-nullable as well.
+Fields need the same type as their column and use the type converters of the target entity.
+
+```dart
+class BookTitle {
+  final int id;
+
+  final String title;
+
+  BookTitle(this.id, this.title);
+}
+
+@Upsert(entity: Book)
+Future<void> upsertBookTitle(BookTitle bookTitle);
 ```
 
 ### Delete
@@ -155,10 +207,10 @@ StreamBuilder<List<Person>>(
 ```
 
 !!! attention
-    - Only methods annotated with `@insert`, `@update` and `@delete` trigger `Stream` emissions.
+    - Only methods annotated with `@insert`, `@update`, `@upsert` and `@delete` trigger `Stream` emissions.
       Inserting data by using the `@Query()` annotation doesn't.
     - It is now possible to return a `Stream` if the function queries a database view. But it will fire on **any**
-      `@update`, `@insert`, `@delete` events in the whole database, which can get quite taxing on the runtime. Please add it only if you know what you are doing!
+      `@update`, `@insert`, `@upsert`, `@delete` events in the whole database, which can get quite taxing on the runtime. Please add it only if you know what you are doing!
       This is mostly due to the complexity of detecting which entities are involved in a database view.
 
 ## Transactions

@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+### 🔄 Breaking Changes
+- **analyzer**: Bumped from `^10.0.0` to `^11.0.0` in `froom_generator` (Flutter 3.47.x / Dart 3.13.x)
+- **froom_generator**: Dart SDK lower bound raised from `>=3.0.0` to `>=3.9.0`, as required by analyzer 11
+- **example**: Removed the explicit `analyzer` dev dependency
+
+### ✨ Features
+- **upsert**: Add `@upsert` / `@Upsert` annotation mirroring Room's `@Upsert` (#2)
+  - `froom_annotation`: `Upsert` with optional `entity` target for partial entities
+  - `froom_common`: `UpsertionAdapter` inserts first and updates by primary key on unique constraint conflicts (checked by message and result codes `1555` / `2067`, like Room); every upsert runs in a transaction
+  - `froom_generator`: `UpsertionMethodProcessor`, `PartialEntityProcessor`, `UpsertionMethodWriter`; multiple parameters are upserted in one transaction, return types follow Room (`void` for multiple parameters, `int` for a single item, `List<int>` for a single list)
+  - Partial entities are validated like Room: matching column names and types, primary key columns unless auto generated, and all non-nullable columns; fields of non-nullable columns must be non-nullable
+  - Partial entities use exactly the type converters of their target entity columns (DAO level converters unknown to the entity are ignored); fields must have the same Dart type as their column and must not declare another converter; adapters of partial entities are named after their target entity, so one partial entity class can target several entities
+  - Nullable parameters and list items are rejected, as are partial entities mapping two fields to the same column
+  - Virtual tables (FTS) don't enforce unique primary keys, so their entities are updated by primary key first and only inserted when no row got updated, instead of inserting duplicate rows
+  - Unlike Room, a conflict that leaves no row to update by primary key (e.g. on another unique index) rethrows the original exception instead of silently dropping the item
+  - Performance: `void` upserts use one batch of native `INSERT ... ON CONFLICT(pk) DO UPDATE` statements when SQLite >= 3.24.0 and the table is not virtual (FTS doesn't support UPSERT), checked once per database and table; methods returning ids keep the Room approach, as native upserts can't tell inserted from updated rows. 10k existing rows with FFI: 180–506 ms → 43–56 ms
+
+### 🐛 Bug Fixes
+- **insertion_method_processor**: Reject `Future<List<void>>` return types, which generated non-compiling code
+- **generator**: Emit `// ignore_for_file: type=lint` (plus `unused_element` with type converters) at the top of generated code (ee30abd, #162)
+
+### 🧹 Maintenance
+- **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`
+- **queryable_processor**: Move value mapping generation from `EntityProcessor` into `QueryableProcessor` to reuse it for partial entities
+- **dao_writer**: Share the field and initializer generation of insertion, update, upsertion and deletion adapters
+- **change_method_processor_helper**: Share the return type checks (`returnsFuture`, `returnsList`, `returnsVoid`, `returnsInt`, `returnsIntList`, `flattenedReturnType`) of the insertion, update, upsertion and deletion processors
+- **fakes**: Add `primaryConstructor` stub to `FakeClassElement` for analyzer 11.x compatibility
+- **docs**: Document `@upsert` in DAOs, Getting Started, Database Views, Migration from Floor and READMEs
+
+### 📝 All Commits Since v6.0.0
+- ee30abd: 🐛 fix(froom_generator): suppress lints in generated code with ignore_for_file: type=lint
+- a4a1768: ⬆️ chore(froom_generator,example): bump analyzer to ^11.0.0 for Flutter 3.47
+
 ## [6.0.0] - 2026-03-08
 
 ### 🔄 Breaking Changes

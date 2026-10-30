@@ -101,6 +101,109 @@ void main() {
         '''));
   });
 
+  test('create DAO with upsert method', () async {
+    final dao = await _createDao('''
+        @dao
+        abstract class PersonDao {
+          @upsert
+          Future<void> upsertPerson(Person person);
+        }
+      ''');
+
+    final actual =
+        DaoWriter(dao, dao.streamEntities.toSet(), dao.streamViews.isNotEmpty)
+            .write();
+
+    expect(actual, equalsDart(r'''
+      class _$PersonDao extends PersonDao {
+          _$PersonDao(
+            this.database,
+            this.changeListener,
+          ) : _personUpsertionAdapter = UpsertionAdapter(
+                    database,
+                    'Person',
+                    ['id'],
+                    (Person item) =>
+                        <String, Object?>{'id': item.id, 'name': item.name});
+        
+          final sqflite.DatabaseExecutor database;
+        
+          final StreamController<String> changeListener;
+        
+          final UpsertionAdapter<Person> _personUpsertionAdapter;
+        
+          @override
+          Future<void> upsertPerson(Person person) async {
+            await _personUpsertionAdapter.upsert(person);
+          }
+        }
+        '''));
+  });
+
+  test('create DAO with upsert method of partial entity', () async {
+    final dao = await _createDao('''
+        @dao
+        abstract class PersonDao {
+          @upsert
+          Future<void> upsertPerson(Person person);
+          
+          @Upsert(entity: Person)
+          Future<void> upsertPersonInfos(List<PersonInfo> personInfos);
+        }
+        
+        class PersonInfo {
+          final int id;
+        
+          @ColumnInfo(name: 'name')
+          final String fullName;
+        
+          PersonInfo(this.id, this.fullName);
+        }
+      ''');
+
+    final actual =
+        DaoWriter(dao, dao.streamEntities.toSet(), dao.streamViews.isNotEmpty)
+            .write();
+
+    expect(actual, equalsDart(r'''
+      class _$PersonDao extends PersonDao {
+          _$PersonDao(
+            this.database,
+            this.changeListener,
+          )   : _personUpsertionAdapter = UpsertionAdapter(
+                    database,
+                    'Person',
+                    ['id'],
+                    (Person item) =>
+                        <String, Object?>{'id': item.id, 'name': item.name}),
+                _personInfoToPersonUpsertionAdapter = UpsertionAdapter(
+                    database,
+                    'Person',
+                    ['id'],
+                    (PersonInfo item) =>
+                        <String, Object?>{'id': item.id, 'name': item.fullName});
+        
+          final sqflite.DatabaseExecutor database;
+        
+          final StreamController<String> changeListener;
+        
+          final UpsertionAdapter<Person> _personUpsertionAdapter;
+        
+          final UpsertionAdapter<PersonInfo> _personInfoToPersonUpsertionAdapter;
+        
+          @override
+          Future<void> upsertPerson(Person person) async {
+            await _personUpsertionAdapter.upsert(person);
+          }
+        
+          @override
+          Future<void> upsertPersonInfos(List<PersonInfo> personInfos) async {
+            await _personInfoToPersonUpsertionAdapter.upsertList(personInfos);
+          }
+        }
+        '''));
+  });
+
   test('create DAO stream query', () async {
     final dao = await _createDao('''
         @dao

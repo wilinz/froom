@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### ✨ Features
+- **upsert**: Add `@upsert` / `@Upsert` annotation mirroring Room's `@Upsert` ([#2](https://github.com/wilinz/froom/issues/2))
+  - Inserts entities and updates them instead on primary key or unique constraint conflicts, without deleting the existing row; conflicts on other unique indices are rethrown
+  - Supports multiple parameters, upserted in a single transaction
+  - Supports partial entities via `@Upsert(entity: X)`, only inserting or updating the columns they contain
+  - Returns the row ids of inserted entities or `-1` for updated ones
+  - Upserts returning `void` use batched native `INSERT ... ON CONFLICT DO UPDATE` on SQLite 3.24.0 and above
+
+### 🐛 Bug Fixes
+- **froom_generator**: Generated code suppresses lints with `// ignore_for_file: type=lint` ([#162](https://github.com/wilinz/froom/issues/162))
+
+### ⬆️ Breaking Changes & Dependencies
+- **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13
+- **froom_generator**: Minimum Dart SDK raised to `>=3.9.0`
+
 ## 6.0.0
 
 ### ⬆️ Breaking Changes & Dependencies

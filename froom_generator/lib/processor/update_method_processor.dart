@@ -1,5 +1,4 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/change_method_processor_helper.dart';
 import 'package:froom_generator/misc/constants.dart';
@@ -30,15 +29,16 @@ class UpdateMethodProcessor implements Processor<UpdateMethod> {
     final name = _methodElement.name!;
     final returnType = _methodElement.returnType;
 
-    _assertMethodReturnsFuture(returnType);
+    if (!_helper.returnsFuture) {
+      throw _errors.doesNotReturnFuture;
+    }
+    if (_helper.returnsList) {
+      throw _errors.shouldNotReturnList;
+    }
 
-    final flattenedReturnType = _getFlattenedReturnType(returnType);
-    _assertMethodReturnsNoList(flattenedReturnType);
+    final flattenedReturnType = _helper.flattenedReturnType;
 
-    final returnsInt = flattenedReturnType.isDartCoreInt;
-    final returnsVoid = flattenedReturnType is VoidType;
-
-    if (!returnsInt && !returnsVoid) {
+    if (!_helper.returnsInt && !_helper.returnsVoid) {
       throw _errors.doesNotReturnVoidNorInt;
     }
 
@@ -69,22 +69,6 @@ class UpdateMethodProcessor implements Processor<UpdateMethod> {
       throw _errors.wrongOnConflictValue;
     } else {
       return onConflictStrategy;
-    }
-  }
-
-  DartType _getFlattenedReturnType(final DartType returnType) {
-    return _methodElement.library.typeSystem.flatten(returnType);
-  }
-
-  void _assertMethodReturnsNoList(final DartType flattenedReturnType) {
-    if (flattenedReturnType.isDartCoreList) {
-      throw _errors.shouldNotReturnList;
-    }
-  }
-
-  void _assertMethodReturnsFuture(final DartType returnType) {
-    if (!returnType.isDartAsyncFuture) {
-      throw _errors.doesNotReturnFuture;
     }
   }
 }

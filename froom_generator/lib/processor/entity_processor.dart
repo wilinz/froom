@@ -5,8 +5,6 @@ import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/dart_object_extension.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
-import 'package:froom_generator/misc/extension/string_extension.dart';
-import 'package:froom_generator/misc/extension/type_converters_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/processor/error/entity_processor_error.dart';
 import 'package:froom_generator/processor/queryable_processor.dart';
@@ -48,7 +46,7 @@ class EntityProcessor extends QueryableProcessor<Entity> {
       _getIndices(fields, name),
       _getWithoutRowid(),
       getConstructor(fields),
-      _getValueMapping(fields),
+      getValueMapping(fields),
       _getFts(),
     );
   }
@@ -261,48 +259,6 @@ class EntityProcessor extends QueryableProcessor<Entity> {
             ?.getField(AnnotationField.entityWithoutRowid)
             ?.toBoolValue() ??
         false;
-  }
-
-  String _getValueMapping(final List<Field> fields) {
-    final keyValueList = fields.map((field) {
-      final columnName = field.columnName;
-      final attributeValue = _getAttributeValue(field);
-      return "'$columnName': $attributeValue";
-    }).toList();
-
-    return '<String, Object?>{${keyValueList.join(', ')}}';
-  }
-
-  String _getAttributeValue(final Field field) {
-    final fieldElement = field.fieldElement;
-    final parameterName = fieldElement.displayName;
-    final fieldType = fieldElement.type;
-    final typeConverter = [...queryableTypeConverters, field.typeConverter]
-        .nonNulls
-        .getClosestOrNull(fieldType);
-    String attributeValue = 'item.$parameterName';
-
-    if (typeConverter != null) {
-      attributeValue =
-          '_${typeConverter.name.decapitalize()}.encode(item.$parameterName)';
-    } else if (fieldType.isDartCoreBool) {
-      attributeValue = _serializeBoolean(field, attributeValue);
-    } else if (fieldType.isEnumType) {
-      attributeValue = _serializeEnum(attributeValue, field);
-    }
-    return attributeValue;
-  }
-
-  String _serializeBoolean(Field field, String attributeValue) {
-    return field.isNullable
-        // force! underlying non-nullable type as null check has been done
-        ? '$attributeValue == null ? null : ($attributeValue! ? 1 : 0)'
-        : '$attributeValue ? 1 : 0';
-  }
-
-  String _serializeEnum(String attributeValue, Field field) {
-    final operator = field.isNullable ? '?.' : '.';
-    return '$attributeValue${operator}index';
   }
 
   annotations.ForeignKeyAction _getForeignKeyAction(

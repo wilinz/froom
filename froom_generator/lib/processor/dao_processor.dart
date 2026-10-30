@@ -6,6 +6,7 @@ import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/processor/query_method_processor.dart';
 import 'package:froom_generator/processor/transaction_method_processor.dart';
 import 'package:froom_generator/processor/update_method_processor.dart';
+import 'package:froom_generator/processor/upsertion_method_processor.dart';
 import 'package:froom_generator/value_object/dao.dart';
 import 'package:froom_generator/value_object/deletion_method.dart';
 import 'package:froom_generator/value_object/entity.dart';
@@ -14,6 +15,7 @@ import 'package:froom_generator/value_object/query_method.dart';
 import 'package:froom_generator/value_object/transaction_method.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:froom_generator/value_object/update_method.dart';
+import 'package:froom_generator/value_object/upsertion_method.dart';
 import 'package:froom_generator/value_object/view.dart';
 
 import 'deletion_method_processor.dart';
@@ -57,6 +59,7 @@ class DaoProcessor extends Processor<Dao> {
     final queryMethods = _getQueryMethods(methods, typeConverters);
     final insertionMethods = _getInsertionMethods(methods);
     final updateMethods = _getUpdateMethods(methods);
+    final upsertionMethods = _getUpsertionMethods(methods, typeConverters);
     final deletionMethods = _getDeletionMethods(methods);
     final transactionMethods = _getTransactionMethods(methods);
 
@@ -72,6 +75,7 @@ class DaoProcessor extends Processor<Dao> {
       queryMethods,
       insertionMethods,
       updateMethods,
+      upsertionMethods,
       deletionMethods,
       transactionMethods,
       streamEntities,
@@ -112,6 +116,23 @@ class DaoProcessor extends Processor<Dao> {
             (methodElement) => methodElement.hasAnnotation(annotations.Update))
         .map((methodElement) =>
             UpdateMethodProcessor(methodElement, _entities).process())
+        .toList();
+  }
+
+  List<UpsertionMethod> _getUpsertionMethods(
+    final List<MethodElement> methodElements,
+    final Set<TypeConverter> typeConverters,
+  ) {
+    return methodElements
+        .where(
+            (methodElement) => methodElement.hasAnnotation(annotations.Upsert))
+        .map((methodElement) => UpsertionMethodProcessor(
+              methodElement,
+              _entities,
+              typeConverters,
+              _daoGetterName,
+              _databaseName,
+            ).process())
         .toList();
   }
 
