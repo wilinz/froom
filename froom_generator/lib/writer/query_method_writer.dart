@@ -209,7 +209,7 @@ class QueryMethodWriter implements Writer {
       // for streamed queries, we need to provide the queryable to know which
       // entity to monitor. For views, we monitor all entities.
       parameters
-        ..write(", queryableName: '${_parseTableName(query)}'")
+        ..write(", queryableName: '${_parseTableName(_queryMethod.query.sql)}'")
         ..write(', isView: ${queryable is View}');
     }
 
@@ -255,9 +255,10 @@ class QueryMethodWriter implements Writer {
   TypeSystem get _typeSystem => _queryMethod.methodElement.library.typeSystem;
 
   String _parseTableName(String query) {
-    return RegExp(r'(?<=FROM `?)\w+(?=`?)', caseSensitive: false)
+    // the table name can be quoted like `table`, "table" or [table]
+    return RegExp(r'FROM\s+[`"\[]?(\w+)', caseSensitive: false)
             .firstMatch(query)
-            ?.group(0) ??
+            ?.group(1) ??
         'no_table_name';
   }
 }

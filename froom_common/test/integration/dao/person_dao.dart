@@ -11,6 +11,9 @@ abstract class PersonDao {
   @Query('SELECT * FROM person')
   Stream<List<Person>> findAllPersonsAsStream();
 
+  @Query('SELECT * FROM "person"')
+  Stream<List<Person>> findAllPersonsFromQuotedTableAsStream();
+
   @Query('SELECT * FROM person WHERE id = :id')
   Future<Person?> findPersonById(int id);
 

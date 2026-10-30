@@ -179,6 +179,16 @@ void main() {
       expect(events.first, isEmpty);
     });
 
+    test('stream of double quoted table updates', () async {
+      final person = Person(1, 'Simon');
+
+      final actual = personDao.findAllPersonsFromQuotedTableAsStream();
+      expect(actual, emitsInOrder(<List<Person>>[[], [person]]));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      await personDao.insertPerson(person);
+    });
+
     test('query changes of other Dao update streams', () async {
       final person = Person(1, 'Simon');
       final dog = Dog(1, 'Dog', 'Doggie', person.id!);

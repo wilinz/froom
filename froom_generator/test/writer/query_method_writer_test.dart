@@ -666,6 +666,19 @@ void main() {
           '''));
   });
 
+  for (final table in ['"Person"', '[Person]', '`Person`', '   Person']) {
+    test('query stream from quoted table $table', () async {
+      final queryMethod = await _createQueryMethod('''
+        @Query('SELECT * FROM $table')
+        Stream<List<Person>> findAllAsStream();
+      ''');
+
+      final actual = QueryMethodWriter(queryMethod).write().body.toString();
+
+      expect(actual, contains("queryableName: 'Person'"));
+    });
+  }
+
   test('query boolean parameter', () async {
     final queryMethod = await _createQueryMethod('''
       @Query('SELECT * FROM Person WHERE flag = :flag')
