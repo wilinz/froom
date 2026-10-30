@@ -1,6 +1,6 @@
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
+import 'package:froom_generator/misc/extension/interface_element_extension.dart';
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/processor/processor.dart';
@@ -91,22 +91,9 @@ class DaoProcessor extends Processor<Dao> {
       }
     }
 
-    // supertypes ordered from the closest to the most distant one, later
-    // mixins override earlier ones
-    List<InterfaceType> directSupertypesOf(final InterfaceType type) => [
-          ...type.mixins.reversed,
-          if (type.superclass != null) type.superclass!,
-          ...type.interfaces,
-        ];
-
     addMethods(_classElement.methods);
-    final visited = <InterfaceElement>{};
-    final supertypes = directSupertypesOf(_classElement.thisType);
-    for (var index = 0; index < supertypes.length; index++) {
-      final supertype = supertypes[index];
-      if (!visited.add(supertype.element)) continue;
+    for (final supertype in _classElement.supertypesClosestFirst) {
       addMethods(supertype.methods);
-      supertypes.addAll(directSupertypesOf(supertype));
     }
 
     return methods.values.toList();

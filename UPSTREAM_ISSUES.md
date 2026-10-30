@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 13 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 14 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 21 | Bug or small feature to be fixed |
+| ⏳ Planned | 20 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -57,7 +57,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#514](https://github.com/pinchbv/floor/issues/514) | Change Query with the name of the return type table | ➖ Not planned |  | Question, support or not applicable |
 | [floor#515](https://github.com/pinchbv/floor/issues/515) | Method is generated twice if you override the method in a base class | ✅ Fixed | [#175](https://github.com/wilinz/froom/issues/175) | Overridden DAO methods are generated once |
 | [floor#516](https://github.com/pinchbv/floor/issues/516) | [floor_generator]-  Null check operator used on a null value | ➖ Not planned |  | Question, support or not applicable |
-| [floor#522](https://github.com/pinchbv/floor/issues/522) | Duplicate fields are added when an entity `implements` a class | ⏳ Planned |  | Duplicate columns with `implements` / overridden fields (verified) |
+| [floor#522](https://github.com/pinchbv/floor/issues/522) | Duplicate fields are added when an entity `implements` a class | ✅ Fixed | [#176](https://github.com/wilinz/froom/issues/176) | Overridden fields are columns once |
 | [floor#527](https://github.com/pinchbv/floor/issues/527) | How do I tell floor that the primary key is unset and should be generated? | ⏳ Planned |  | Treat `0` of auto generated primary keys as unset, like Room |
 | [floor#534](https://github.com/pinchbv/floor/issues/534) | Cannot set PRAGMA foreign_keys = OFF on migration | ⏳ Planned |  | Foreign keys during migrations |
 | [floor#545](https://github.com/pinchbv/floor/issues/545) | Transfer package to verified publisher | ➖ Not planned |  | Question, support or not applicable |
@@ -111,8 +111,8 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#788](https://github.com/pinchbv/floor/issues/788) | #775 still an issue | 🔁 Duplicate |  | Same as floor#775 |
 | [floor#789](https://github.com/pinchbv/floor/issues/789) | No warning when one of multiple primary keys is missing | ⏳ Planned |  | No error for misspelled `primaryKeys` (verified) |
 | [floor#792](https://github.com/pinchbv/floor/issues/792) | Improve FTS documentation and add some examples | ⏳ Planned |  | Docs: FTS |
-| [floor#798](https://github.com/pinchbv/floor/issues/798) | Dumplicate field name when entity implement form abstract class | 🔁 Duplicate |  | Same as floor#522 |
-| [floor#799](https://github.com/pinchbv/floor/issues/799) | duplicate field name when entity implement form abstract class | 🔁 Duplicate |  | Same as floor#522 |
+| [floor#798](https://github.com/pinchbv/floor/issues/798) | Dumplicate field name when entity implement form abstract class | 🔁 Duplicate | [#176](https://github.com/wilinz/froom/issues/176) | Same as floor#522 |
+| [floor#799](https://github.com/pinchbv/floor/issues/799) | duplicate field name when entity implement form abstract class | 🔁 Duplicate | [#176](https://github.com/wilinz/froom/issues/176) | Same as floor#522 |
 | [floor#802](https://github.com/pinchbv/floor/issues/802) | trying to get a SUM of a field with floor. | ⏳ Planned |  | Casting `int` values to `double` fails (verified) |
 | [floor#803](https://github.com/pinchbv/floor/issues/803) | Custom Database File Path | 🔁 Duplicate |  | Same as floor#588 |
 | [floor#804](https://github.com/pinchbv/floor/issues/804) | sqlite wal | ➖ Not planned |  | Question, support or not applicable |

@@ -25,6 +25,7 @@
 - **views**: Database views are recreated with their current queries after migrations ([#170](https://github.com/wilinz/froom/issues/170))
 - **query**: Query method parameters can be nullable and are bound as `NULL` ([#173](https://github.com/wilinz/froom/issues/173))
 - **dao**: Methods overriding methods of DAO supertypes are generated only once ([#175](https://github.com/wilinz/froom/issues/175))
+- **entity**: Fields overriding fields of superclasses or interfaces are columns only once ([#176](https://github.com/wilinz/froom/issues/176))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13

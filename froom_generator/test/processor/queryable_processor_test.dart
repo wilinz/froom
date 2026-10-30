@@ -284,6 +284,64 @@ void main() {
       expect(actual.constructor, equals(expectedConstructor));
     });
 
+    test('Process overridden fields once', () async {
+      final classElement = await createClassElement('''
+        class TestEntity extends IdEntity implements NamedEntity {
+          @override
+          int id;
+        
+          @override
+          String name;
+        
+          TestEntity(this.id, this.name) : super(id);
+        }
+        
+        class IdEntity {
+          int id;
+        
+          IdEntity(this.id);
+        }
+        
+        class NamedEntity {
+          String name;
+        
+          NamedEntity(this.name);
+        }
+    ''');
+
+      final actual = TestProcessor(classElement).process();
+
+      expect(actual.fields.map((field) => field.name), equals(['id', 'name']));
+      expect(
+        actual.fields.map((field) => field.fieldElement.enclosingElement.name),
+        equals(['TestEntity', 'TestEntity']),
+      );
+    });
+
+    test('Ignore overridden fields ignored by the override', () async {
+      final classElement = await createClassElement('''
+        class TestEntity extends BaseEntity {
+          @override
+          @ignore
+          String? note;
+        
+          TestEntity(int id) : super(id);
+        }
+        
+        class BaseEntity {
+          final int id;
+        
+          String? note;
+        
+          BaseEntity(this.id);
+        }
+    ''');
+
+      final actual = TestProcessor(classElement).process();
+
+      expect(actual.fields.map((field) => field.name), equals(['id']));
+    });
+
     test('Process fields of mixins', () async {
       final classElement = await createClassElement('''
         class TestEntity with TestMixin {

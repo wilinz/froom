@@ -2,6 +2,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
+import 'package:froom_generator/misc/extension/interface_element_extension.dart';
 import 'package:froom_generator/misc/extension/set_extension.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
@@ -34,15 +35,23 @@ abstract class QueryableProcessor<T> extends Processor<T> {
 
   @protected
   List<Field> getFields() {
-    // supertypes include the applied mixins
-    final fields = [
+    // supertypes include the applied mixins, overridden fields are only
+    // included once with their most specific declaration, which is null when
+    // the field is ignored
+    final fields = <String, FieldElement?>{};
+    for (final field in [
       ...classElement.fields,
-      ...classElement.allSupertypes.expand((type) => type.element.fields),
-    ];
+      ...classElement.supertypesClosestFirst
+          .expand((type) => type.element.fields),
+    ]) {
+      if (field.shouldBeIncluded()) {
+        fields.putIfAbsent(field.name!, () => field);
+      } else if (field.isIgnored) {
+        fields.putIfAbsent(field.name!, () => null);
+      }
+    }
 
-    return fields
-        .where((fieldElement) => fieldElement.shouldBeIncluded())
-        .map((field) {
+    return fields.values.nonNulls.map((field) {
       final typeConverter = getFieldTypeConverter(field);
       return FieldProcessor(field, typeConverter).process();
     }).toList();
@@ -214,8 +223,9 @@ abstract class QueryableProcessor<T> extends Processor<T> {
 }
 
 extension on FieldElement {
+  bool get isIgnored => hasAnnotation(annotations.ignore.runtimeType);
+
   bool shouldBeIncluded() {
-    final isIgnored = hasAnnotation(annotations.ignore.runtimeType);
     final isDeclared = isOriginDeclaration || isOriginDeclaringFormalParameter;
     return !(isStatic || !isDeclared || isIgnored);
   }

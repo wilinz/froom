@@ -40,10 +40,21 @@ void main() {
 
       expect(actual, equals([persons[1]]));
     });
+
+    test('entity overriding fields of supertypes has each column once',
+        () async {
+      final user = User(1, 'Simon');
+      await personDao.insertUser(user);
+
+      final actual = await personDao.findAllUsers();
+
+      expect(actual.map((user) => '${user.id} ${user.name}'),
+          equals(['1 Simon']));
+    });
   });
 }
 
-@Database(version: 1, entities: [Person])
+@Database(version: 1, entities: [Person, User])
 abstract class TestDatabase extends FroomDatabase {
   PersonDao get personDao;
 }
@@ -56,6 +67,36 @@ abstract class PersonDao extends AbstractDao<Person> {
   @override
   @Query('SELECT * FROM Person WHERE id > 1')
   Future<List<Person>> findAll();
+
+  @insert
+  Future<void> insertUser(User user);
+
+  @Query('SELECT * FROM User')
+  Future<List<User>> findAllUsers();
+}
+
+class IdEntity {
+  int id;
+
+  IdEntity(this.id);
+}
+
+class NamedEntity {
+  String name;
+
+  NamedEntity(this.name);
+}
+
+@entity
+class User extends IdEntity implements NamedEntity {
+  @override
+  @primaryKey
+  int id;
+
+  @override
+  String name;
+
+  User(this.id, this.name) : super(id);
 }
 
 abstract class AbstractDao<T> {
