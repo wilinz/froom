@@ -88,6 +88,12 @@ class QueryProcessor extends Processor<Query> {
     final after = _query.substring(varToken.endPosition).trimLeft();
     if (!before.endsWith('(') || !after.startsWith(')')) return false;
 
+    // quoted function names like `lower`(:list) and nested parentheses like
+    // lower((:list))
+    final beforeParenthesis =
+        before.substring(0, before.length - 1).trimRight();
+    if (RegExp(r'[`"\](]$').hasMatch(beforeParenthesis)) return false;
+
     final precedingWord = RegExp(r'(\w+)\s*\($').firstMatch(before)?.group(1);
     return precedingWord == null ||
         _rowValueKeywords.contains(precedingWord.toUpperCase());

@@ -360,11 +360,17 @@ void main() {
       expect(actual.query.listParameters, hasLength(1));
     });
 
-    for (final function in ['lower', 'abs']) {
-      test('exception when list parameter is the argument of $function',
+    for (final call in [
+      'lower(:names)',
+      'abs(:names)',
+      '`lower`(:names)',
+      '[lower](:names)',
+      'lower((:names))',
+    ]) {
+      test('exception when list parameter is the argument of $call',
           () async {
       final methodElement = await _createQueryMethodElement('''
-      @Query('SELECT * FROM Person WHERE name = $function(:names)')
+      @Query('SELECT * FROM Person WHERE name = $call')
       Future<List<Person>> findPersonsByNames(List<String> names);
     ''');
 
