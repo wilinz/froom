@@ -316,6 +316,15 @@ void main() {
           expect(actual, equals(person.id));
         });
 
+        test('insert person annotated with @transaction too', () async {
+          final person = Person(1, 'Simon');
+
+          final actual = await personDao.insertPersonInTransaction(person);
+
+          expect(actual, equals(person.id));
+          expect(await personDao.findAllPersons(), equals([person]));
+        });
+
         test('insert persons and return ids of inserted items', () async {
           final persons = [Person(1, 'Simon'), Person(2, 'Frank')];
 

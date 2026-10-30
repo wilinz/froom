@@ -71,6 +71,28 @@ void main() {
         equals('SELECT * FROM person WHERE id > 0'));
   });
 
+  test('Ignores @transaction on query and change methods', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao {
+        @insert
+        @transaction
+        Future<int> insertPerson(Person person);
+      
+        @Query('SELECT * FROM person')
+        @transaction
+        Future<List<Person>> findAll();
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.insertionMethods, hasLength(1));
+    expect(actual.queryMethods, hasLength(1));
+    expect(actual.transactionMethods, isEmpty);
+  });
+
   test('Prefers methods of later mixins', () async {
     final classElement = await _createDao('''
       @dao

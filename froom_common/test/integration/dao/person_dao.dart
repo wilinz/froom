@@ -60,6 +60,10 @@ abstract class PersonDao {
   Future<int> insertPersonWithReturn(Person person);
 
   @insert
+  @transaction
+  Future<int> insertPersonInTransaction(Person person);
+
+  @insert
   Future<List<int>> insertPersonsWithReturn(List<Person> persons);
 
   @update

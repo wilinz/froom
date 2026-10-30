@@ -32,6 +32,7 @@
 - **query**: List parameters can be used as row values like `(a, b) > (:list)`, including `List<Object>` ([#180](https://github.com/wilinz/froom/issues/180))
 - **query**: Report unresolved return types of query methods, e.g. due to missing imports, instead of asking for a nullable return type ([#183](https://github.com/wilinz/froom/issues/183))
 - **streams**: Closing the database while a stream re-queries no longer throws unhandled exceptions ([#184](https://github.com/wilinz/froom/issues/184))
+- **dao**: `@transaction` on query and change methods no longer generates them twice ([#185](https://github.com/wilinz/froom/issues/185))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13

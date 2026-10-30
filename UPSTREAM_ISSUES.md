@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 23 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 24 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 11 | Bug or small feature to be fixed |
+| ⏳ Planned | 10 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -96,7 +96,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#745](https://github.com/pinchbv/floor/issues/745) | Unhandled Exception: DatabaseException(error database_closed) | ✅ Fixed | [#184](https://github.com/wilinz/froom/issues/184) | Streams ignore re-queries finishing after the database got closed |
 | [floor#746](https://github.com/pinchbv/floor/issues/746) | There's a lot of duplicate code | ➖ Not planned |  | Internal refactoring, partially done while fixing other issues |
 | [floor#747](https://github.com/pinchbv/floor/issues/747) | Query with IF | ➖ Not planned |  | Question, support or not applicable |
-| [floor#748](https://github.com/pinchbv/floor/issues/748) | Generating duplicated definitions with @transaction | ⏳ Planned |  | `@insert` with `@transaction` generated twice (verified) |
+| [floor#748](https://github.com/pinchbv/floor/issues/748) | Generating duplicated definitions with @transaction | ✅ Fixed | [#185](https://github.com/wilinz/froom/issues/185) | `@transaction` on query and change methods is ignored, as they are atomic |
 | [floor#758](https://github.com/pinchbv/floor/issues/758) | Unique | ➖ Not planned |  | Question, support or not applicable |
 | [floor#763](https://github.com/pinchbv/floor/issues/763) | In the example, a task is created with status: null instead of open | ⏳ Planned |  | Example creates tasks with status `null` |
 | [floor#766](https://github.com/pinchbv/floor/issues/766) | Support TypeConversions from Entities | 🧩 Large feature |  |  |

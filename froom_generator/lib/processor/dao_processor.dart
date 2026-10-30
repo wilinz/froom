@@ -162,12 +162,23 @@ class DaoProcessor extends Processor<Dao> {
         .toList();
   }
 
+  bool _isQueryOrChangeMethod(final MethodElement methodElement) {
+    return methodElement.hasAnnotation(annotations.Query) ||
+        methodElement.hasAnnotation(annotations.Insert) ||
+        methodElement.hasAnnotation(annotations.Update) ||
+        methodElement.hasAnnotation(annotations.Upsert) ||
+        methodElement.hasAnnotation(annotations.delete.runtimeType);
+  }
+
   List<TransactionMethod> _getTransactionMethods(
     final List<MethodElement> methodElements,
   ) {
+    // query and change methods run atomically already, so they aren't
+    // wrapped in a transaction again
     return methodElements
         .where((methodElement) =>
-            methodElement.hasAnnotation(annotations.transaction.runtimeType))
+            methodElement.hasAnnotation(annotations.transaction.runtimeType) &&
+            !_isQueryOrChangeMethod(methodElement))
         .map((methodElement) => TransactionMethodProcessor(
               methodElement,
               _daoGetterName,
