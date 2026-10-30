@@ -72,12 +72,7 @@ class FieldProcessor extends Processor<Field> {
     // a string literal is used as is, any other value gets quoted
     final trimmedValue = value.trim();
     if (RegExp(r"^'([^']|'')*'$").hasMatch(trimmedValue)) return trimmedValue;
-    final isQuoted = trimmedValue.length >= 2 &&
-        trimmedValue.startsWith("'") &&
-        trimmedValue.endsWith("'");
-    final unquotedValue = isQuoted
-        ? trimmedValue.substring(1, trimmedValue.length - 1)
-        : trimmedValue;
+    final unquotedValue = trimmedValue.replaceAll(RegExp(r"^'+|'+$"), '');
     return "'${unquotedValue.replaceAll("'", "''")}'";
   }
 

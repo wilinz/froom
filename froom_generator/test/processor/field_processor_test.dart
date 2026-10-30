@@ -207,12 +207,17 @@ void main() {
       expect(
         await defaultValueOf(
             "@ColumnInfo(defaultValue: \"x'\") final String name;"),
-        equals("'x'''"),
+        equals("'x'"),
       );
       expect(
         await defaultValueOf(
             "@ColumnInfo(defaultValue: \"'it's'\") final String name;"),
         equals("'it''s'"),
+      );
+      expect(
+        await defaultValueOf(
+            "@ColumnInfo(defaultValue: \"''Guest''\") final String name;"),
+        equals("'Guest'"),
       );
     });
 
