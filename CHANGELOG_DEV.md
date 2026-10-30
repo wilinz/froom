@@ -68,6 +68,7 @@
 - **getting-started**: Document absolute database paths for `databaseBuilder()`, covered by a test (#179, upstream floor#588, floor#803)
 - **getting-started, READMEs**: Import the entity in the DAO example (#181, upstream floor#645)
 - **entities**: Document FTS entities, tokenizers, the `rowid` primary key, `MATCH` queries and the missing constraints of virtual tables (#190, upstream floor#792)
+- **docs**: Point test links of the docs and READMEs to `froom_common/test/integration`, close the `group(` call of the testing example (#195, upstream floor#840)
 
 ## [6.0.0] - 2026-03-08
 

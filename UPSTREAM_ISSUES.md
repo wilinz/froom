@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 33 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 34 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 1 | Bug or small feature to be fixed |
+| ⏳ Planned | 0 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -129,7 +129,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#837](https://github.com/pinchbv/floor/issues/837) | [ERROR] Queries returning single elements might return null. | 🔁 Duplicate | [#183](https://github.com/wilinz/froom/issues/183) | Same as floor#744 |
 | [floor#838](https://github.com/pinchbv/floor/issues/838) | Need to set null for sqflite database instance when close database. Otherwise it will always return the old instance. | ➖ Not planned |  | Question, support or not applicable |
 | [floor#839](https://github.com/pinchbv/floor/issues/839) | when the Constructor has no params , dart run build_runner build cannot build the correct query result | 🔁 Duplicate | [#164](https://github.com/wilinz/froom/issues/164) | Same as floor#175 |
-| [floor#840](https://github.com/pinchbv/floor/issues/840) | [Bug]  Test directory referenced by the `Testing` documentation not found | ⏳ Planned |  | Docs: broken link to the tests |
+| [floor#840](https://github.com/pinchbv/floor/issues/840) | [Bug]  Test directory referenced by the `Testing` documentation not found | ✅ Fixed | [#195](https://github.com/wilinz/froom/issues/195) | Links point to `froom_common/test/integration` |
 | [floor#842](https://github.com/pinchbv/floor/issues/842) | Can I customize the parameter queryableName in the method queryListStream? | 🧩 Large feature |  |  |
 | [floor#843](https://github.com/pinchbv/floor/issues/843) | How can i do encryption for Secure DB? | 🧩 Large feature |  |  |
 | [floor#844](https://github.com/pinchbv/floor/issues/844) | Testing in package | ➖ Not planned |  | Question, support or not applicable |

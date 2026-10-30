@@ -160,4 +160,4 @@ It deletes the rows of all entity tables in a single transaction, resets the `AU
 await database.clearAllTables();
 ```
 
-For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom/test/integration) directories.
+For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) directories.

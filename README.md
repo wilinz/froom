@@ -202,7 +202,7 @@ await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
 
-For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom/test/integration) directories.
+For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) directories.
 
 ## Naming
 The library's name derives from the following.

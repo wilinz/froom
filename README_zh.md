@@ -201,7 +201,7 @@ await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
 
-更多示例请查看 [example](https://github.com/wilinz/froom/tree/develop/example) 和 [test](https://github.com/wilinz/froom/tree/develop/froom/test/integration) 目录。
+更多示例请查看 [example](https://github.com/wilinz/froom/tree/develop/example) 和 [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) 目录。
 
 ## 命名
 
