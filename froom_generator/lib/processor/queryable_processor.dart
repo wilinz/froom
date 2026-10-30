@@ -177,11 +177,21 @@ abstract class QueryableProcessor<T> extends Processor<T> {
   }
 
   /// Maps the fields of an item to its database column values.
+  ///
+  /// Like Room, `0` of a non-nullable auto generated integer primary key
+  /// [unsetPrimaryKey] is mapped to `NULL` when inserting, so that SQLite
+  /// generates the key.
   @protected
-  String getValueMapping(final List<Field> fields) {
+  String getValueMapping(
+    final List<Field> fields, {
+    final Field? unsetPrimaryKey,
+  }) {
     final keyValueList = fields.map((field) {
       final columnName = field.columnName;
       final attributeValue = _getAttributeValue(field);
+      if (field == unsetPrimaryKey) {
+        return "'$columnName': $attributeValue == 0 ? null : $attributeValue";
+      }
       return "'$columnName': $attributeValue";
     }).toList();
 

@@ -16,6 +16,7 @@
 - **queryable**: Entities and views can use mixins, whose fields become columns ([#171](https://github.com/wilinz/froom/issues/171))
 - **index**: Add `Index.where` for partial indices ([#172](https://github.com/wilinz/froom/issues/172))
 - **type_converter**: Converters of non-nullable types also convert nullable fields, parameters and query results, keeping `null` as `NULL` ([#174](https://github.com/wilinz/froom/issues/174))
+- **entity**: Like Room, `0` of a non-nullable auto generated `int` primary key is treated as unset when inserting ([#177](https://github.com/wilinz/froom/issues/177))
 
 ### 🐛 Bug Fixes
 - **froom_generator**: Generated code suppresses lints with `// ignore_for_file: type=lint` ([#162](https://github.com/wilinz/froom/issues/162))

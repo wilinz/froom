@@ -15,6 +15,10 @@ class Entity extends Queryable {
   final List<Index> indices;
   final bool withoutRowid;
   final String valueMapping;
+
+  /// The value mapping for inserting, which maps an unset auto generated
+  /// primary key to `NULL`.
+  final String insertionValueMapping;
   final Fts? fts;
 
   Entity(
@@ -27,8 +31,10 @@ class Entity extends Queryable {
     this.withoutRowid,
     String constructor,
     this.valueMapping,
-    this.fts,
-  ) : super(classElement, name, fields, constructor);
+    this.fts, {
+    final String? insertionValueMapping,
+  })  : insertionValueMapping = insertionValueMapping ?? valueMapping,
+        super(classElement, name, fields, constructor);
 
   String getCreateTableStatement() {
     final databaseDefinition = fields.map((field) {
@@ -81,7 +87,8 @@ class Entity extends Queryable {
           indices.equals(other.indices) &&
           withoutRowid == other.withoutRowid &&
           constructor == other.constructor &&
-          valueMapping == other.valueMapping;
+          valueMapping == other.valueMapping &&
+          insertionValueMapping == other.insertionValueMapping;
 
   @override
   int get hashCode =>
@@ -94,7 +101,8 @@ class Entity extends Queryable {
       constructor.hashCode ^
       withoutRowid.hashCode ^
       fts.hashCode ^
-      valueMapping.hashCode;
+      valueMapping.hashCode ^
+      insertionValueMapping.hashCode;
 
   @override
   String toString() {

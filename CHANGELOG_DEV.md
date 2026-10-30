@@ -25,6 +25,7 @@
 - **queryable_processor**: Allow mixins on entities and views (removed `prohibitedMixinUsage`); their fields are columns like fields of superclasses (#171, upstream floor#495)
 - **index**: Add `Index.where`, appended as `WHERE` clause to `CREATE INDEX` for partial indices (#172, upstream floor#497)
 - **type_converter**: `getClosestOrNullForNullable` falls back to the converter of the non-nullable type for nullable types; encoding, decoding, query parameters and single query results bypass it for `null` (with an explicit type argument for `query<T?>`) (#174, upstream floor#508)
+- **entity_processor**: Generate `Entity.insertionValueMapping`, mapping `0` of a non-nullable auto generated `int` primary key to `NULL`, used by insertion and upsertion adapters (#177, upstream floor#527, floor#571)
 
 ### 🐛 Bug Fixes
 - **insertion_method_processor**: Reject `Future<List<void>>` return types, which generated non-compiling code

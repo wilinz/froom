@@ -228,6 +228,49 @@ void main() {
     expect(actual, equals(expected));
   });
 
+  test('Maps unset auto generated primary key to NULL when inserting',
+      () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @PrimaryKey(autoGenerate: true)
+        final int id;
+      
+        final String name;
+      
+        Person(this.id, this.name);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process();
+
+    expect(actual.valueMapping,
+        equals("<String, Object?>{'id': item.id, 'name': item.name}"));
+    expect(
+      actual.insertionValueMapping,
+      equals("<String, Object?>{'id': item.id == 0 ? null : item.id, "
+          "'name': item.name}"),
+    );
+  });
+
+  test('Keeps nullable auto generated primary key when inserting', () async {
+    final classElement = await createClassElement('''
+      @entity
+      class Person {
+        @PrimaryKey(autoGenerate: true)
+        final int? id;
+      
+        final String name;
+      
+        Person(this.id, this.name);
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process();
+
+    expect(actual.insertionValueMapping, equals(actual.valueMapping));
+  });
+
   test('Uses converter of non-nullable type for nullable fields', () async {
     final classElement = await createClassElement('''
       @entity

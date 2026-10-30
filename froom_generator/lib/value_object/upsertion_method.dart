@@ -73,7 +73,8 @@ class UpsertionParameter {
   ClassElement get itemClassElement =>
       partialEntity?.classElement ?? entity.classElement;
 
-  String get valueMapping => partialEntity?.valueMapping ?? entity.valueMapping;
+  String get valueMapping =>
+      partialEntity?.valueMapping ?? entity.insertionValueMapping;
 
   /// Partial entities can target different entities, thus the target entity
   /// is part of their adapter name.

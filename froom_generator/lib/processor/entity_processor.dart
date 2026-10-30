@@ -48,7 +48,22 @@ class EntityProcessor extends QueryableProcessor<Entity> {
       getConstructor(fields),
       getValueMapping(fields),
       _getFts(),
+      insertionValueMapping: getValueMapping(
+        fields,
+        unsetPrimaryKey: _getUnsetPrimaryKey(primaryKey),
+      ),
     );
+  }
+
+  /// Returns the auto generated primary key field, for which `0` means unset,
+  /// if it's a non-nullable integer without type converter.
+  Field? _getUnsetPrimaryKey(final PrimaryKey primaryKey) {
+    if (!primaryKey.autoGenerateId) return null;
+    final field = primaryKey.fields.single;
+    final type = field.fieldElement.type;
+    return type.isDartCoreInt && !field.isNullable && field.typeConverter == null
+        ? field
+        : null;
   }
 
   String _getName() {

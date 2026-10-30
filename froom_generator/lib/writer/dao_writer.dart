@@ -102,6 +102,7 @@ class DaoWriter extends Writer {
         'InsertionAdapter',
         '_${entity.classElement.displayName.decapitalize()}InsertionAdapter',
         entity,
+        valueMapping: entity.insertionValueMapping,
         withPrimaryKey: false,
       );
     }

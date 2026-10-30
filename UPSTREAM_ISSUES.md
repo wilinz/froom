@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 14 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 16 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 20 | Bug or small feature to be fixed |
+| ⏳ Planned | 18 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -58,7 +58,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#515](https://github.com/pinchbv/floor/issues/515) | Method is generated twice if you override the method in a base class | ✅ Fixed | [#175](https://github.com/wilinz/froom/issues/175) | Overridden DAO methods are generated once |
 | [floor#516](https://github.com/pinchbv/floor/issues/516) | [floor_generator]-  Null check operator used on a null value | ➖ Not planned |  | Question, support or not applicable |
 | [floor#522](https://github.com/pinchbv/floor/issues/522) | Duplicate fields are added when an entity `implements` a class | ✅ Fixed | [#176](https://github.com/wilinz/froom/issues/176) | Overridden fields are columns once |
-| [floor#527](https://github.com/pinchbv/floor/issues/527) | How do I tell floor that the primary key is unset and should be generated? | ⏳ Planned |  | Treat `0` of auto generated primary keys as unset, like Room |
+| [floor#527](https://github.com/pinchbv/floor/issues/527) | How do I tell floor that the primary key is unset and should be generated? | ✅ Fixed | [#177](https://github.com/wilinz/froom/issues/177) | `0` of non-nullable auto generated keys means unset, like Room |
 | [floor#534](https://github.com/pinchbv/floor/issues/534) | Cannot set PRAGMA foreign_keys = OFF on migration | ⏳ Planned |  | Foreign keys during migrations |
 | [floor#545](https://github.com/pinchbv/floor/issues/545) | Transfer package to verified publisher | ➖ Not planned |  | Question, support or not applicable |
 | [floor#558](https://github.com/pinchbv/floor/issues/558) | [Floor 1.1.0] Impossible to generate database dart file since latest update | ➖ Not planned |  | Question, support or not applicable |
@@ -66,7 +66,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#567](https://github.com/pinchbv/floor/issues/567) | Inject of one DAO to other DAO | 🧩 Large feature |  |  |
 | [floor#568](https://github.com/pinchbv/floor/issues/568) | Support for private fields with getters | 🧩 Large feature |  |  |
 | [floor#570](https://github.com/pinchbv/floor/issues/570) | Integrate "In Memory Database" | ➖ Not planned |  | Question, support or not applicable |
-| [floor#571](https://github.com/pinchbv/floor/issues/571) | Autoincrement primary key example is wrong | ⏳ Planned |  | Docs: auto increment example should use a nullable id |
+| [floor#571](https://github.com/pinchbv/floor/issues/571) | Autoincrement primary key example is wrong | ✅ Fixed | [#177](https://github.com/wilinz/froom/issues/177) | The example is valid now, as `0` means unset; the docs explain both ways |
 | [floor#576](https://github.com/pinchbv/floor/issues/576) | Return null on  scalar queries such as "Select count(*) from ..." | ✔️ Already resolved |  | Scalar queries return values (verified) |
 | [floor#582](https://github.com/pinchbv/floor/issues/582) | Can I ask for “ATTACH DATABASE” support？ | ➖ Not planned |  | Question, support or not applicable |
 | [floor#584](https://github.com/pinchbv/floor/issues/584) | How to fetch data from a databse placed in the assets? | 🧩 Large feature |  |  |
