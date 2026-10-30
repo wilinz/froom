@@ -37,6 +37,7 @@
 - **query_processor, query_method_writer**: Allow nullable scalar query parameters (nullable lists are still rejected), bound as `NULL`; nullable `bool`/enum parameters and nullable parameters with a converter of the non-nullable type map `null` to `NULL`; `QueryAdapter` takes `List<Object?>` arguments (#173, upstream floor#507)
 - **dao_processor**: Collect DAO methods from the closest to the most distant supertype (mixins in reverse order) and keep only the most specific declaration of overridden methods (#175, upstream floor#515)
 - **queryable_processor**: Collect fields from the closest to the most distant supertype and keep only the most specific declaration of overridden fields, respecting `@ignore` on overrides; the traversal is shared with the DAO processor (`InterfaceElementExtension.supertypesClosestFirst`) (#176, upstream floor#522, floor#798, floor#799)
+- **database_writer, migration_adapter**: Don't enable foreign keys in `onConfigure` when an upgrade is pending (`MigrationAdapter.isUpgradePending`), but after the migrations in `onOpen` following a `PRAGMA foreign_key_check` (`enableForeignKeysAfterMigrations`) (#178, upstream floor#534)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

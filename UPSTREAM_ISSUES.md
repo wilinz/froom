@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 16 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 17 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 18 | Bug or small feature to be fixed |
+| ⏳ Planned | 17 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -59,7 +59,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#516](https://github.com/pinchbv/floor/issues/516) | [floor_generator]-  Null check operator used on a null value | ➖ Not planned |  | Question, support or not applicable |
 | [floor#522](https://github.com/pinchbv/floor/issues/522) | Duplicate fields are added when an entity `implements` a class | ✅ Fixed | [#176](https://github.com/wilinz/froom/issues/176) | Overridden fields are columns once |
 | [floor#527](https://github.com/pinchbv/floor/issues/527) | How do I tell floor that the primary key is unset and should be generated? | ✅ Fixed | [#177](https://github.com/wilinz/froom/issues/177) | `0` of non-nullable auto generated keys means unset, like Room |
-| [floor#534](https://github.com/pinchbv/floor/issues/534) | Cannot set PRAGMA foreign_keys = OFF on migration | ⏳ Planned |  | Foreign keys during migrations |
+| [floor#534](https://github.com/pinchbv/floor/issues/534) | Cannot set PRAGMA foreign_keys = OFF on migration | ✅ Fixed | [#178](https://github.com/wilinz/froom/issues/178) | Migrations run with foreign keys disabled, checked afterwards |
 | [floor#545](https://github.com/pinchbv/floor/issues/545) | Transfer package to verified publisher | ➖ Not planned |  | Question, support or not applicable |
 | [floor#558](https://github.com/pinchbv/floor/issues/558) | [Floor 1.1.0] Impossible to generate database dart file since latest update | ➖ Not planned |  | Question, support or not applicable |
 | [floor#566](https://github.com/pinchbv/floor/issues/566) | Since there is no fallback to destructive migration can we atleast create tables via the annotated entities? | 🔁 Duplicate | [#167](https://github.com/wilinz/froom/issues/167) | Same as floor#356 |

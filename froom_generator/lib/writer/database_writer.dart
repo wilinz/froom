@@ -142,13 +142,24 @@ class DatabaseWriter implements Writer {
             await callback?.onDestructiveMigration?.call(database);
           }
 
+          // foreign keys are enabled after migrations, which can't disable
+          // them within their transaction
+          var enableForeignKeysOnOpen = false;
+
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: ${database.version},
             onConfigure: (database) async {
-              await database.execute('PRAGMA foreign_keys = ON');
+              if (await MigrationAdapter.isUpgradePending(database, ${database.version})) {
+                enableForeignKeysOnOpen = true;
+              } else {
+                await database.execute('PRAGMA foreign_keys = ON');
+              }
               await callback?.onConfigure?.call(database);
             },
             onOpen: (database) async {
+              if (enableForeignKeysOnOpen) {
+                await MigrationAdapter.enableForeignKeysAfterMigrations(database);
+              }
               await callback?.onOpen?.call(database);
             },
             onUpgrade: (database, startVersion, endVersion) async {

@@ -22,6 +22,36 @@ abstract class MigrationAdapter {
     }
   }
 
+  /// Whether opening the existing [database] runs migrations, as its version
+  /// is lower than [version].
+  ///
+  /// Foreign keys stay disabled while migrating then, as they can't be
+  /// toggled within the transaction of migrations, e.g. for recreating
+  /// tables.
+  static Future<bool> isUpgradePending(
+    final Database database,
+    final int version,
+  ) async {
+    final currentVersion = await database.getVersion();
+    return currentVersion != 0 && currentVersion < version;
+  }
+
+  /// Enables foreign keys after migrating the [database] with them disabled,
+  /// after checking that the migrations didn't violate them, as recommended
+  /// by SQLite for schema changes.
+  static Future<void> enableForeignKeysAfterMigrations(
+    final Database database,
+  ) async {
+    final violations = await database.rawQuery('PRAGMA foreign_key_check');
+    if (violations.isNotEmpty) {
+      final tables = violations.map((violation) => violation['table']).toSet();
+      throw StateError(
+        'The migrations violated foreign keys of the tables ${tables.join(', ')}.',
+      );
+    }
+    await database.execute('PRAGMA foreign_keys = ON');
+  }
+
   /// Whether [migrations] migrate the database from [startVersion] to
   /// [endVersion].
   static bool hasMigrationPath(

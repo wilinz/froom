@@ -40,6 +40,9 @@ final database = await $FroomAppDatabase
     .build();
 ```
 
+Migrations run with foreign keys disabled, as they can't be disabled within the transaction of the migrations, which e.g. [recreating a table](https://www.sqlite.org/lang_altertable.html#otheralter) requires.
+After the migrations, Froom checks that they didn't violate any foreign keys with `PRAGMA foreign_key_check`, fails opening the database otherwise and enables foreign keys again.
+
 ## Destructive Migration
 
 When it's fine to lose the data of the database, e.g. for a cache or during development, call `fallbackToDestructiveMigration()` on the database builder.
