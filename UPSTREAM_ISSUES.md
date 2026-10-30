@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 29 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 30 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 5 | Bug or small feature to be fixed |
+| ⏳ Planned | 4 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -113,16 +113,16 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#792](https://github.com/pinchbv/floor/issues/792) | Improve FTS documentation and add some examples | ✅ Fixed | [#190](https://github.com/wilinz/froom/issues/190) | FTS is documented with an example |
 | [floor#798](https://github.com/pinchbv/floor/issues/798) | Dumplicate field name when entity implement form abstract class | 🔁 Duplicate | [#176](https://github.com/wilinz/froom/issues/176) | Same as floor#522 |
 | [floor#799](https://github.com/pinchbv/floor/issues/799) | duplicate field name when entity implement form abstract class | 🔁 Duplicate | [#176](https://github.com/wilinz/froom/issues/176) | Same as floor#522 |
-| [floor#802](https://github.com/pinchbv/floor/issues/802) | trying to get a SUM of a field with floor. | ⏳ Planned |  | Casting `int` values to `double` fails (verified) |
+| [floor#802](https://github.com/pinchbv/floor/issues/802) | trying to get a SUM of a field with floor. | ✅ Fixed | [#191](https://github.com/wilinz/froom/issues/191) | Doubles are read from integer values via `num` |
 | [floor#803](https://github.com/pinchbv/floor/issues/803) | Custom Database File Path | 🔁 Duplicate | [#179](https://github.com/wilinz/froom/issues/179) | Same as floor#588 |
 | [floor#804](https://github.com/pinchbv/floor/issues/804) | sqlite wal | ➖ Not planned |  | Question, support or not applicable |
 | [floor#805](https://github.com/pinchbv/floor/issues/805) | How to update a List of an object as field of entity into table in Floor | ➖ Not planned |  | Question, support or not applicable |
 | [floor#810](https://github.com/pinchbv/floor/issues/810) | Are there any plans to adapt HarmonyOS | ➖ Not planned |  | Question, support or not applicable |
-| [floor#814](https://github.com/pinchbv/floor/issues/814) | #802 still an issue. any help? | 🔁 Duplicate |  | Same as floor#802 |
-| [floor#816](https://github.com/pinchbv/floor/issues/816) | Casting to double might not work; | 🔁 Duplicate |  | Same as floor#802 |
+| [floor#814](https://github.com/pinchbv/floor/issues/814) | #802 still an issue. any help? | 🔁 Duplicate | [#191](https://github.com/wilinz/froom/issues/191) | Same as floor#802 |
+| [floor#816](https://github.com/pinchbv/floor/issues/816) | Casting to double might not work; | 🔁 Duplicate | [#191](https://github.com/wilinz/froom/issues/191) | Same as floor#802 |
 | [floor#820](https://github.com/pinchbv/floor/issues/820) | Invalid query (failing to parse) does not throw an error | ⏳ Planned |  | Invalid query not reported by the generator (verified) |
 | [floor#823](https://github.com/pinchbv/floor/issues/823) | onCreate callback is not being called, "tbl not found" exception | ➖ Not planned |  | Question, support or not applicable |
-| [floor#828](https://github.com/pinchbv/floor/issues/828) | type missmatch int <-> double | 🔁 Duplicate |  | Same as floor#802 |
+| [floor#828](https://github.com/pinchbv/floor/issues/828) | type missmatch int <-> double | 🔁 Duplicate | [#191](https://github.com/wilinz/froom/issues/191) | Same as floor#802 |
 | [floor#833](https://github.com/pinchbv/floor/issues/833) | No stream updates with quoted table name | ⏳ Planned |  | No stream updates with double quoted table names (verified) |
 | [floor#834](https://github.com/pinchbv/floor/issues/834) | Feature Request: Add clearAllTables Function | 🔁 Duplicate | [#163](https://github.com/wilinz/froom/issues/163) | Same as floor#166, also resets `sqlite_sequence` |
 | [floor#835](https://github.com/pinchbv/floor/issues/835) | Feature request: Indexes on Expressions | ⏳ Planned |  | Indices on expressions |

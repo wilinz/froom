@@ -225,7 +225,7 @@ void main() {
 
       final expectedFieldNames = ['id', 'foo', 'name'];
       const expectedConstructor =
-          "TestEntity(row['id'] as int, row['foo'] as double, row['name'] as String)";
+          "TestEntity(row['id'] as int, (row['foo'] as num).toDouble(), row['name'] as String)";
       expect(fieldNames, containsAll(expectedFieldNames));
       expect(actual.constructor, equals(expectedConstructor));
     });
@@ -629,7 +629,7 @@ void main() {
 
         const expected = 'Person('
             "row['id'] as int?, "
-            "row['doubleId'] as double?, "
+            "(row['doubleId'] as num?)?.toDouble(), "
             "row['name'] as String?, "
             "row['bar'] == null ? null : (row['bar'] as int) != 0, "
             "row['blob'] as Uint8List?, "
@@ -664,7 +664,7 @@ void main() {
 
         const expected = 'Person('
             "row['id'] as int, "
-            "row['doubleId'] as double, "
+            "(row['doubleId'] as num).toDouble(), "
             "row['name'] as String, "
             "(row['bar'] as int) != 0, "
             "row['blob'] as Uint8List, "

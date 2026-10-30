@@ -47,6 +47,7 @@
 - **index**: Generate `CREATE INDEX IF NOT EXISTS`, so creating the schema again, e.g. for new tables in migrations, doesn't fail (#187, upstream floor#775, floor#788)
 - **transaction_method_writer**: Keep the nullability of the type argument of `transaction<T>`, e.g. `transaction<Person?>` for `Future<Person?>` (#188, upstream floor#783)
 - **entity_processor**: Throw `noMatchingPrimaryKeyColumn` for compound primary key columns without a matching field, which were silently dropped from the primary key (#189, upstream floor#789)
+- **cast**: Read `double` values as `(value as num).toDouble()` instead of `value as double`, which failed for integers SQLite returns e.g. for whole number expressions (#191, upstream floor#802, floor#814, floor#816, floor#828)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

@@ -82,10 +82,15 @@ extension CastStringExtension on String {
       } else {
         return enumDeserializer;
       }
+    } else if (dartType.isDartCoreDouble) {
+      // SQLite returns integers for whole numbers of e.g. expressions like
+      // `COALESCE(SUM(price), 0)`, which can't be cast to double
+      return dartType.isNullable && withNullability
+          ? '($this as num?)?.toDouble()'
+          : '($this as num).toDouble()';
     } else if (dartType.isDartCoreString ||
         dartType.isDartCoreInt ||
-        dartType.isUint8List ||
-        dartType.isDartCoreDouble) {
+        dartType.isUint8List) {
       final typeString = dartType.getDisplayStringCompat(
         withNullability: withNullability,
       );

@@ -60,7 +60,7 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Future<Person?> findById(int id) async {
-        return _queryAdapter.query('SELECT * FROM Person WHERE id = ?1', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [id]);
+        return _queryAdapter.query('SELECT * FROM Person WHERE id = ?1', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [id]);
       }
     '''));
   });
@@ -80,7 +80,7 @@ void main() {
         int offset = 0,
         required int count,
       }) async {
-        return _queryAdapter.queryList('SELECT * FROM Person WHERE name = ?1 LIMIT ?3 OFFSET ?2', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [name, offset, count]);
+        return _queryAdapter.queryList('SELECT * FROM Person WHERE name = ?1 LIMIT ?3 OFFSET ?2', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [name, offset, count]);
       }
     '''));
   });
@@ -96,7 +96,7 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Future<List<Person>> findFirst([int count = 10]) async {
-        return _queryAdapter.queryList('SELECT * FROM Person LIMIT ?1', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [count]);
+        return _queryAdapter.queryList('SELECT * FROM Person LIMIT ?1', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [count]);
       }
     '''));
   });
@@ -116,7 +116,7 @@ void main() {
         bool? admin,
         CharacterType? type,
       ) async {
-        return _queryAdapter.queryList('SELECT * FROM Person WHERE name IS ?1 AND admin IS ?2 AND someType IS ?3', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [name, admin == null ? null : (admin ? 1 : 0), type?.index]);
+        return _queryAdapter.queryList('SELECT * FROM Person WHERE name IS ?1 AND admin IS ?2 AND someType IS ?3', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [name, admin == null ? null : (admin ? 1 : 0), type?.index]);
       }
     '''));
   });
@@ -180,7 +180,7 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Future<double?> getFirstPersonWeight() async {
-        return _queryAdapter.query('SELECT weight FROM Person LIMIT 1', mapper: (Map<String, Object?> row) => row.values.first as double);
+        return _queryAdapter.query('SELECT weight FROM Person LIMIT 1', mapper: (Map<String, Object?> row) => (row.values.first as num).toDouble());
       }
     '''));
   });
@@ -196,7 +196,7 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Future<List<double>> getPeopleWeightList() async {
-        return _queryAdapter.queryList('SELECT weight FROM Person', mapper: (Map<String, Object?> row) => row.values.first as double);
+        return _queryAdapter.queryList('SELECT weight FROM Person', mapper: (Map<String, Object?> row) => (row.values.first as num).toDouble());
       }
     '''));
   });
@@ -212,7 +212,7 @@ void main() {
     expect(actual, equalsDart(r'''
       @override
       Stream<List<double>> getPeopleWeightListAsStream() {
-        return _queryAdapter.queryListStream('SELECT weight FROM Person', mapper: (Map<String, Object?> row) => row.values.first as double, queryableName: 'Person', isView: false);
+        return _queryAdapter.queryListStream('SELECT weight FROM Person', mapper: (Map<String, Object?> row) => (row.values.first as num).toDouble(), queryableName: 'Person', isView: false);
       }
     '''));
   });
@@ -658,7 +658,7 @@ void main() {
                 mapper: (Map<String, Object?> row) => Person(
                     row['id'] as int,
                     row['name'] as String,
-                    row['weight'] as double,
+                    (row['weight'] as num).toDouble(),
                     (row['admin'] as int) != 0,
                     row['avatar'] as Uint8List),
                 arguments: [count, ...keySet]);
@@ -679,7 +679,7 @@ void main() {
           Future<List<Person>> findWithFlag(bool flag) async {
             return _queryAdapter.queryList('SELECT * FROM Person WHERE flag = ?1',
                 mapper: (Map<String, Object?> row) =>
-                    Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                    Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                 arguments: [flag ? 1 : 0]);
           }
           '''));
@@ -699,7 +699,7 @@ void main() {
             return _queryAdapter.queryList(
                 'SELECT * FROM Person WHERE characterType = ?1',
                 mapper: (Map<String, Object?> row) =>
-                    Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                    Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                 arguments: [type.index]);
           }
           '''));
@@ -721,7 +721,7 @@ void main() {
           ) async {
             return _queryAdapter.query('SELECT * FROM Person WHERE id = ?1 AND name = ?2',
                 mapper: (Map<String, Object?> row) =>
-                    Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                    Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                 arguments: [id, name]);
           }
           '''));
@@ -744,7 +744,7 @@ void main() {
             ) async {
               return _queryAdapter.query(
                   'SELECT * FROM Person WHERE foo = ?3 AND id = ?1 AND name = ?2 AND name = ?3',
-                  mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                  mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                   arguments: [id, name, bar]);
             }
             '''));
@@ -763,7 +763,7 @@ void main() {
             Future<List<Person>> findAll() async {
               return _queryAdapter.queryList('SELECT * FROM Person',
                   mapper: (Map<String, Object?> row) =>
-                      Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List));
+                      Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List));
             }
             '''));
   });
@@ -781,7 +781,7 @@ void main() {
             Stream<Person?> findByIdAsStream(int id) {
               return _queryAdapter.queryStream('SELECT * FROM Person WHERE id = ?1',
                   mapper: (Map<String, Object?> row) =>
-                      Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                      Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                   arguments: [id],
                   queryableName: 'Person',
                   isView: false);
@@ -802,7 +802,7 @@ void main() {
       Stream<List<Person>> findAllAsStream() {
         return _queryAdapter.queryListStream(
         'SELECT * FROM Person', 
-        mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), 
+        mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), 
         queryableName: 'Person', isView: false);
       }
     '''));
@@ -857,7 +857,7 @@ void main() {
         const offset = 1;
         final _sqliteVariablesForIds=Iterable<String>.generate(ids.length, (i)=>'?${i+offset}').join(',');
         return _queryAdapter.queryList('SELECT * FROM Person WHERE id IN (' + _sqliteVariablesForIds + ')', 
-          mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), 
+          mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List), 
           arguments: [...ids]);
      }
     '''));
@@ -877,7 +877,7 @@ void main() {
         const offset = 1;
         final _sqliteVariablesForIds=Iterable<String>.generate(ids.length, (i)=>'?${i+offset}').join(',');
         return _queryAdapter.queryList('SELECT * FROM Person WHERE id IN(' + _sqliteVariablesForIds + ')',
-          mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+          mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
           arguments: [...ids]);
       }
     '''));
@@ -910,7 +910,7 @@ void main() {
                       _sqliteVariablesForIdx +
                       ')',
                   mapper: (Map<String, Object?> row) =>
-                      Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                      Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                   arguments: [...ids, ...idx]);
             }
             '''));
@@ -949,7 +949,7 @@ void main() {
                       _sqliteVariablesForIds +
                       ') AND bar = ?2 OR name = ?1',
                   mapper: (Map<String, Object?> row) =>
-                      Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List),
+                      Person(row['id'] as int, row['name'] as String, (row['weight'] as num).toDouble(), (row['admin'] as int) != 0, row['avatar'] as Uint8List),
                   arguments: [name, foo, ...idx, ...ids]);
             }
             '''));
