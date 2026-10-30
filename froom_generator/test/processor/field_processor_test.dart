@@ -211,8 +211,8 @@ void main() {
       );
       expect(
         await defaultValueOf(
-            "@ColumnInfo(defaultValue: \"'a'b'\") final String name;"),
-        equals("'''a''b'''"),
+            "@ColumnInfo(defaultValue: \"'it's'\") final String name;"),
+        equals("'it''s'"),
       );
     });
 
