@@ -134,12 +134,25 @@ class DaoProcessor extends Processor<Dao> {
     final parameters = method.formalParameters;
     final redeclaredParameters = redeclaration.formalParameters;
     for (var i = 0; i < parameters.length; i++) {
-      if (parameters[i].defaultValueCode !=
-          redeclaredParameters[i].defaultValueCode) {
-        return false;
-      }
+      final parameter = parameters[i];
+      // named parameters can be declared in another order
+      final redeclaredParameter = parameter.isNamed
+          ? redeclaredParameters
+              .firstWhere((other) => other.name == parameter.name)
+          : redeclaredParameters[i];
+      if (!_hasSameDefaultValue(parameter, redeclaredParameter)) return false;
     }
     return true;
+  }
+
+  bool _hasSameDefaultValue(
+    final FormalParameterElement parameter,
+    final FormalParameterElement other,
+  ) {
+    final value = parameter.computeConstantValue();
+    final otherValue = other.computeConstantValue();
+    if (value != null && otherValue != null) return value == otherValue;
+    return parameter.defaultValueCode == other.defaultValueCode;
   }
 
   List<QueryMethod> _getQueryMethods(

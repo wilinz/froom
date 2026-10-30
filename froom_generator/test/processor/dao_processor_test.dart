@@ -120,6 +120,26 @@ void main() {
     expect(actual, throwsInvalidGenerationSourceError());
   });
 
+  test('Accepts redeclarations with the same signature', () async {
+    final classElement = await _createDao('''
+      @dao
+      abstract class PersonDao extends AbstractDao<Person> {
+        @override
+        Future<List<Person>> findAll({int b = 2, int a = 0x1});
+      }
+      
+      abstract class AbstractDao<T> {
+        @Query('SELECT * FROM person LIMIT :a OFFSET :b')
+        Future<List<T>> findAll({int a = 1, int b = 2});
+      }
+    ''');
+
+    final actual =
+        DaoProcessor(classElement, '', '', entities, views, {}).process();
+
+    expect(actual.queryMethods, hasLength(1));
+  });
+
   test('Ignores @transaction on query and change methods', () async {
     final classElement = await _createDao('''
       @dao
