@@ -41,6 +41,7 @@
 - **database_writer, migration_adapter**: Don't enable foreign keys in `onConfigure` when an upgrade is pending (`MigrationAdapter.isUpgradePending`), but after the migrations in `onOpen` following a `PRAGMA foreign_key_check` (`enableForeignKeysAfterMigrations`) (#178, upstream floor#534)
 - **query_processor, query_method_writer**: Accept list parameters as the only content of parentheses (row values), not only after `IN`, and bind `List<Object>` items as they are (#180, upstream floor#617)
 - **query_method_processor**: Throw `unresolvedReturnType` for `InvalidType` return types before the nullability check, which misleadingly asked for a nullable type (#183, upstream floor#744, floor#837)
+- **query_adapter**: Streams skip results of re-queries finishing after they got closed, ignore `database_closed` errors and forward other errors to listeners instead of leaving them unhandled; both stream methods share `_createStream` (#184, upstream floor#745)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

@@ -70,30 +70,11 @@ class QueryAdapter {
     required final bool isView,
     required final T Function(Map<String, Object?>) mapper,
   }) {
-    // ignore: close_sinks
-    final changeListener = ArgumentError.checkNotNull(_changeListener);
-    final controller = StreamController<T?>.broadcast();
-
-    Future<void> executeQueryAndNotifyController() async {
-      final result = await query(sql, arguments: arguments, mapper: mapper);
-      controller.add(result);
-    }
-
-    controller.onListen = () async => executeQueryAndNotifyController();
-
-    // listen on all updates if the stream is on a view, only listen to the
-    // name of the table if the stream is on a entity.
-    final subscription = changeListener.stream
-        .where((updatedTable) =>
-            isView || updatedTable.equals(queryableName, ignoreCase: true))
-        .listen(
-          (_) async => executeQueryAndNotifyController(),
-          onDone: () => controller.close(),
-        );
-
-    controller.onCancel = () => subscription.cancel();
-
-    return controller.stream;
+    return _createStream(
+      () => query(sql, arguments: arguments, mapper: mapper),
+      queryableName: queryableName,
+      isView: isView,
+    );
   }
 
   /// Executes a SQLite query that returns a stream of multiple query results.
@@ -104,13 +85,35 @@ class QueryAdapter {
     required final bool isView,
     required final T Function(Map<String, Object?>) mapper,
   }) {
+    return _createStream(
+      () => queryList(sql, arguments: arguments, mapper: mapper),
+      queryableName: queryableName,
+      isView: isView,
+    );
+  }
+
+  /// Creates a stream emitting the results of [executeQuery] when listened to
+  /// and whenever the queried entity changes.
+  Stream<R> _createStream<R>(
+    final Future<R> Function() executeQuery, {
+    required final String queryableName,
+    required final bool isView,
+  }) {
     // ignore: close_sinks
     final changeListener = ArgumentError.checkNotNull(_changeListener);
-    final controller = StreamController<List<T>>.broadcast();
+    final controller = StreamController<R>.broadcast();
 
     Future<void> executeQueryAndNotifyController() async {
-      final result = await queryList(sql, arguments: arguments, mapper: mapper);
-      controller.add(result);
+      try {
+        final result = await executeQuery();
+        if (!controller.isClosed) controller.add(result);
+      } catch (error, stackTrace) {
+        // the database can be closed while querying, which closes the stream
+        final isDatabaseClosed =
+            error is DatabaseException && error.isDatabaseClosedError();
+        if (controller.isClosed || isDatabaseClosed) return;
+        controller.addError(error, stackTrace);
+      }
     }
 
     controller.onListen = () async => executeQueryAndNotifyController();

@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 22 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 23 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 12 | Bug or small feature to be fixed |
+| ⏳ Planned | 11 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -93,7 +93,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#741](https://github.com/pinchbv/floor/issues/741) | Join query | ➖ Not planned |  | Question, support or not applicable |
 | [floor#742](https://github.com/pinchbv/floor/issues/742) | Invalid use of a private type | ✔️ Already resolved |  | Generated code suppresses lints (`type=lint`) |
 | [floor#744](https://github.com/pinchbv/floor/issues/744) | Make the method return a Future of a nullable type | ✅ Fixed | [#183](https://github.com/wilinz/froom/issues/183) | Unresolved return types, e.g. missing imports, are reported as such |
-| [floor#745](https://github.com/pinchbv/floor/issues/745) | Unhandled Exception: DatabaseException(error database_closed) | ⏳ Planned |  | Streams re-query a closed database |
+| [floor#745](https://github.com/pinchbv/floor/issues/745) | Unhandled Exception: DatabaseException(error database_closed) | ✅ Fixed | [#184](https://github.com/wilinz/froom/issues/184) | Streams ignore re-queries finishing after the database got closed |
 | [floor#746](https://github.com/pinchbv/floor/issues/746) | There's a lot of duplicate code | ➖ Not planned |  | Internal refactoring, partially done while fixing other issues |
 | [floor#747](https://github.com/pinchbv/floor/issues/747) | Query with IF | ➖ Not planned |  | Question, support or not applicable |
 | [floor#748](https://github.com/pinchbv/floor/issues/748) | Generating duplicated definitions with @transaction | ⏳ Planned |  | `@insert` with `@transaction` generated twice (verified) |
