@@ -24,6 +24,7 @@
 - **migrations**: Add `fallbackToDestructiveMigration()` to the builder; without a migration path on upgrade, and on downgrade, `MigrationAdapter.dropAllTables` drops all views and tables (virtual tables first) with deferred foreign keys and the schema gets recreated; `MigrationAdapter.hasMigrationPath` and `Callback.onDestructiveMigration` added, the generated `open` creates the schema in a local `createSchema` (#167, upstream floor#356, floor#566, floor#614, floor#853)
 - **queryable_processor**: Allow mixins on entities and views (removed `prohibitedMixinUsage`); their fields are columns like fields of superclasses (#171, upstream floor#495)
 - **index**: Add `Index.where`, appended as `WHERE` clause to `CREATE INDEX` for partial indices (#172, upstream floor#497)
+- **type_converter**: `getClosestOrNullForNullable` falls back to the converter of the non-nullable type for nullable types; encoding, decoding, query parameters and single query results bypass it for `null` (with an explicit type argument for `query<T?>`) (#174, upstream floor#508)
 
 ### 🐛 Bug Fixes
 - **insertion_method_processor**: Reject `Future<List<void>>` return types, which generated non-compiling code

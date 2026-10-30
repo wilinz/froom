@@ -456,6 +456,30 @@ void main() {
     '''));
     });
 
+    test('generates method returning nullable type converted value',
+        () async {
+      final typeConverter = TypeConverter(
+        'DateTimeConverter',
+        await dateTimeDartType,
+        await intDartType,
+        TypeConverterScope.database,
+      );
+      final queryMethod = await '''
+      @Query('SELECT MAX(dateTime) FROM Order')
+      Future<DateTime?> findLatest();
+    '''
+          .asOrderQueryMethod({typeConverter});
+
+      final actual = QueryMethodWriter(queryMethod).write();
+
+      expect(actual, equalsDart(r'''
+      @override
+      Future<DateTime?> findLatest() async {
+        return _queryAdapter.query<DateTime?>('SELECT MAX(dateTime) FROM Order', mapper: (Map<String, Object?> row) => row.values.first == null ? null : _dateTimeConverter.decode(row.values.first as int));
+      }
+    '''));
+    });
+
     test('generates method with local method type converter', () async {
       final typeConverter = TypeConverter(
         'ExternalTypeConverter',

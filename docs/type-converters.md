@@ -52,6 +52,10 @@ class Order {
 }
 ```
 
+A converter of a non-nullable type also converts the nullable type, e.g. `DateTime?` fields, parameters and query results.
+`null` values are stored as `NULL` without invoking the converter.
+A converter of the nullable type, e.g. `TypeConverter<DateTime?, int?>`, is preferred if there is one.
+
 ---
 
 **Type converters can be applied to**

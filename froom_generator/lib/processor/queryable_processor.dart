@@ -52,7 +52,10 @@ abstract class QueryableProcessor<T> extends Processor<T> {
   /// its own one.
   @protected
   TypeConverter? getFieldTypeConverter(final FieldElement fieldElement) {
-    return queryableTypeConverters.getClosestOrNull(fieldElement.type);
+    return queryableTypeConverters.getClosestOrNullForNullable(
+      fieldElement.type,
+      classElement.library.typeSystem,
+    );
   }
 
   @protected
@@ -125,7 +128,10 @@ abstract class QueryableProcessor<T> extends Processor<T> {
   TypeConverter? getValueTypeConverter(final Field field) {
     return [...queryableTypeConverters, field.typeConverter]
         .nonNulls
-        .getClosestOrNull(field.fieldElement.type);
+        .getClosestOrNullForNullable(
+          field.fieldElement.type,
+          classElement.library.typeSystem,
+        );
   }
 
   /// Decodes the database value of [field] into a value of [type].
@@ -138,14 +144,18 @@ abstract class QueryableProcessor<T> extends Processor<T> {
 
     final typeConverter = [...queryableTypeConverters, field.typeConverter]
         .nonNulls
-        .getClosestOrNull(type);
+        .getClosestOrNullForNullable(type, classElement.library.typeSystem);
 
     if (typeConverter != null) {
       final castedDatabaseValue = databaseValue.cast(
         typeConverter.databaseType,
         element,
       );
-      return '_${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
+      final decodedValue =
+          '_${typeConverter.name.decapitalize()}.decode($castedDatabaseValue)';
+      return typeConverter.convertsOnlyNonNull(type)
+          ? '$databaseValue == null ? null : $decodedValue'
+          : decodedValue;
     } else if (type.isDefaultSqlType || type.isEnumType) {
       return databaseValue.cast(type, element);
     } else {
@@ -177,8 +187,11 @@ abstract class QueryableProcessor<T> extends Processor<T> {
     String attributeValue = 'item.$parameterName';
 
     if (typeConverter != null) {
-      attributeValue =
-          '_${typeConverter.name.decapitalize()}.encode(item.$parameterName)';
+      final converterName = '_${typeConverter.name.decapitalize()}';
+      attributeValue = typeConverter.convertsOnlyNonNull(fieldType)
+          // force! underlying non-nullable type as null check has been done
+          ? '$attributeValue == null ? null : $converterName.encode($attributeValue!)'
+          : '$converterName.encode($attributeValue)';
     } else if (fieldType.isDartCoreBool) {
       attributeValue = _serializeBoolean(field, attributeValue);
     } else if (fieldType.isEnumType) {

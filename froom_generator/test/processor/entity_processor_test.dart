@@ -228,6 +228,57 @@ void main() {
     expect(actual, equals(expected));
   });
 
+  test('Uses converter of non-nullable type for nullable fields', () async {
+    final classElement = await createClassElement('''
+      @entity
+      @TypeConverters([DateTimeConverter])
+      class Order {
+        @primaryKey
+        final int id;
+      
+        final DateTime createdAt;
+      
+        final DateTime? shippedAt;
+      
+        Order(this.id, this.createdAt, this.shippedAt);
+      }
+      
+      class DateTimeConverter extends TypeConverter<DateTime, int> {
+        @override
+        DateTime decode(int databaseValue) =>
+            DateTime.fromMillisecondsSinceEpoch(databaseValue);
+      
+        @override
+        int encode(DateTime value) => value.millisecondsSinceEpoch;
+      }
+    ''');
+
+    final actual = EntityProcessor(classElement, {}).process();
+
+    expect(
+      actual.constructor,
+      equals("Order(row['id'] as int, "
+          "_dateTimeConverter.decode(row['createdAt'] as int), "
+          "row['shippedAt'] == null ? null : "
+          "_dateTimeConverter.decode(row['shippedAt'] as int))"),
+    );
+    expect(
+      actual.valueMapping,
+      equals("<String, Object?>{'id': item.id, "
+          "'createdAt': _dateTimeConverter.encode(item.createdAt), "
+          "'shippedAt': item.shippedAt == null ? null : "
+          "_dateTimeConverter.encode(item.shippedAt!)}"),
+    );
+    expect(
+      actual.fields.map((field) => field.getDatabaseDefinition(false)),
+      equals([
+        '`id` INTEGER NOT NULL',
+        '`createdAt` INTEGER NOT NULL',
+        '`shippedAt` INTEGER',
+      ]),
+    );
+  });
+
   test('Prefers the unnamed constructor over named ones declared before',
       () async {
     final classElement = await createClassElement('''

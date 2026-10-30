@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 11 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 12 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 23 | Bug or small feature to be fixed |
+| ⏳ Planned | 22 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -53,7 +53,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#495](https://github.com/pinchbv/floor/issues/495) | Allow Mixins | ✅ Fixed | [#171](https://github.com/wilinz/froom/issues/171) | Mixins allowed on entities and views |
 | [floor#497](https://github.com/pinchbv/floor/issues/497) | Support for CREATE INDEX WHERE expr (partial indexes) | ✅ Fixed | [#172](https://github.com/wilinz/froom/issues/172) | `Index.where` for partial indices |
 | [floor#507](https://github.com/pinchbv/floor/issues/507) | Query method parameters have to be non-nullable | ✅ Fixed | [#173](https://github.com/wilinz/froom/issues/173) | Nullable query parameters bound as `NULL` |
-| [floor#508](https://github.com/pinchbv/floor/issues/508) | Feature: use the same TypeConverter for nullable and not-nullable variant of a type | ⏳ Planned |  | Converter of the non-nullable type for nullable fields |
+| [floor#508](https://github.com/pinchbv/floor/issues/508) | Feature: use the same TypeConverter for nullable and not-nullable variant of a type | ✅ Fixed | [#174](https://github.com/wilinz/froom/issues/174) | Converters of non-nullable types convert nullable values |
 | [floor#514](https://github.com/pinchbv/floor/issues/514) | Change Query with the name of the return type table | ➖ Not planned |  | Question, support or not applicable |
 | [floor#515](https://github.com/pinchbv/floor/issues/515) | Method is generated twice if you override the method in a base class | ⏳ Planned |  | Overridden DAO methods generated twice (verified) |
 | [floor#516](https://github.com/pinchbv/floor/issues/516) | [floor_generator]-  Null check operator used on a null value | ➖ Not planned |  | Question, support or not applicable |
