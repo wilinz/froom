@@ -1,0 +1,4 @@
+# Only the exported schemas of the automatic migration tests are committed.
+/froom_schemas/**
+!/froom_schemas/**/
+!/froom_schemas/test/integration/auto_migration/**

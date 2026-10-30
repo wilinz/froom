@@ -1,3 +1,5 @@
+import 'package:froom_annotation/src/auto_migration.dart';
+
 /// Marks a class as a FroomDatabase.
 class Database {
   /// The database version.
@@ -9,10 +11,22 @@ class Database {
   /// The views the database manages.
   final List<Type> views;
 
+  /// The automatic migrations between versions of the database.
+  final List<AutoMigration> autoMigrations;
+
+  /// Whether to export the schema of the database to the schema directory
+  /// `froom_schemas`, which [autoMigrations] require.
+  ///
+  /// The schema of each version is exported to
+  /// `froom_schemas/<path of the library>/<database class>/<version>.json`.
+  final bool exportSchema;
+
   /// Marks a class as a FroomDatabase.
   const Database({
     required this.version,
     required this.entities,
     this.views = const [],
+    this.autoMigrations = const [],
+    this.exportSchema = true,
   });
 }

@@ -5,8 +5,14 @@ import 'package:froom_generator/writer/writer.dart';
 class DatabaseBuilderWriter extends Writer {
   final String _databaseName;
 
-  DatabaseBuilderWriter(final String databaseName)
-      : _databaseName = databaseName;
+  /// Whether specs of automatic migrations are provided to the builder.
+  final bool _hasProvidedAutoMigrationSpecs;
+
+  DatabaseBuilderWriter(
+    final String databaseName, {
+    final bool hasProvidedAutoMigrationSpecs = false,
+  })  : _databaseName = databaseName,
+        _hasProvidedAutoMigrationSpecs = hasProvidedAutoMigrationSpecs;
 
   @override
   Class write() {
@@ -23,6 +29,12 @@ class DatabaseBuilderWriter extends Writer {
     final migrationsField = Field((builder) => builder
       ..name = '_migrations'
       ..type = refer('List<Migration>')
+      ..modifier = FieldModifier.final$
+      ..assignment = const Code('[]'));
+
+    final autoMigrationSpecsField = Field((builder) => builder
+      ..name = '_autoMigrationSpecs'
+      ..type = refer('List<AutoMigrationSpec>')
       ..modifier = FieldModifier.final$
       ..assignment = const Code('[]'));
 
@@ -51,6 +63,18 @@ class DatabaseBuilderWriter extends Writer {
       ..requiredParameters.add(Parameter((builder) => builder
         ..name = 'migrations'
         ..type = refer('List<Migration>'))));
+
+    final addAutoMigrationSpecsMethod = Method((builder) => builder
+      ..annotations.add(overrideAnnotationExpression)
+      ..name = 'addAutoMigrationSpecs'
+      ..returns = databaseBuilderContractRefer
+      ..body = const Code('''
+        _autoMigrationSpecs.addAll(autoMigrationSpecs);
+        return this;
+      ''')
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'autoMigrationSpecs'
+        ..type = refer('List<AutoMigrationSpec>'))));
 
     final addCallbackMethod = Method((builder) => builder
       ..annotations.add(overrideAnnotationExpression)
@@ -88,6 +112,7 @@ class DatabaseBuilderWriter extends Writer {
           _migrations,
           _callback,
           _fallbackToDestructiveMigration,
+          ${_hasProvidedAutoMigrationSpecs ? '_autoMigrationSpecs,' : ''}
         );
         return database;
       '''));
@@ -100,12 +125,14 @@ class DatabaseBuilderWriter extends Writer {
       ..fields.addAll([
         nameField,
         migrationsField,
+        if (_hasProvidedAutoMigrationSpecs) autoMigrationSpecsField,
         callbackField,
         fallbackToDestructiveMigrationField,
       ])
       ..constructors.add(constructor)
       ..methods.addAll([
         addMigrationsMethod,
+        if (_hasProvidedAutoMigrationSpecs) addAutoMigrationSpecsMethod,
         addCallbackMethod,
         fallbackToDestructiveMigrationMethod,
         buildMethod,

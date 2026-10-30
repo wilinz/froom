@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### ✨ Features
+- **auto_migration**: Add `AutoMigration`, `RenameTable`, `RenameColumn`, `DeleteTable`, `DeleteColumn` and `providedAutoMigrationSpec` annotations, `Database.autoMigrations` and `Database.exportSchema` (default `true`), and `AutoMigrationSpec` in `froom_common`
+- **schema**: Export the `DatabaseSchema` of the current version to `<schema_location>/<library path>/<database>/<version>.json` (`FileSchemaStore`, builder option `schema_location`, default `froom_schemas`); entity and index statements use the `${TABLE_NAME}` placeholder like Room
+- **auto_migration_processor, schema_differ**: Port Room's `SchemaDiffer`, detecting added, renamed and deleted tables, added columns and complex changes (primary key, foreign keys, indices, `WITHOUT ROWID`, FTS, changed, renamed and deleted columns, foreign keys to renamed tables), requiring specs for deleted or renamed tables and columns and default values for new `NOT NULL` columns
+- **auto_migration_writer**: Generate migrations dropping views, deleting, renaming and adding tables, adding columns, recreating tables with complex changes (FTS tables last) and recreating views, calling `onPostMigrate` of the spec; builder migrations replace automatic ones of the same versions, and builders of databases with provided specs get `addAutoMigrationSpecs()`
+- **froom_generator**: `path` is a regular dependency
+
 ## [7.0.0] - 2026-10-30
 
 ### 🔄 Breaking Changes

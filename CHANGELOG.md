@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### ✨ Features
+- **migrations**: Add automatic migrations like Room's `@AutoMigration`, generated from the schemas exported to `froom_schemas`, including `@RenameTable`, `@RenameColumn`, `@DeleteTable` and `@DeleteColumn` specs, `AutoMigrationSpec.onPostMigrate` and `@providedAutoMigrationSpec`
+
 ## 7.0.0
 
 ### ⬆️ Breaking Changes & Dependencies

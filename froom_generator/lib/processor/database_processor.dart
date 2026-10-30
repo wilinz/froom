@@ -3,7 +3,9 @@ import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
 import 'package:froom_generator/misc/extension/set_extension.dart';
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
+import 'package:froom_generator/misc/schema_store.dart';
 import 'package:froom_generator/misc/type_utils.dart';
+import 'package:froom_generator/processor/auto_migration_processor.dart';
 import 'package:froom_generator/processor/dao_processor.dart';
 import 'package:froom_generator/processor/entity_processor.dart';
 import 'package:froom_generator/processor/error/database_processor_error.dart';
@@ -13,6 +15,7 @@ import 'package:froom_generator/value_object/dao_getter.dart';
 import 'package:froom_generator/value_object/database.dart';
 import 'package:froom_generator/value_object/entity.dart';
 import 'package:froom_generator/value_object/queryable.dart';
+import 'package:froom_generator/value_object/schema.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:froom_generator/value_object/view.dart';
 
@@ -24,8 +27,15 @@ class DatabaseProcessor extends Processor<Database> {
 
   final ClassElement _classElement;
 
-  DatabaseProcessor(final ClassElement classElement)
-      : _classElement = classElement,
+  /// The exported schemas of the versions of the database, or null for not
+  /// exporting the schema and processing automatic migrations.
+  final SchemaStore? _schemaStore;
+
+  DatabaseProcessor(
+    final ClassElement classElement, {
+    final SchemaStore? schemaStore,
+  })  : _classElement = classElement,
+        _schemaStore = schemaStore,
         _processorError = DatabaseProcessorError(classElement);
 
   @override
@@ -47,7 +57,7 @@ class DatabaseProcessor extends Processor<Database> {
       [...entities, ...views],
     );
 
-    return Database(
+    final database = Database(
       _classElement,
       databaseName,
       entities,
@@ -57,6 +67,31 @@ class DatabaseProcessor extends Processor<Database> {
       databaseTypeConverters,
       allTypeConverters,
     );
+
+    final schemaStore = _schemaStore;
+    if (schemaStore == null) return database;
+    final schema = DatabaseSchema.fromDatabase(database);
+    if (_exportsSchema()) schemaStore.write(schema);
+    return Database(
+      _classElement,
+      databaseName,
+      entities,
+      views,
+      daoGetters,
+      version,
+      databaseTypeConverters,
+      allTypeConverters,
+      autoMigrations:
+          AutoMigrationProcessor(_classElement, schema, schemaStore).process(),
+    );
+  }
+
+  bool _exportsSchema() {
+    return _classElement
+            .getAnnotation(annotations.Database)
+            ?.getField(AnnotationField.databaseExportSchema)
+            ?.toBoolValue() ??
+        true;
   }
 
   int _getDatabaseVersion() {

@@ -5,8 +5,10 @@ import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
+import 'package:froom_generator/misc/schema_store.dart';
 import 'package:froom_generator/processor/database_processor.dart';
 import 'package:froom_generator/value_object/database.dart';
+import 'package:froom_generator/writer/auto_migration_writer.dart';
 import 'package:froom_generator/writer/code_writer.dart';
 import 'package:froom_generator/writer/dao_writer.dart';
 import 'package:froom_generator/writer/database_builder_contract_writer.dart';
@@ -18,13 +20,19 @@ import 'package:source_gen/source_gen.dart';
 // The migration is complete
 /// Froom generator that produces the implementation of the persistence code.
 class FroomGenerator extends GeneratorForAnnotation<annotations.Database> {
+  /// The directory the schemas of the databases are exported to.
+  final String schemaLocation;
+
+  FroomGenerator({this.schemaLocation = 'froom_schemas'});
   @override
   FutureOr<String> generateForAnnotatedElement(
     final Element element,
     final ConstantReader annotation,
     final BuildStep buildStep,
   ) {
-    final database = _getDatabase(element);
+    final database = _getDatabase(element, buildStep);
+    final hasProvidedAutoMigrationSpecs =
+        database.autoMigrations.hasProvidedSpecs;
 
     final databaseClass = DatabaseWriter(database).write();
     final daoClasses = database.daoGetters
@@ -51,9 +59,15 @@ class FroomGenerator extends GeneratorForAnnotation<annotations.Database> {
       builder
         ..body
             .add(Code('// ignore_for_file: ${ignoredDiagnostics.join(', ')}\n'))
-        ..body.add(DatabaseBuilderContractWriter(database.name).write())
+        ..body.add(DatabaseBuilderContractWriter(
+          database.name,
+          hasProvidedAutoMigrationSpecs: hasProvidedAutoMigrationSpecs,
+        ).write())
         ..body.add(CodeWriter(database.name).write())
-        ..body.add(DatabaseBuilderWriter(database.name).write())
+        ..body.add(DatabaseBuilderWriter(
+          database.name,
+          hasProvidedAutoMigrationSpecs: hasProvidedAutoMigrationSpecs,
+        ).write())
         ..body.add(databaseClass)
         ..body.addAll(daoClasses)
         ..body.addAll(distinctTypeConverterFields);
@@ -62,7 +76,7 @@ class FroomGenerator extends GeneratorForAnnotation<annotations.Database> {
     return library.accept(DartEmitter()).toString();
   }
 
-  Database _getDatabase(final Element element) {
+  Database _getDatabase(final Element element, final BuildStep buildStep) {
     if (element is! ClassElement) {
       throw InvalidGenerationSourceError(
           'The element annotated with @Database is not a class.',
@@ -75,6 +89,11 @@ class FroomGenerator extends GeneratorForAnnotation<annotations.Database> {
           element: element);
     }
 
-    return DatabaseProcessor(element).process();
+    final schemaStore = FileSchemaStore.forDatabase(
+      schemaLocation,
+      buildStep.inputId.path,
+      element.displayName,
+    );
+    return DatabaseProcessor(element, schemaStore: schemaStore).process();
   }
 }

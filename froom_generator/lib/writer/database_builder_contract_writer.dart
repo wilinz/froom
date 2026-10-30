@@ -4,8 +4,14 @@ import 'package:froom_generator/writer/writer.dart';
 class DatabaseBuilderContractWriter extends Writer {
   final String _databaseName;
 
-  DatabaseBuilderContractWriter(final String databaseName)
-      : _databaseName = databaseName;
+  /// Whether specs of automatic migrations are provided to the builder.
+  final bool _hasProvidedAutoMigrationSpecs;
+
+  DatabaseBuilderContractWriter(
+    final String databaseName, {
+    final bool hasProvidedAutoMigrationSpecs = false,
+  })  : _databaseName = databaseName,
+        _hasProvidedAutoMigrationSpecs = hasProvidedAutoMigrationSpecs;
 
   @override
   Class write() {
@@ -18,6 +24,17 @@ class DatabaseBuilderContractWriter extends Writer {
       ..requiredParameters.add(Parameter((builder) => builder
         ..name = 'migrations'
         ..type = refer('List<Migration>'))));
+
+    final addAutoMigrationSpecsMethod = Method((builder) => builder
+      ..name = 'addAutoMigrationSpecs'
+      ..returns = refer(databaseBuilderName)
+      ..docs.addAll([
+        '/// Adds the specs of automatic migrations annotated with',
+        '/// `@providedAutoMigrationSpec` to the builder.',
+      ])
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'autoMigrationSpecs'
+        ..type = refer('List<AutoMigrationSpec>'))));
 
     final addCallbackMethod = Method((builder) => builder
       ..name = 'addCallback'
@@ -46,6 +63,7 @@ class DatabaseBuilderContractWriter extends Writer {
       ..abstract = true
       ..methods.addAll([
         addMigrationsMethod,
+        if (_hasProvidedAutoMigrationSpecs) addAutoMigrationSpecsMethod,
         addCallbackMethod,
         fallbackToDestructiveMigrationMethod,
         buildMethod,

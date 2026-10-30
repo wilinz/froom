@@ -7,6 +7,8 @@ abstract class AnnotationField {
   static const databaseVersion = 'version';
   static const databaseEntities = 'entities';
   static const databaseViews = 'views';
+  static const databaseAutoMigrations = 'autoMigrations';
+  static const databaseExportSchema = 'exportSchema';
 
   static const columnInfoName = 'name';
   static const columnInfoDefaultValue = 'defaultValue';
@@ -53,4 +55,16 @@ abstract class SqlType {
   static const text = 'TEXT';
   static const real = 'REAL';
   static const blob = 'BLOB';
+}
+
+abstract class AutoMigrationField {
+  static const from = 'from';
+  static const to = 'to';
+  static const spec = 'spec';
+  static const fromTableName = 'fromTableName';
+  static const toTableName = 'toTableName';
+  static const tableName = 'tableName';
+  static const fromColumnName = 'fromColumnName';
+  static const toColumnName = 'toColumnName';
+  static const columnName = 'columnName';
 }

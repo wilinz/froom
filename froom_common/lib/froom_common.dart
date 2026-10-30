@@ -7,6 +7,7 @@ export 'package:froom_common/src/adapter/migration_adapter.dart';
 export 'package:froom_common/src/adapter/query_adapter.dart';
 export 'package:froom_common/src/adapter/update_adapter.dart';
 export 'package:froom_common/src/adapter/upsertion_adapter.dart';
+export 'package:froom_common/src/auto_migration_spec.dart';
 export 'package:froom_common/src/callback.dart';
 export 'package:froom_common/src/database.dart';
 export 'package:froom_common/src/migration.dart';

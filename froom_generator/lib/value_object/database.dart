@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:collection/collection.dart';
 import 'package:froom_generator/misc/extension/set_equality_extension.dart';
+import 'package:froom_generator/value_object/auto_migration.dart';
 import 'package:froom_generator/value_object/dao_getter.dart';
 import 'package:froom_generator/value_object/entity.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
@@ -19,6 +20,7 @@ class Database {
   final Set<TypeConverter> allTypeConverters;
   final bool hasViewStreams;
   final Set<Entity> streamEntities;
+  final List<AutoMigration> autoMigrations;
 
   Database(
     this.classElement,
@@ -28,8 +30,9 @@ class Database {
     this.daoGetters,
     this.version,
     this.databaseTypeConverters,
-    this.allTypeConverters,
-  )   : streamEntities =
+    this.allTypeConverters, {
+    this.autoMigrations = const [],
+  })  : streamEntities =
             daoGetters.expand((dg) => dg.dao.streamEntities).toSet(),
         hasViewStreams = daoGetters.any((dg) => dg.dao.streamViews.isNotEmpty);
 

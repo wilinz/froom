@@ -1,0 +1,98 @@
+import 'package:analyzer/dart/element/element.dart';
+import 'package:froom_generator/value_object/schema.dart';
+
+/// An automatic migration of the database from the schema version [from] to
+/// [to], performing the changes of [diff].
+class AutoMigration {
+  final int from;
+  final int to;
+
+  /// The class extending `AutoMigrationSpec`, if any.
+  final ClassElement? spec;
+
+  /// Whether the [spec] is provided by the database builder instead of
+  /// being created by its unnamed constructor.
+  final bool isSpecProvided;
+  final SchemaDiff diff;
+
+  AutoMigration(
+    this.from,
+    this.to,
+    this.spec,
+    this.isSpecProvided,
+    this.diff,
+  );
+}
+
+/// The changes between two schema versions.
+class SchemaDiff {
+  final List<EntitySchema> addedTables;
+
+  /// The tables which are only renamed, by their old names.
+  final Map<String, String> renamedTables;
+  final List<String> deletedTables;
+
+  /// The columns added to tables without complex changes.
+  final List<AddedColumn> addedColumns;
+
+  /// The tables which have to be recreated.
+  final List<ComplexChangedTable> complexChangedTables;
+  final List<ViewSchema> fromViews;
+  final List<ViewSchema> toViews;
+
+  SchemaDiff({
+    required this.addedTables,
+    required this.renamedTables,
+    required this.deletedTables,
+    required this.addedColumns,
+    required this.complexChangedTables,
+    required this.fromViews,
+    required this.toViews,
+  });
+}
+
+/// A table with changes which SQLite can't alter, so that it's recreated.
+class ComplexChangedTable {
+  final EntitySchema fromTable;
+  final EntitySchema toTable;
+
+  /// The old names of renamed columns, by their new names.
+  final Map<String, String> renamedColumns;
+
+  ComplexChangedTable(this.fromTable, this.toTable, this.renamedColumns);
+}
+
+class AddedColumn {
+  final String tableName;
+  final FieldSchema field;
+
+  AddedColumn(this.tableName, this.field);
+}
+
+class RenamedTable {
+  final String fromTableName;
+  final String toTableName;
+
+  RenamedTable(this.fromTableName, this.toTableName);
+}
+
+class RenamedColumn {
+  final String tableName;
+  final String fromColumnName;
+  final String toColumnName;
+
+  RenamedColumn(this.tableName, this.fromColumnName, this.toColumnName);
+}
+
+class DeletedTable {
+  final String tableName;
+
+  DeletedTable(this.tableName);
+}
+
+class DeletedColumn {
+  final String tableName;
+  final String columnName;
+
+  DeletedColumn(this.tableName, this.columnName);
+}

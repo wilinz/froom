@@ -3,6 +3,7 @@ import 'package:froom_generator/misc/annotation_expression.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/value_object/database.dart';
 import 'package:froom_generator/value_object/entity.dart';
+import 'package:froom_generator/writer/auto_migration_writer.dart';
 import 'package:froom_generator/writer/writer.dart';
 
 /// Takes care of generating the database implementation.
@@ -121,15 +122,37 @@ class DatabaseWriter implements Writer {
           ..name = 'fallbackToDestructiveMigration'
           ..type = refer('bool')
           ..defaultTo = const Code('false'));
+    final autoMigrationSpecsParameter = Parameter((builder) => builder
+      ..name = 'autoMigrationSpecs'
+      ..type = refer('List<AutoMigrationSpec>')
+      ..defaultTo = const Code('const []'));
+
+    // migrations of the builder replace automatic ones of the same versions
+    final autoMigrations = database.autoMigrations;
+    final migrations = autoMigrations.isEmpty ? 'migrations' : 'allMigrations';
+    final allMigrationsStatement = autoMigrations.isEmpty
+        ? ''
+        : '''
+          final allMigrations = [
+            ...migrations,
+            ...${autoMigrations.writeList()}.where((autoMigration) => !migrations.any((migration) =>
+                migration.startVersion == autoMigration.startVersion &&
+                migration.endVersion == autoMigration.endVersion)),
+          ];
+          ''';
 
     return Method((builder) => builder
       ..name = 'open'
       ..returns = refer('Future<sqflite.Database>')
       ..modifier = MethodModifier.async
       ..requiredParameters.addAll([pathParameter, migrationsParameter])
-      ..optionalParameters.addAll(
-          [callbackParameter, fallbackToDestructiveMigrationParameter])
+      ..optionalParameters.addAll([
+        callbackParameter,
+        fallbackToDestructiveMigrationParameter,
+        if (autoMigrations.hasProvidedSpecs) autoMigrationSpecsParameter,
+      ])
       ..body = Code('''
+          $allMigrationsStatement
           Future<void> createSchema(sqflite.Database database) async {
             $createTableStatements
             $createIndexStatements
@@ -164,13 +187,13 @@ class DatabaseWriter implements Writer {
             },
             onUpgrade: (database, startVersion, endVersion) async {
               if (fallbackToDestructiveMigration &&
-                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, $migrations)) {
                 await recreateSchema(database);
                 return;
               }
 
               final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
-              await MigrationAdapter.runMigrations(database, startVersion, endVersion, migrations);
+              await MigrationAdapter.runMigrations(database, startVersion, endVersion, $migrations);
               $recreateViewStatements
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);

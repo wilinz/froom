@@ -231,7 +231,7 @@ packages:
       path: "../froom_annotation"
       relative: true
     source: path
-    version: "6.0.0"
+    version: "7.0.0"
   glob:
     dependency: transitive
     description:
@@ -345,7 +345,7 @@ packages:
     source: hosted
     version: "2.2.0"
   path:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: path
       sha256: "75cca69d1490965be98c73ceaea117e8a04dd21217b37b292c9ddbec0d955bc5"
