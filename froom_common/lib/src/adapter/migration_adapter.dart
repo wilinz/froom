@@ -66,33 +66,41 @@ abstract class MigrationAdapter {
   /// Returns consecutive [migrations] from [startVersion] to [endVersion],
   /// preferring the ones reaching the highest version like Room, or null if
   /// there are none.
-  ///
-  /// [deadEnds] are the versions from which [endVersion] can't be reached.
   static List<Migration>? _findMigrationPath(
     final int startVersion,
     final int endVersion,
-    final List<Migration> migrations, [
-    final Set<int>? deadEnds,
-  ]) {
-    if (startVersion == endVersion) return [];
-    final unreachable = deadEnds ?? <int>{};
-    if (unreachable.contains(startVersion)) return null;
-
-    final nextMigrations = migrations
-        .where((migration) =>
-            migration.startVersion == startVersion &&
-            migration.endVersion > startVersion &&
-            migration.endVersion <= endVersion)
-        .toList()
-      ..sort((first, second) => second.endVersion.compareTo(first.endVersion));
-
-    for (final migration in nextMigrations) {
-      final remainingPath = _findMigrationPath(
-          migration.endVersion, endVersion, migrations, unreachable);
-      if (remainingPath != null) return [migration, ...remainingPath];
+    final List<Migration> migrations,
+  ) {
+    // the migrations upwards from each version, highest end version first
+    final migrationsByStartVersion = <int, List<Migration>>{};
+    for (final migration in migrations) {
+      if (migration.endVersion > migration.startVersion &&
+          migration.endVersion <= endVersion) {
+        migrationsByStartVersion
+            .putIfAbsent(migration.startVersion, () => [])
+            .add(migration);
+      }
     }
-    unreachable.add(startVersion);
-    return null;
+    for (final versionMigrations in migrationsByStartVersion.values) {
+      versionMigrations
+          .sort((first, second) => second.endVersion.compareTo(first.endVersion));
+    }
+
+    // versions from which the end version can't be reached
+    final deadEnds = <int>{};
+    List<Migration>? findPath(final int version) {
+      if (version == endVersion) return [];
+      if (deadEnds.contains(version)) return null;
+
+      for (final migration in migrationsByStartVersion[version] ?? const []) {
+        final remainingPath = findPath(migration.endVersion);
+        if (remainingPath != null) return [migration, ...remainingPath];
+      }
+      deadEnds.add(version);
+      return null;
+    }
+
+    return findPath(startVersion);
   }
 
   /// Drops all tables and views of the [database], e.g. for a destructive
