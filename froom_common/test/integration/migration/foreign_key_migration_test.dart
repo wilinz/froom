@@ -77,6 +77,14 @@ void main() {
           $FroomTestDatabase.databaseBuilder(name).addMigrations([migration]).build();
 
       await expectLater(actual, throwsStateError);
+      // the migration got rolled back and fails again on the next opening
+      final database = await sqfliteDatabaseFactory.openDatabase(path);
+      expect(await database.getVersion(), equals(1));
+      expect(await database.rawQuery('SELECT * FROM Child'), hasLength(1));
+      await database.close();
+      final retry =
+          $FroomTestDatabase.databaseBuilder(name).addMigrations([migration]).build();
+      await expectLater(retry, throwsStateError);
     });
 
     test('foreign keys are enabled without migrations', () async {

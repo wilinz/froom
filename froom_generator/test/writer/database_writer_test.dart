@@ -68,7 +68,7 @@ void main() {
             },
             onOpen: (database) async {
               if (enableForeignKeysOnOpen) {
-                await MigrationAdapter.enableForeignKeysAfterMigrations(database);
+                await database.execute('PRAGMA foreign_keys = ON');
               }
               await callback?.onOpen?.call(database);
             },
@@ -83,6 +83,7 @@ void main() {
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)
@@ -169,7 +170,7 @@ void main() {
             },
             onOpen: (database) async {
               if (enableForeignKeysOnOpen) {
-                await MigrationAdapter.enableForeignKeysAfterMigrations(database);
+                await database.execute('PRAGMA foreign_keys = ON');
               }
               await callback?.onOpen?.call(database);
             },
@@ -184,6 +185,7 @@ void main() {
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)
@@ -266,7 +268,7 @@ void main() {
             },
             onOpen: (database) async {
               if (enableForeignKeysOnOpen) {
-                await MigrationAdapter.enableForeignKeysAfterMigrations(database);
+                await database.execute('PRAGMA foreign_keys = ON');
               }
               await callback?.onOpen?.call(database);
             },
@@ -281,6 +283,7 @@ void main() {
                   database, startVersion, endVersion, migrations);
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)
@@ -369,7 +372,7 @@ void main() {
             },
             onOpen: (database) async {
               if (enableForeignKeysOnOpen) {
-                await MigrationAdapter.enableForeignKeysAfterMigrations(database);
+                await database.execute('PRAGMA foreign_keys = ON');
               }
               await callback?.onOpen?.call(database);
             },
@@ -387,6 +390,7 @@ void main() {
                   'CREATE VIEW IF NOT EXISTS `names` AS SELECT custom_name as name FROM person');
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)

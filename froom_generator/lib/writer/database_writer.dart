@@ -158,7 +158,7 @@ class DatabaseWriter implements Writer {
             },
             onOpen: (database) async {
               if (enableForeignKeysOnOpen) {
-                await MigrationAdapter.enableForeignKeysAfterMigrations(database);
+                await database.execute('PRAGMA foreign_keys = ON');
               }
               await callback?.onOpen?.call(database);
             },
@@ -173,6 +173,7 @@ class DatabaseWriter implements Writer {
               $recreateViewStatements
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
+              await MigrationAdapter.checkForeignKeys(database);
             },
             onDowngrade: fallbackToDestructiveMigration
                 ? (database, startVersion, endVersion) => recreateSchema(database)

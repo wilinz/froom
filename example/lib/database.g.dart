@@ -122,7 +122,7 @@ class _$FlutterDatabase extends FlutterDatabase {
       },
       onOpen: (database) async {
         if (enableForeignKeysOnOpen) {
-          await MigrationAdapter.enableForeignKeysAfterMigrations(database);
+          await database.execute('PRAGMA foreign_keys = ON');
         }
         await callback?.onOpen?.call(database);
       },
@@ -145,6 +145,7 @@ class _$FlutterDatabase extends FlutterDatabase {
         );
 
         await callback?.onUpgrade?.call(database, startVersion, endVersion);
+        await MigrationAdapter.checkForeignKeys(database);
       },
       onDowngrade: fallbackToDestructiveMigration
           ? (database, startVersion, endVersion) => recreateSchema(database)
