@@ -45,9 +45,9 @@ abstract class FroomDatabase {
       await clear(database);
     }
 
-    for (final tableName in entityTableNames) {
-      changeListener.add(tableName);
-    }
+    // the database might have been closed meanwhile
+    if (changeListener.isClosed) return;
+    entityTableNames.forEach(changeListener.add);
   }
 
   /// Closes the database.
