@@ -5,10 +5,10 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 
 | Status | Count | Meaning |
 |---|---|---|
-| ✅ Fixed | 24 | Fixed in Froom, see the linked Froom issue |
+| ✅ Fixed | 25 | Fixed in Froom, see the linked Froom issue |
 | ✔️ Already resolved | 15 | Not an issue in Froom (anymore) |
 | 🔁 Duplicate | 17 | Duplicate of another upstream issue |
-| ⏳ Planned | 10 | Bug or small feature to be fixed |
+| ⏳ Planned | 9 | Bug or small feature to be fixed |
 | 🧩 Large feature | 31 | Large feature, not scheduled yet |
 | ➖ Not planned | 35 | Question, support request or not applicable |
 
@@ -98,7 +98,7 @@ Bugs and small features are verified against Froom and fixed in number order, ea
 | [floor#747](https://github.com/pinchbv/floor/issues/747) | Query with IF | ➖ Not planned |  | Question, support or not applicable |
 | [floor#748](https://github.com/pinchbv/floor/issues/748) | Generating duplicated definitions with @transaction | ✅ Fixed | [#185](https://github.com/wilinz/froom/issues/185) | `@transaction` on query and change methods is ignored, as they are atomic |
 | [floor#758](https://github.com/pinchbv/floor/issues/758) | Unique | ➖ Not planned |  | Question, support or not applicable |
-| [floor#763](https://github.com/pinchbv/floor/issues/763) | In the example, a task is created with status: null instead of open | ⏳ Planned |  | Example creates tasks with status `null` |
+| [floor#763](https://github.com/pinchbv/floor/issues/763) | In the example, a task is created with status: null instead of open | ✅ Fixed | [#186](https://github.com/wilinz/froom/issues/186) | The example creates tasks as open |
 | [floor#766](https://github.com/pinchbv/floor/issues/766) | Support TypeConversions from Entities | 🧩 Large feature |  |  |
 | [floor#768](https://github.com/pinchbv/floor/issues/768) | database can not encryption | 🧩 Large feature |  |  |
 | [floor#770](https://github.com/pinchbv/floor/issues/770) | Cannot use a variable for table name | ➖ Not planned |  | Question, support or not applicable |

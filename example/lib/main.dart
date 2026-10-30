@@ -263,7 +263,11 @@ class TasksTextField extends StatelessWidget {
     if (message.trim().isEmpty) {
       _textEditingController.clear();
     } else {
-      final task = Task.optional(message: message, type: TaskType.task);
+      final task = Task.optional(
+        message: message,
+        type: TaskType.task,
+        status: TaskStatus.open,
+      );
       await dao.insertTask(task);
       _textEditingController.clear();
     }
