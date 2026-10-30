@@ -3,6 +3,7 @@ import 'dart:core';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_generator/misc/annotation_expression.dart';
+import 'package:froom_generator/misc/method_parameters.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converters_extension.dart';
@@ -30,25 +31,13 @@ class QueryMethodWriter implements Writer {
         withNullability: true,
       ))
       ..name = _queryMethod.name
-      ..requiredParameters.addAll(_generateMethodParameters())
+      ..addParametersOf(_queryMethod.parameters)
       ..body = Code(_generateMethodBody());
 
     if (!_queryMethod.returnsStream || _queryMethod.returnsVoid) {
       builder..modifier = MethodModifier.async;
     }
     return builder.build();
-  }
-
-  List<Parameter> _generateMethodParameters() {
-    return _queryMethod.parameters.map((parameter) {
-      return Parameter((builder) => builder
-        ..name = parameter.name!
-        ..type = refer(parameter.type.getDisplayStringCompat(
-          // processor disallows nullable method parameters and throws if found,
-          // still interested in nullability here to future-proof codebase
-          withNullability: true,
-        )));
-    }).toList();
   }
 
   String _generateMethodBody() {

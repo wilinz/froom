@@ -65,6 +65,42 @@ void main() {
     '''));
   });
 
+  test('query with optional and named parameters', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT * FROM Person WHERE name = :name LIMIT :count OFFSET :offset')
+      Future<List<Person>> findPage(String name, {int offset = 0, required int count});
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+      @override
+      Future<List<Person>> findPage(
+        String name, {
+        int offset = 0,
+        required int count,
+      }) async {
+        return _queryAdapter.queryList('SELECT * FROM Person WHERE name = ?1 LIMIT ?3 OFFSET ?2', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [name, offset, count]);
+      }
+    '''));
+  });
+
+  test('query with optional positional parameter', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT * FROM Person LIMIT :count')
+      Future<List<Person>> findFirst([int count = 10]);
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+      @override
+      Future<List<Person>> findFirst([int count = 10]) async {
+        return _queryAdapter.queryList('SELECT * FROM Person LIMIT ?1', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [count]);
+      }
+    '''));
+  });
+
   test('query return int type', () async {
     final queryMethod = await _createQueryMethod('''
       @Query('SELECT COUNT(id) FROM Person')

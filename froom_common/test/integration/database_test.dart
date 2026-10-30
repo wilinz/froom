@@ -187,6 +187,15 @@ void main() {
           expect(actual, equals(person));
         });
 
+        test('query with named and optional parameters', () async {
+          final persons = [Person(1, 'Simon'), Person(2, 'Frank')];
+          await personDao.insertPersons(persons);
+
+          expect(await personDao.findPersonsPage(count: 1), equals([persons[0]]));
+          expect(await personDao.findPersonsPage(offset: 1, count: 5),
+              equals([persons[1]]));
+        });
+
         test("query with ''", () async {
           final person = Person(1, 'Frank');
           final personNoName = Person(2, '');

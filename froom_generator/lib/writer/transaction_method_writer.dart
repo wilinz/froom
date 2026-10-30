@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_generator/misc/annotation_expression.dart';
+import 'package:froom_generator/misc/method_parameters.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/value_object/transaction_method.dart';
@@ -20,15 +21,14 @@ class TransactionMethodWriter implements Writer {
         withNullability: true,
       ))
       ..name = method.name
-      ..requiredParameters.addAll(_generateParameters())
+      ..addParametersOf(method.parameterElements)
       ..modifier = MethodModifier.async
       ..body = Code(_generateMethodBody()));
   }
 
   String _generateMethodBody() {
-    final parameters =
-        method.parameterElements.map((parameter) => parameter.name).join(', ');
-    final methodCall = '${method.name}($parameters)';
+    final methodCall =
+        '${method.name}(${getArgumentsOf(method.parameterElements)})';
     final innerType = method.returnType.flatten();
     final innerTypeName =
         innerType.getDisplayStringCompat(withNullability: false);
@@ -44,15 +44,5 @@ class TransactionMethodWriter implements Writer {
       });
     }
     ''';
-  }
-
-  List<Parameter> _generateParameters() {
-    return method.parameterElements.map((parameter) {
-      return Parameter((builder) => builder
-        ..name = parameter.name!
-        ..type = refer(parameter.type.getDisplayStringCompat(
-          withNullability: true,
-        )));
-    }).toList();
   }
 }

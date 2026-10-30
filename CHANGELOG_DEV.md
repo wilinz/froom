@@ -27,6 +27,7 @@
 - **insertion_method_processor**: Reject `Future<List<void>>` return types, which generated non-compiling code
 - **generator**: Emit `// ignore_for_file: type=lint` (plus `unused_element` with type converters) at the top of generated code (ee30abd, #162)
 - **queryable_processor**: Prefer the unnamed constructor (named `new`) over named ones declared before it, and call named constructors with their name instead of the unnamed syntax (#166, upstream floor#275, floor#644)
+- **query_method_writer, transaction_method_writer**: Keep optional positional and named parameters with their default values in generated overrides and pass named arguments by name (`MethodParametersExtension.addParametersOf`, `getArgumentsOf`) (#168, upstream floor#371)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

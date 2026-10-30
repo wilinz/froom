@@ -34,6 +34,36 @@ void main() {
     '''));
   });
 
+  test('Generate transaction method with named parameters', () async {
+    final transactionMethod = await _createTransactionMethod('''
+      @transaction
+      Future<void> replacePersons(List<Person> persons, {bool clear = true}) async {
+      }
+    ''');
+
+    final actual = TransactionMethodWriter(transactionMethod).write();
+
+    expect(actual, equalsDart(r'''
+      @override
+      Future<void> replacePersons(
+        List<Person> persons, {
+        bool clear = true,
+      }) async {
+        if (database is sqflite.Transaction) {
+          await super.replacePersons(persons, clear: clear);
+        } else {
+          await (database as sqflite.Database)
+              .transaction<void>((transaction) async {
+            final transactionDatabase = _$TestDatabase(changeListener)
+              ..database = transaction;
+            await transactionDatabase.personDao
+                .replacePersons(persons, clear: clear);
+          });
+        }
+      }
+    '''));
+  });
+
   test('Generate transaction method with integer return', () async {
     final transactionMethod = await _createTransactionMethod('''
       @transaction
