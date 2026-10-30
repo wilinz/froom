@@ -347,6 +347,19 @@ void main() {
       expect(actual, throwsProcessorError(error));
     });
 
+    test('accepts list parameters after IN on a new line', () async {
+      final methodElement = await _createQueryMethodElement('''
+      @Query('SELECT * FROM Person WHERE id\\nIN (:ids)')
+      Future<List<Person>> findPersonsByIds(List<int> ids);
+    ''');
+
+      final actual =
+          QueryMethodProcessor(methodElement, [...entities, ...views], {})
+              .process();
+
+      expect(actual.query.listParameters, hasLength(1));
+    });
+
     for (final function in ['lower', 'abs']) {
       test('exception when list parameter is the argument of $function',
           () async {

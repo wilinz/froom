@@ -96,6 +96,8 @@ class QueryProcessor extends Processor<Query> {
   /// Keywords which can precede a row value, unlike names of functions,
   /// some of which are keywords as well, like `REPLACE` or `LIKE`.
   static const _rowValueKeywords = {
+    'IN',
+    'CASE',
     'VALUES',
     'WHERE',
     'HAVING',
