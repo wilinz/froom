@@ -23,6 +23,7 @@ class DatabaseWriter implements Writer {
       ..name = '_\$$databaseName'
       ..extend = refer(databaseName)
       ..methods.add(_generateOpenMethod(database))
+      ..methods.add(_generateEntityTableNamesGetter(database))
       ..methods.addAll(_generateDaoGetters(database))
       ..fields.addAll(_generateDaoInstances(database))
       ..constructors.add(_generateConstructor()));
@@ -40,6 +41,20 @@ class DatabaseWriter implements Writer {
         )
         ..optionalParameters.add(parameter);
     });
+  }
+
+  Method _generateEntityTableNamesGetter(final Database database) {
+    final tableNames = database.entities
+        .map((entity) => entity.name.toLiteral())
+        .join(', ');
+
+    return Method((builder) => builder
+      ..annotations.add(overrideAnnotationExpression)
+      ..type = MethodType.getter
+      ..returns = refer('List<String>')
+      ..name = 'entityTableNames'
+      ..lambda = true
+      ..body = Code('const [$tableNames]'));
   }
 
   List<Method> _generateDaoGetters(final Database database) {

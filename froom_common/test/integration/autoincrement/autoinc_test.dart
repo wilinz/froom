@@ -30,6 +30,17 @@ void main() {
       expect(actual, equals(AutoIncEntity(1.0, id: 1)));
     });
 
+    test('clearing all tables resets ids', () async {
+      await aiDao.insertAIEntity(AutoIncEntity(1.0, id: null));
+      await aiDao.insertAIEntity(AutoIncEntity(1.5, id: null));
+
+      await database.clearAllTables();
+      await aiDao.insertAIEntity(AutoIncEntity(2.0, id: null));
+
+      final actual = await aiDao.findAll();
+      expect(actual, equals([AutoIncEntity(2.0, id: 1)]));
+    });
+
     test('retrieve multiple entities', () async {
       final obj = AutoIncEntity(1.5, id: null);
       final obj2 = AutoIncEntity(1.7, id: null);

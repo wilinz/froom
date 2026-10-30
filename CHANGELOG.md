@@ -9,6 +9,7 @@
   - Supports partial entities via `@Upsert(entity: X)`, only inserting or updating the columns they contain
   - Returns the row ids of inserted entities or `-1` for updated ones
   - Upserts returning `void` use batched native `INSERT ... ON CONFLICT DO UPDATE` on SQLite 3.24.0 and above
+- **database**: Add `clearAllTables()` to delete all rows of all entity tables, like Room ([#163](https://github.com/wilinz/froom/issues/163))
 
 ### 🐛 Bug Fixes
 - **froom_generator**: Generated code suppresses lints with `// ignore_for_file: type=lint` ([#162](https://github.com/wilinz/froom/issues/162))

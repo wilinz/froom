@@ -64,6 +64,9 @@ void main() {
           );
           return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
         }
+
+        @override
+        List<String> get entityTableNames => const ['Person'];
       } 
       '''));
   });
@@ -131,6 +134,9 @@ void main() {
           );
           return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
         }
+
+        @override
+        List<String> get entityTableNames => const ['Person'];
       
         @override
         TestDao get testDao {
@@ -194,6 +200,9 @@ void main() {
           );
           return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
         }
+
+        @override
+        List<String> get entityTableNames => const ['custom_table_name'];
       }      
     '''));
   });
@@ -263,6 +272,9 @@ void main() {
           );
           return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
         }
+
+        @override
+        List<String> get entityTableNames => const ['Person'];
       }      
     """));
   });

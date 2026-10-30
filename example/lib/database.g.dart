@@ -107,6 +107,9 @@ class _$FlutterDatabase extends FlutterDatabase {
   }
 
   @override
+  List<String> get entityTableNames => const ['Task'];
+
+  @override
   TaskDao get taskDao {
     return _taskDaoInstance ??= _$TaskDao(database, changeListener);
   }

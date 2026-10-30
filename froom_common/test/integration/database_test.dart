@@ -454,6 +454,39 @@ void main() {
       });
     });
   });
+  group('clear all tables', () {
+    late TestDatabase database;
+
+    setUp(() async {
+      database = await $FroomTestDatabase.inMemoryDatabaseBuilder().build();
+    });
+
+    tearDown(() async {
+      await database.close();
+    });
+
+    test('deletes rows of all tables, regardless of foreign keys', () async {
+      final person = Person(1, 'Simon');
+      await database.personDao.insertPerson(person);
+      await database.dogDao.insertDog(Dog(2, 'Peter', 'Pete', person.id!));
+
+      await database.clearAllTables();
+
+      expect(await database.personDao.findAllPersons(), isEmpty);
+      expect(await database.dogDao.findAllDogs(), isEmpty);
+    });
+
+    test('notifies streams', () async {
+      await database.personDao.insertPerson(Person(1, 'Simon'));
+      final actual = database.personDao.findAllPersonsAsStream();
+      expect(actual, emits(hasLength(1)));
+
+      await database.clearAllTables();
+
+      expect(actual, emits(isEmpty));
+    });
+  });
+
   test('callback test', () async {
     final database = await $FroomTestDatabase
         .inMemoryDatabaseBuilder()

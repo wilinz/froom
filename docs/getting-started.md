@@ -149,4 +149,11 @@ await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
 
+To delete all data while keeping the database schema, e.g. when a user logs out, call `clearAllTables()` on the database.
+It deletes the rows of all entity tables in a single transaction, resets the `AUTOINCREMENT` counters and notifies the streams of all entities.
+
+```dart
+await database.clearAllTables();
+```
+
 For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom/test/integration) directories.
