@@ -1,11 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## [7.0.0] - 2026-10-30
 
 ### 🔄 Breaking Changes
 - **analyzer**: Bumped from `^10.0.0` to `^11.0.0` in `froom_generator` (Flutter 3.47.x / Dart 3.13.x)
 - **froom_generator**: Dart SDK lower bound raised from `>=3.0.0` to `>=3.9.0`, as required by analyzer 11
 - **example**: Removed the explicit `analyzer` dev dependency
+- **migrations**: Migrations run with foreign keys disabled, so foreign key actions don't run during them, and fail when adding foreign key violations (#178)
+- **migration_adapter**: Migrations have to be consecutive from the database version to the current one; of several migrations starting at the same version, only the one reaching the highest version runs
 
 ### ✨ Features
 - **upsert**: Add `@upsert` / `@Upsert` annotation mirroring Room's `@Upsert` (#2)
@@ -62,8 +64,70 @@
 - **docs**: Document `@upsert` in DAOs, Getting Started, Database Views, Migration from Floor and READMEs
 
 ### 📝 All Commits Since v6.0.0
+- 3e89556: ⬆️ chore(pubspec.lock): bump dependency versions, update SHAs, and raise Dart SDK min to >=3.9.0
+- a4a1768: ⬆️ chore(froom_generator,example): bump analyzer to ^11.0.0 for Flutter 3.47, replace removed isSynthetic, add primaryConstructor fake, raise generator SDK to >=3.9.0
 - ee30abd: 🐛 fix(froom_generator): suppress lints in generated code with ignore_for_file: type=lint
-- a4a1768: ⬆️ chore(froom_generator,example): bump analyzer to ^11.0.0 for Flutter 3.47
+- 861826a: ✨ feat: add @Upsert annotation mirroring Room's @Upsert
+- 640c1d3: ✨ feat(database): add clearAllTables() like Room
+- 0fa024d: ✨ feat(generator): assign fields not initialized by the constructor via setters
+- 1bfb682: ✨ feat(column_info): add defaultValue for SQL column default values
+- 82c78a4: 🐛 fix(generator): prefer the unnamed constructor and call named ones by name
+- 9636877: ✨ feat(migrations): add fallbackToDestructiveMigration() like Room
+- 32d1008: 🐛 fix(generator): support optional and named parameters of DAO methods
+- c8475f0: 🐛 fix(dao): notify streams of other DAOs about @Query changes
+- 527dd10: 🐛 fix(migrations): recreate database views after migrations
+- 437dd2c: ✨ feat(generator): allow mixins on entities and views
+- 5352cd5: ✨ feat(index): add Index.where for partial indices
+- 183c83a: 🐛 fix(query): allow nullable query method parameters
+- 2bab716: 📝 docs: track the open upstream floor issues
+- aa601c8: ✨ feat(type_converter): use converters of non-nullable types for nullable values
+- 27f0012: 🐛 fix(dao): generate overridden DAO methods only once
+- 916f801: 🐛 fix(entity): include overridden fields only once
+- 0d69991: ✨ feat(entity): treat 0 of auto generated int primary keys as unset
+- ebf3ab1: 🐛 fix(migrations): run migrations with foreign keys disabled
+- 415d7f8: 📝 docs: document absolute database paths
+- a8bbbed: 🐛 fix(query): accept list parameters as row values
+- d27801e: 📝 docs: import the entity in the DAO example
+- 08f3712: ✨ feat(type_converter): accept converters implementing TypeConverter
+- 83fbc0c: 🐛 fix(query): report unresolved return types of query methods
+- 5dbe2f6: 🐛 fix(streams): handle re-queries finishing after the database closed
+- 1f3dc54: 🐛 fix(dao): ignore @transaction on query and change methods
+- 9283a6a: 🐛 fix(example): create tasks with the open status
+- c2245a7: 🐛 fix(index): create indices with IF NOT EXISTS
+- ca2d50f: 🐛 fix(transaction): keep nullable return types of transaction methods
+- 794e287: 🐛 fix(entity): report unknown compound primary key columns
+- a55861a: 📝 docs: document full text search entities
+- 9095cd5: 🐛 fix(query): read doubles from integer values
+- 7de2d56: 🐛 fix(query): report invalid queries during code generation
+- 84ec23e: 🐛 fix(streams): support quoted table names of stream queries
+- 54b2505: ✨ feat(index): support indices on expressions
+- 4703275: 📝 docs: fix the link to the integration tests
+- 8299992: 📝 docs: explain how the linked tests differ from Flutter tests
+- 1a69159: 🐛 fix(migrations): roll back migrations violating foreign keys
+- 6828568: ✅ test: cover RESTRICT foreign keys when clearing and dropping tables
+- 9e6d0e5: 🐛 fix(dao): keep annotations of methods redeclared without them
+- b62f0e6: 🐛 fix(column_info): don't escape default values which are string literals
+- eb37515: 🐛 fix(query): reject list parameters as function arguments
+- 1a912dc: 🐛 fix(migrations): require consecutive migrations
+- d647c93: 🐛 fix(dao): write constant default values of parameters as literals
+- 68677a3: 🐛 fix(database): don't notify streams after closing while clearing tables
+- 6b989de: ⚡️ perf(query): share the SQL engine validating queries
+- 00546ff: 🐛 fix(dao): respect concrete methods and signatures of redeclarations
+- 1b6f6c9: ♻️ refactor(query): accept row values only after specific keywords
+- 42f2c7b: ⚡️ perf(migrations): remember versions without migration path
+- 081f10b: 🐛 fix(column_info): unquote quoted default values with unescaped quotes
+- 5976f8a: 🐛 fix(streams): don't notify streams after closing the database
+- b6b7a0a: 🐛 fix(dao): write enum default values of parameters as enum values
+- e4b2893: 🐛 fix(query): accept row values after IN and CASE
+- 78dd438: 🐛 fix(dao): compare default values of redeclarations by name and value
+- 04381ca: ⚡️ perf(migrations): group migrations by start version for the path search
+- a580f36: 🐛 fix(streams): match FROM as a whole word for the streamed table
+- 36d7b7e: 🐛 fix(migrations): only fail on foreign key violations added by migrations
+- 689934f: 🐛 fix(generator): search superclasses before interfaces
+- e838380: ✅ test(dao): cover redeclarations with implicit null default values
+- 41db98d: 🐛 fix(index): hash column names and expressions by content
+- 1c7a6c5: 🐛 fix(column_info): strip all surrounding quotes of default values again
+- 617961e: 🐛 fix(query): reject list parameters in quoted or nested function calls
 
 ### 📝 Documentation
 - **getting-started**: Document absolute database paths for `databaseBuilder()`, covered by a test (#179, upstream floor#588, floor#803)
