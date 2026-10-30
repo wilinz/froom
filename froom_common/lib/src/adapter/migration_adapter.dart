@@ -66,12 +66,17 @@ abstract class MigrationAdapter {
   /// Returns consecutive [migrations] from [startVersion] to [endVersion],
   /// preferring the ones reaching the highest version like Room, or null if
   /// there are none.
+  ///
+  /// [deadEnds] are the versions from which [endVersion] can't be reached.
   static List<Migration>? _findMigrationPath(
     final int startVersion,
     final int endVersion,
-    final List<Migration> migrations,
-  ) {
+    final List<Migration> migrations, [
+    final Set<int>? deadEnds,
+  ]) {
     if (startVersion == endVersion) return [];
+    final unreachable = deadEnds ?? <int>{};
+    if (unreachable.contains(startVersion)) return null;
 
     final nextMigrations = migrations
         .where((migration) =>
@@ -82,10 +87,11 @@ abstract class MigrationAdapter {
       ..sort((first, second) => second.endVersion.compareTo(first.endVersion));
 
     for (final migration in nextMigrations) {
-      final remainingPath =
-          _findMigrationPath(migration.endVersion, endVersion, migrations);
+      final remainingPath = _findMigrationPath(
+          migration.endVersion, endVersion, migrations, unreachable);
       if (remainingPath != null) return [migration, ...remainingPath];
     }
+    unreachable.add(startVersion);
     return null;
   }
 

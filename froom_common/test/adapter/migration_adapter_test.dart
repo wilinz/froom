@@ -153,6 +153,15 @@ void main() {
       verifyNoMoreInteractions(mockDatabase);
     });
 
+    test('finds no path through many overlapping migrations quickly', () {
+      final migrations = [
+        for (var start = 1; start < 60; start++)
+          for (var end = start + 1; end < 60; end++) migration(start, end),
+      ];
+
+      expect(MigrationAdapter.hasMigrationPath(1, 100, migrations), isFalse);
+    });
+
     test('ignores migrations beyond the end version', () async {
       final migrations = [migration(1, 2), migration(2, 3)];
 
