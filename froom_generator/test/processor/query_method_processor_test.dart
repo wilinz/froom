@@ -383,11 +383,11 @@ void main() {
       expect(actual, throwsProcessorError(error));
     });
 
-    test('exception when passing nullable method parameter to query method',
+    test('exception when passing nullable list parameter to query method',
         () async {
       final methodElement = await _createQueryMethodElement('''
-      @Query('SELECT * FROM Person WHERE id = :id')
-      Future<Person?> findPersonByIdAndName(int? id);
+      @Query('SELECT * FROM Person WHERE id IN (:ids)')
+      Future<List<Person>> findPersonsByIds(List<int>? ids);
     ''');
 
       final actual = () =>

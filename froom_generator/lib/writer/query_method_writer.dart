@@ -108,14 +108,23 @@ class QueryMethodWriter implements Writer {
         final typeConverter = _queryMethod.typeConverters.getClosestOrNull(
           type,
         );
+        // nullable values are bound as NULL, e.g. with a type converter of
+        // the non-nullable type
+        final nonNullableTypeConverter = type.isNullable
+            ? _queryMethod.typeConverters.getClosestOrNull(
+                parameter.library!.typeSystem.promoteToNonNull(type))
+            : null;
 
         if (typeConverter != null) {
           return '_${typeConverter.name.decapitalize()}.encode($displayName)';
+        } else if (nonNullableTypeConverter != null) {
+          return '$displayName == null ? null : _${nonNullableTypeConverter.name.decapitalize()}.encode($displayName)';
         } else if (type.isDartCoreBool) {
-          // query method parameters can't be null
-          return '$displayName ? 1 : 0';
+          return type.isNullable
+              ? '$displayName == null ? null : ($displayName ? 1 : 0)'
+              : '$displayName ? 1 : 0';
         } else if (type.isEnumType) {
-          return '$displayName.index';
+          return type.isNullable ? '$displayName?.index' : '$displayName.index';
         } else if (type.isDefaultSqlType) {
           return displayName;
         } else {

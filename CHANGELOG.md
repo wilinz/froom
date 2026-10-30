@@ -22,6 +22,7 @@
 - **dao**: Query and transaction methods support optional positional and named parameters with default values ([#168](https://github.com/wilinz/froom/issues/168))
 - **dao**: `INSERT`, `UPDATE` and `DELETE` statements of `@Query` methods update streams declared in other DAOs too ([#169](https://github.com/wilinz/froom/issues/169))
 - **views**: Database views are recreated with their current queries after migrations ([#170](https://github.com/wilinz/froom/issues/170))
+- **query**: Query method parameters can be nullable and are bound as `NULL` ([#173](https://github.com/wilinz/froom/issues/173))
 
 ### ⬆️ Breaking Changes & Dependencies
 - **analyzer**: Bumped to `^11.0.0` for Flutter 3.47 / Dart 3.13

@@ -54,7 +54,16 @@ Future<void> deleteAllPeople(); // query without returning an entity
 
 @Query('SELECT * FROM Person WHERE id IN (:ids)')
 Future<List<Person>> findPeopleWithIds(List<int> ids); // query with IN clause
+
+@Query('SELECT * FROM Person WHERE nickname IS :nickname')
+Future<List<Person>> findPeopleWithNickname(String? nickname); // nullable parameters are bound as NULL
+
+@Query('SELECT * FROM Person LIMIT :count OFFSET :offset')
+Future<List<Person>> findPeople({int offset = 0, required int count}); // optional and named parameters
 ```
+
+Nullable parameters are bound as `NULL`. As `= NULL` is never true in SQL, compare them with `IS` to match `NULL` values.
+List parameters have to be non-nullable.
 
 Query arguments, when using SQLite's `LIKE` operator, have to be supplied by the input of a method.
 It's not possible to define a pattern matching argument like `%foo%` in the query itself.

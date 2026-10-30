@@ -32,6 +32,7 @@
 - **query_method_writer, transaction_method_writer**: Keep optional positional and named parameters with their default values in generated overrides and pass named arguments by name (`MethodParametersExtension.addParametersOf`, `getArgumentsOf`) (#168, upstream floor#371)
 - **dao_writer**: Pass the change listener to `QueryAdapter` whenever the database has streams, so changes of `@Query` statements notify streams of other DAOs (#169, upstream floor#383, floor#603)
 - **database_writer**: Drop and recreate the declared views after running migrations, so changed view queries take effect (#170, upstream floor#400)
+- **query_processor, query_method_writer**: Allow nullable scalar query parameters (nullable lists are still rejected), bound as `NULL`; nullable `bool`/enum parameters and nullable parameters with a converter of the non-nullable type map `null` to `NULL`; `QueryAdapter` takes `List<Object?>` arguments (#173, upstream floor#507)
 
 ### 🧹 Maintenance
 - **queryable_processor**: Replace removed `FieldElement.isSynthetic` with `isOriginDeclaration || isOriginDeclaringFormalParameter`

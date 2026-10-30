@@ -40,6 +40,9 @@ abstract class PersonDao {
   @Query('SELECT * FROM person ORDER BY id LIMIT :count OFFSET :offset')
   Future<List<Person>> findPersonsPage({int offset = 0, required int count});
 
+  @Query('SELECT * FROM person WHERE custom_name IS :name')
+  Future<List<Person>> findPersonsWithNullableName(String? name);
+
   @Query("SELECT * FROM person WHERE custom_name == ''")
   Future<List<Person>> findPersonsWithEmptyName();
 

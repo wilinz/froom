@@ -196,6 +196,15 @@ void main() {
               equals([persons[1]]));
         });
 
+        test('query with nullable parameter', () async {
+          final person = Person(1, 'Simon');
+          await personDao.insertPerson(person);
+
+          expect(await personDao.findPersonsWithNullableName('Simon'),
+              equals([person]));
+          expect(await personDao.findPersonsWithNullableName(null), isEmpty);
+        });
+
         test("query with ''", () async {
           final person = Person(1, 'Frank');
           final personNoName = Person(2, '');

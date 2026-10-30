@@ -18,7 +18,7 @@ class QueryProcessor extends Processor<Query> {
 
   @override
   Query process() {
-    _assertNoNullableParameters();
+    _assertNoNullableListParameters();
 
     final indices = <String, int>{};
     final fixedParameters = <String>{};
@@ -79,9 +79,11 @@ class QueryProcessor extends Processor<Query> {
     );
   }
 
-  void _assertNoNullableParameters() {
+  /// Nullable values are bound as `NULL`, but lists have to be non-nullable
+  /// as their items are expanded into the query.
+  void _assertNoNullableListParameters() {
     for (final parameter in _parameters) {
-      if (parameter.type.isNullable) {
+      if (parameter.type.isDartCoreList && parameter.type.isNullable) {
         throw _processorError.queryMethodParameterIsNullable(parameter);
       }
     }

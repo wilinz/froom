@@ -22,7 +22,7 @@ class QueryAdapter {
   /// Executes a SQLite query that may return a single value.
   Future<T?> query<T>(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
     required final T Function(Map<String, Object?>) mapper,
   }) async {
     final rows = await _preformQuery(sql, arguments);
@@ -39,7 +39,7 @@ class QueryAdapter {
   /// Executes a SQLite query that may return multiple values.
   Future<List<T>> queryList<T>(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
     required final T Function(Map<String, Object?>) mapper,
   }) async {
     final rootNode = _parseRootNode(sql);
@@ -56,7 +56,7 @@ class QueryAdapter {
 
   Future<void> queryNoReturn(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
   }) async {
     await _preformQuery(sql, arguments);
   }
@@ -65,7 +65,7 @@ class QueryAdapter {
   /// or `null`.
   Stream<T?> queryStream<T>(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
     required final String queryableName,
     required final bool isView,
     required final T Function(Map<String, Object?>) mapper,
@@ -99,7 +99,7 @@ class QueryAdapter {
   /// Executes a SQLite query that returns a stream of multiple query results.
   Stream<List<T>> queryListStream<T>(
     final String sql, {
-    final List<Object>? arguments,
+    final List<Object?>? arguments,
     required final String queryableName,
     required final bool isView,
     required final T Function(Map<String, Object?>) mapper,
@@ -132,7 +132,7 @@ class QueryAdapter {
   /// Parses the SQL query to determine which method is declared and executes it.
   Future<List<Map<String, Object?>>> _preformQuery(
     String sql,
-    List<Object>? arguments,
+    List<Object?>? arguments,
   ) async {
     List<Map<String, Object?>> result = List.empty();
     String tableName = '';

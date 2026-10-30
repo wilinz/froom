@@ -101,6 +101,26 @@ void main() {
     '''));
   });
 
+  test('query with nullable parameters', () async {
+    final queryMethod = await _createQueryMethod('''
+      @Query('SELECT * FROM Person WHERE name IS :name AND admin IS :admin AND someType IS :type')
+      Future<List<Person>> findBy(String? name, bool? admin, CharacterType? type);
+    ''');
+
+    final actual = QueryMethodWriter(queryMethod).write();
+
+    expect(actual, equalsDart(r'''
+      @override
+      Future<List<Person>> findBy(
+        String? name,
+        bool? admin,
+        CharacterType? type,
+      ) async {
+        return _queryAdapter.queryList('SELECT * FROM Person WHERE name IS ?1 AND admin IS ?2 AND someType IS ?3', mapper: (Map<String, Object?> row) => Person(row['id'] as int, row['name'] as String, row['weight'] as double, (row['admin'] as int) != 0, row['avatar'] as Uint8List), arguments: [name, admin == null ? null : (admin ? 1 : 0), type?.index]);
+      }
+    '''));
+  });
+
   test('query return int type', () async {
     final queryMethod = await _createQueryMethod('''
       @Query('SELECT COUNT(id) FROM Person')
@@ -409,6 +429,29 @@ void main() {
       @override
       Future<Order?> findById(int id) async {
         return _queryAdapter.query('SELECT * FROM Order WHERE id = ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [id]);
+      }
+    '''));
+    });
+
+    test('generates method with nullable type converted parameter', () async {
+      final typeConverter = TypeConverter(
+        'DateTimeConverter',
+        await dateTimeDartType,
+        await intDartType,
+        TypeConverterScope.database,
+      );
+      final queryMethod = await '''
+      @Query('SELECT * FROM Order WHERE dateTime IS :dateTime')
+      Future<List<Order>> findByDateTime(DateTime? dateTime);
+    '''
+          .asOrderQueryMethod({typeConverter});
+
+      final actual = QueryMethodWriter(queryMethod).write();
+
+      expect(actual, equalsDart(r'''
+      @override
+      Future<List<Order>> findByDateTime(DateTime? dateTime) async {
+        return _queryAdapter.queryList('SELECT * FROM Order WHERE dateTime IS ?1', mapper: (Map<String, Object?> row) => Order(row['id'] as int, _dateTimeConverter.decode(row['dateTime'] as int)), arguments: [dateTime == null ? null : _dateTimeConverter.encode(dateTime)]);
       }
     '''));
     });
