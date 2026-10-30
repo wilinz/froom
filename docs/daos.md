@@ -207,8 +207,8 @@ StreamBuilder<List<Person>>(
 ```
 
 !!! attention
-    - Only methods annotated with `@insert`, `@update`, `@upsert` and `@delete` trigger `Stream` emissions.
-      Inserting data by using the `@Query()` annotation doesn't.
+    - Methods annotated with `@insert`, `@update`, `@upsert` and `@delete` trigger `Stream` emissions,
+      as well as `INSERT`, `UPDATE` and `DELETE` statements of `@Query()` methods, which notify the streams of the changed table.
     - It is now possible to return a `Stream` if the function queries a database view. But it will fire on **any**
       `@update`, `@insert`, `@upsert`, `@delete` events in the whole database, which can get quite taxing on the runtime. Please add it only if you know what you are doing!
       This is mostly due to the complexity of detecting which entities are involved in a database view.

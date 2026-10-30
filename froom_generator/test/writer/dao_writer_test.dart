@@ -360,6 +360,46 @@ void main() {
       '''));
   });
 
+  test('create DAO notifying streams of other DAOs about query changes',
+      () async {
+    final dao = await _createDao('''
+        @dao
+        abstract class PersonDao {
+          @Query('DELETE FROM Person')
+          Future<void> deleteAllPersons();
+        }
+      ''');
+    // simulate DB has a stream on Person in another DAO
+    final entity = (await _createDao('''
+        @dao
+        abstract class OtherDao {
+          @delete
+          Future<void> deletePerson(Person person);
+        }
+      ''')).deletionMethods[0].entity;
+    final actual = DaoWriter(dao, {entity}, false).write();
+
+    expect(actual, equalsDart(r'''
+        class _$PersonDao extends PersonDao {
+          _$PersonDao(
+            this.database,
+            this.changeListener,
+          ) : _queryAdapter = QueryAdapter(database, changeListener);
+        
+          final sqflite.DatabaseExecutor database;
+        
+          final StreamController<String> changeListener;
+        
+          final QueryAdapter _queryAdapter;
+
+          @override
+          Future<void> deleteAllPersons() async {
+            await _queryAdapter.queryNoReturn('DELETE FROM Person');
+          }
+        }
+      '''));
+  });
+
   test('create DAO aware of other different entity stream query', () async {
     final dao = await _createDao('''
       @dao

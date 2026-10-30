@@ -56,8 +56,12 @@ class DaoWriter extends Writer {
           ..name = '_queryAdapter'
           ..type = refer('QueryAdapter')));
 
-      final queriesRequireChangeListener =
-          dao.streamEntities.isNotEmpty || dao.streamViews.isNotEmpty;
+      // listening to changes for own streams and notifying the streams of
+      // the database about changes of queries, e.g. DELETE statements
+      final queriesRequireChangeListener = dao.streamEntities.isNotEmpty ||
+          dao.streamViews.isNotEmpty ||
+          streamEntities.isNotEmpty ||
+          dbHasViewStreams;
 
       constructorBuilder
         ..initializers.add(Code(

@@ -164,6 +164,27 @@ void main() {
       });
     });
 
+    test('query changes of other Dao update streams', () async {
+      final person = Person(1, 'Simon');
+      final dog = Dog(1, 'Dog', 'Doggie', person.id!);
+      await personDao.insertPerson(person);
+      await database.dogDao.insertDog(dog);
+
+      final actual = personDao.findAllDogsOfPersonAsStream(person.id!);
+      expect(
+          actual,
+          emitsInOrder(<List<Dog>>[
+            [dog],
+            [Dog(1, 'Renamed', 'Doggie', person.id!)],
+            [],
+          ]));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      await database.dogDao.renameDog(dog.id!, 'Renamed');
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await database.dogDao.deleteAllDogs();
+    });
+
     test('regression test streaming updates from other Dao', () async {
       final person1 = Person(1, 'Simon');
       final person2 = Person(2, 'Frank');
