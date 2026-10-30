@@ -54,9 +54,9 @@ class Index {
       name.hashCode ^
       tableName.hashCode ^
       unique.hashCode ^
-      columnNames.hashCode ^
+      const ListEquality<String>().hash(columnNames) ^
       where.hashCode ^
-      expressions.hashCode;
+      const SetEquality<String>().hash(expressions);
 
   @override
   String toString() {

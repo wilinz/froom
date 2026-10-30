@@ -50,4 +50,14 @@ void main() {
           'CREATE INDEX IF NOT EXISTS `foo` ON `bar` (y + z, lower(name), `id`)'),
     );
   });
+
+  test('equal indices have equal hash codes', () {
+    final index = Index('foo', 'bar', false, ['lower(name)'],
+        expressions: {'lower(name)'});
+    final other = Index('foo', 'bar', false, ['lower(name)'],
+        expressions: <String>{'lower(name)'});
+
+    expect(index, equals(other));
+    expect(index.hashCode, equals(other.hashCode));
+  });
 }
