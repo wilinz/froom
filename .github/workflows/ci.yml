@@ -58,6 +58,10 @@ jobs:
         working-directory: froom_generator
         run: dart run test_cov
 
+      # codecov-action verifies its uploader with gpg, which the image lacks
+      - name: Install gpg
+        run: apt-get update && apt-get install -y --no-install-recommends gnupg
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
         with:
