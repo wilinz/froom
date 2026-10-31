@@ -163,6 +163,10 @@ class EntitySchema {
 
   bool get isFts => fts != null;
 
+  /// Whether the table is an FTS5 table, whose `rowid` column is its row id.
+  bool get isFts5 =>
+      fts?.trimLeft().toLowerCase().startsWith('using fts5') ?? false;
+
   /// Whether the table has an `INTEGER PRIMARY KEY` column, which is an
   /// alias of the row id and therefore never NULL.
   bool get hasRowidAlias =>

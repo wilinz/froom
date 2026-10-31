@@ -159,11 +159,13 @@ class DaoProcessor extends Processor<Dao> {
     final List<MethodElement> methods,
     final Set<TypeConverter> typeConverters,
   ) {
+    // shared, as query methods cache their analysis of it
+    final queryables = [..._entities, ..._views];
     return methods
         .where((method) => method.hasAnnotation(annotations.Query))
         .map((method) => QueryMethodProcessor(
               method,
-              [..._entities, ..._views],
+              queryables,
               typeConverters,
             ).process())
         .toList();

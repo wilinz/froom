@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### ✨ Features
+- **fts**: `Fts5` annotation (`FtsTokenizer.ascii` and `trigram` added) and value object; `Entity.getCreateTableStatement()` declares FTS5 columns without types and constraints, omitting the `rowid` primary key and appending `UNINDEXED`; `EntityProcessor` requires a single integer `rowid` primary key, another column, existing `notIndexed` columns and no indices, foreign keys or `WITHOUT ROWID`
+- **sqlite_module_hint**: `explainMissingSqliteModules()` in `froom_common` wraps opening the database in the generated `open()` and turns `no such module` errors into a `MissingSqliteModuleException`
 - **database_builder_writer**: Generate `databaseFactory(sqflite.DatabaseFactory)` in builders and their contracts; `build()` opens the database with it or the default `sqfliteDatabaseFactory`, which `open()` of the database takes as its first parameter
 - **froom**: `sqfliteDatabaseFactory` is exported by conditional imports (`databaseFactoryFfi` on native platforms, `databaseFactoryFfiWeb` on the web) instead of using `dart:io` and the sqflite plugin's global factory; `sqflite_common` is a direct dependency and the unused `sqlparser` dependency is removed
 - **dependencies**: `sqflite_common` ^2.5.13, `sqflite_common_ffi` ^2.4.5 (`sqlite3` 3 with hooks), `sqflite_common_ffi_web` ^1.2.0 and `sqflite` ^2.4.5 in the example; Dart SDK `>=3.12.0` for `froom`, `froom_ffi` and the example; the integration tests of `froom_common` use the system SQLite (`hooks.user_defines.sqlite3.source: system`), as the bundled one lacks FTS3 and FTS4

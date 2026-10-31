@@ -92,6 +92,94 @@ class EntityProcessorError {
     );
   }
 
+  InvalidGenerationSourceError get fts5PrimaryKeyIsNotRowid {
+    return InvalidGenerationSourceError(
+      'The primary key of the FTS5 entity ${_classElement.displayName} is not '
+      'a single integer field of the column rowid.',
+      todo: "Annotate an int field with @PrimaryKey() and @ColumnInfo(name: 'rowid'), "
+          'which is the row id of the FTS5 table.',
+      element: _classElement,
+    );
+  }
+
+  InvalidGenerationSourceError get multipleFts {
+    return InvalidGenerationSourceError(
+      'The entity ${_classElement.displayName} has multiple FTS annotations.',
+      todo: 'Keep one of @Fts3, @Fts4 and @Fts5.',
+      element: _classElement,
+    );
+  }
+
+  InvalidGenerationSourceError get fts5WithoutColumns {
+    return InvalidGenerationSourceError(
+      'The FTS5 entity ${_classElement.displayName} has no columns besides its '
+      'row id.',
+      todo: 'Add a field for a column to index.',
+      element: _classElement,
+    );
+  }
+
+  InvalidGenerationSourceError fts5UnknownNotIndexedColumns(
+    final List<String> columnNames,
+  ) {
+    return InvalidGenerationSourceError(
+      'The columns ${columnNames.join(', ')} of notIndexed of the FTS5 entity '
+      '${_classElement.displayName} are not columns of the entity.',
+      todo: 'Use the column names of fields of the entity, except rowid.',
+      element: _classElement,
+    );
+  }
+
+  InvalidGenerationSourceError fts5InvalidPrefixes(final List<int> prefixes) {
+    return InvalidGenerationSourceError(
+      'The prefixes ${prefixes.join(', ')} of the FTS5 entity '
+      '${_classElement.displayName} are not all between 1 and 999.',
+      todo: 'Use prefix lengths from 1 to 999.',
+      element: _classElement,
+    );
+  }
+
+  InvalidGenerationSourceError fts5ReservedColumns(
+    final List<String> columnNames,
+  ) {
+    return InvalidGenerationSourceError(
+      'The columns ${columnNames.join(', ')} of the FTS5 entity '
+      '${_classElement.displayName} have names reserved by FTS5, which are '
+      'rowid, rank and the name of the table, ignoring case.',
+      todo: 'Rename the columns, e.g. with @ColumnInfo(name: ...).',
+      element: _classElement,
+    );
+  }
+
+  InvalidGenerationSourceError ftsUnsupportedTokenizer(final String tokenizer) {
+    return InvalidGenerationSourceError(
+      'The tokenizer $tokenizer of the FTS entity '
+      "${_classElement.displayName} only exists in FTS5.",
+      todo: 'Use @Fts5() or one of the FTS3 and FTS4 tokenizers simple, '
+          'porter, icu or unicode61.',
+      element: _classElement,
+    );
+  }
+
+  InvalidGenerationSourceError fts5UnsupportedTokenizer(final String tokenizer) {
+    return InvalidGenerationSourceError(
+      'The tokenizer $tokenizer of the FTS5 entity '
+      "${_classElement.displayName} doesn't exist in FTS5.",
+      todo: 'Use one of the FTS5 tokenizers unicode61, ascii, porter or '
+          'trigram.',
+      element: _classElement,
+    );
+  }
+
+  InvalidGenerationSourceError get fts5TableConstraints {
+    return InvalidGenerationSourceError(
+      'The FTS5 entity ${_classElement.displayName} has indices, foreign keys '
+      'or is WITHOUT ROWID, which FTS5 tables do not support.',
+      todo: 'Remove indices, foreignKeys and withoutRowid from @Entity().',
+      element: _classElement,
+    );
+  }
+
   InvalidGenerationSourceError get autoIncrementInWithoutRowid {
     return InvalidGenerationSourceError(
       'autoGenerate is not allowed in WITHOUT ROWID tables',

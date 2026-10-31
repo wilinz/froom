@@ -185,6 +185,38 @@ await mailDao.findMails('flut*'); // contains a word starting with "flut"
     - FTS tables don't enforce constraints like unique primary keys or foreign keys, and index all columns.
       Inserting an existing primary key adds another row, use `@upsert` to update existing rows instead.
     - Indices and type affinities don't apply to FTS tables, so better keep searchable text in FTS entities and other data in regular entities.
+    - The SQLite builds bundled by sqlite3, which the default database factory uses, don't support FTS3 and FTS4, see [Platform Support](platform-support.md). Use FTS5 instead.
+
+#### FTS5
+Unlike Room, Froom supports [FTS5](https://www.sqlite.org/fts5.html) tables with `@fts5`/`@Fts5()`, which all SQLite builds bundled by sqlite3 support, including the encrypted ones.
+Besides `tokenizer` (`FtsTokenizer.unicode61` by default, or `ascii`, `porter` and `trigram`) and `tokenizerArgs`, `@Fts5()` takes the lengths of `prefixes` to index for faster prefix queries, and the columns which are stored but `notIndexed`.
+
+The primary key of FTS5 entities has to be an integer field of the column `rowid`, which is the row id of the table.
+As FTS5 tables don't return their row id for `*`, queries have to select it explicitly.
+
+```dart
+@Entity(tableName: 'note')
+@Fts5(prefixes: [2, 3], notIndexed: ['author'])
+class Note {
+  @PrimaryKey(autoGenerate: true)
+  @ColumnInfo(name: 'rowid')
+  final int id;
+
+  final String text;
+
+  final String author;
+
+  Note(this.id, this.text, this.author);
+}
+
+@dao
+abstract class NoteDao {
+  @Query('SELECT rowid, * FROM note WHERE note MATCH :query')
+  Future<List<Note>> findNotes(String query);
+}
+```
+
+Unlike FTS3 and FTS4 tables, FTS5 tables enforce unique row ids, and their entities can't have indices or foreign keys.
 
 ### Ignoring Fields
 Getters, setters and all static fields of entities are ignored by default and thus excluded from the library's mapping.

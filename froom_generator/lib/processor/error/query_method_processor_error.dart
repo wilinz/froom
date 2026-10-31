@@ -25,6 +25,15 @@ class QueryMethodProcessorError {
     );
   }
 
+  InvalidGenerationSourceError get fts5RowidNotSelected {
+    return InvalidGenerationSourceError(
+      'The query of ${_methodElement.displayName} returns an FTS5 entity but '
+      "doesn't select its rowid, which FTS5 tables don't return for *.",
+      todo: 'Select the rowid explicitly, e.g. SELECT rowid, * FROM ...',
+      element: _methodElement,
+    );
+  }
+
   InvalidGenerationSourceError get unresolvedReturnType {
     return InvalidGenerationSourceError(
       'The return type of the query method ${_methodElement.displayName} can not be resolved.',

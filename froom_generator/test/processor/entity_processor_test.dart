@@ -607,6 +607,333 @@ void main() {
     });
   });
 
+  group('fts5', () {
+    test('creates the table without the row id and constraints', () async {
+      final classElement = await createClassElement('''
+        @entity
+        @Fts5(
+          tokenizer: FtsTokenizer.porter,
+          tokenizerArgs: ['unicode61', 'remove_diacritics', '2'],
+          prefixes: [2, 3],
+          notIndexed: ['author'],
+        )
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          final String author;
+
+          Mail(this.id, this.text, this.author);
+        }
+      ''');
+
+      final actual = EntityProcessor(classElement, {}).process();
+
+      expect(
+        actual.fts,
+        equals(Fts5('porter', ['unicode61', 'remove_diacritics', '2'], [2, 3],
+            ['author'])),
+      );
+      expect(
+        actual.getCreateTableStatement(),
+        "CREATE VIRTUAL TABLE IF NOT EXISTS `Mail` USING fts5(`text`, "
+        "`author` UNINDEXED, tokenize = 'porter unicode61 remove_diacritics 2', "
+        "prefix = '2 3')",
+      );
+    });
+
+    test('quotes tokenizer arguments which are not barewords', () async {
+      final classElement = await createClassElement('''
+        @entity
+        @Fts5(tokenizerArgs: ['tokenchars', '-_', "'.'"], notIndexed: ['TEXT'])
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          final String title;
+
+          Mail(this.id, this.text, this.title);
+        }
+      ''');
+
+      final actual = EntityProcessor(classElement, {}).process();
+
+      expect(
+        actual.getCreateTableStatement(),
+        "CREATE VIRTUAL TABLE IF NOT EXISTS `Mail` USING fts5(`text` UNINDEXED, "
+        "`title`, tokenize = 'unicode61 tokenchars ''-_'' ''.''')",
+      );
+    });
+
+    test('uses the unicode61 tokenizer by default', () async {
+      final classElement = await createClassElement('''
+        @entity
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+      ''');
+
+      final actual = EntityProcessor(classElement, {}).process();
+
+      expect(
+        actual.getCreateTableStatement(),
+        "CREATE VIRTUAL TABLE IF NOT EXISTS `Mail` USING fts5(`text`, "
+        "tokenize = 'unicode61')",
+      );
+    });
+
+    for (final (description, entity, error) in [
+      (
+        'primary key not of the row id',
+        '''
+        @entity
+        @fts5
+        class Mail {
+          @primaryKey
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5PrimaryKeyIsNotRowid,
+      ),
+      (
+        'row id column of another case',
+        '''
+        @entity
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'RowId')
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5PrimaryKeyIsNotRowid,
+      ),
+      (
+        'text row id',
+        '''
+        @entity
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final String id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5PrimaryKeyIsNotRowid,
+      ),
+      (
+        'no columns besides the row id',
+        '''
+        @entity
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          Mail(this.id);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5WithoutColumns,
+      ),
+      (
+        'unknown column of notIndexed',
+        '''
+        @entity
+        @Fts5(notIndexed: ['autor'])
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) =>
+            error.fts5UnknownNotIndexedColumns(['autor']),
+      ),
+      (
+        'multiple FTS annotations',
+        '''
+        @entity
+        @fts4
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) => error.multipleFts,
+      ),
+      (
+        'column named rank',
+        '''
+        @Entity()
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String rank;
+
+          Mail(this.id, this.rank);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5ReservedColumns(['rank']),
+      ),
+      (
+        'column named like the table',
+        '''
+        @Entity(tableName: 'Mail')
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String mail;
+
+          Mail(this.id, this.mail);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5ReservedColumns(['mail']),
+      ),
+      (
+        'column named like the row id in another case',
+        '''
+        @entity
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          @ColumnInfo(name: 'RowId')
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5ReservedColumns(['RowId']),
+      ),
+      (
+        'FTS4 with a tokenizer of FTS5',
+        '''
+        @entity
+        @Fts4(tokenizer: FtsTokenizer.trigram)
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) =>
+            error.ftsUnsupportedTokenizer('trigram'),
+      ),
+      (
+        'tokenizer of FTS4',
+        '''
+        @Entity()
+        @Fts5(tokenizer: FtsTokenizer.simple)
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) =>
+            error.fts5UnsupportedTokenizer('simple'),
+      ),
+      (
+        'invalid prefix',
+        '''
+        @entity
+        @Fts5(prefixes: [2, 1000])
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5InvalidPrefixes([2, 1000]),
+      ),
+      (
+        'index',
+        '''
+        @Entity(indices: [Index(value: ['text'])])
+        @fts5
+        class Mail {
+          @primaryKey
+          @ColumnInfo(name: 'rowid')
+          final int id;
+
+          final String text;
+
+          Mail(this.id, this.text);
+        }
+        ''',
+        (EntityProcessorError error) => error.fts5TableConstraints,
+      ),
+    ]) {
+      test('with $description fails', () async {
+        final classElement = await createClassElement(entity);
+
+        final actual = () => EntityProcessor(classElement, {}).process();
+
+        expect(
+          actual,
+          throwsInvalidGenerationSourceError(
+              error(EntityProcessorError(classElement))),
+        );
+      });
+    }
+  });
+
   test('Process entity with "WITHOUT ROWID"', () async {
     final classElement = await createClassElement('''
       @Entity(withoutRowid: true)

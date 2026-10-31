@@ -34,8 +34,8 @@ Android doesn't allow apps to load the SQLite of the system with FFI.
 Use the sqflite plugin to access it instead, as described below.
 
 !!! warning "FTS3 and FTS4"
-    The SQLite builds bundled by sqlite3, including the encrypted ones, only support FTS5, so entities annotated with `@Fts3` or `@Fts4` fail with `no such module`.
-    Use the SQLite of the system for them (`source: system`, or the sqflite plugin on Android), or a custom build enabling `SQLITE_ENABLE_FTS3`.
+    The SQLite builds bundled by sqlite3, including the encrypted ones, only support FTS5, so opening databases with entities annotated with `@Fts3` or `@Fts4` fails with a `MissingSqliteModuleException`.
+    Use [`@Fts5`](entities.md#fts5) instead, the SQLite of the system (`source: system`, or the sqflite plugin on Android), or a custom build enabling `SQLITE_ENABLE_FTS3`.
 
 ## Choosing the Database Factory
 

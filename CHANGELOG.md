@@ -8,6 +8,8 @@
 - **sdk**: Minimum Dart SDK of `froom`, `froom_ffi` and the example raised to `>=3.12.0`, as required by the sqflite packages
 
 ### ✨ Features
+- **fts**: Add `@fts5`/`@Fts5()` entities stored in FTS5 tables, which the SQLite builds bundled by sqlite3 support, with `tokenizer`, `tokenizerArgs`, `prefixes` and `notIndexed`; their primary key is the `rowid`, which queries have to select explicitly
+- **database**: Opening a database fails with a `MissingSqliteModuleException` explaining how to fix it when the SQLite library lacks a module like FTS4
 - **database**: Choose the sqflite `DatabaseFactory` of a database with `databaseFactory()` of its builder
 - **web**: The default database factory is chosen by conditional imports instead of `dart:io`, and `froom` declares web support
 - **migrations**: Add automatic migrations like Room's `@AutoMigration`, generated from the schemas exported to `froom_schemas` (with automatic migrations or `@Database(exportSchema: true)`), including `@RenameTable`, `@RenameColumn`, `@DeleteTable` and `@DeleteColumn` specs, `AutoMigrationSpec.onPostMigrate` and `@providedAutoMigrationSpec`

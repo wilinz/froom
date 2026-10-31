@@ -12,3 +12,4 @@ export 'package:froom_common/src/callback.dart';
 export 'package:froom_common/src/database.dart';
 export 'package:froom_common/src/extension/database_factory_extension.dart';
 export 'package:froom_common/src/migration.dart';
+export 'package:froom_common/src/util/sqlite_module_hint.dart';

@@ -43,6 +43,13 @@ abstract class Fts4Field {
   static const tokenizerArgs = 'tokenizerArgs';
 }
 
+abstract class Fts5Field {
+  static const tokenizer = 'tokenizer';
+  static const tokenizerArgs = 'tokenizerArgs';
+  static const prefixes = 'prefixes';
+  static const notIndexed = 'notIndexed';
+}
+
 abstract class IndexField {
   static const name = 'name';
   static const unique = 'unique';

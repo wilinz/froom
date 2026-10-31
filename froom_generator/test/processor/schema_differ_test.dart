@@ -805,6 +805,23 @@ void main() {
     );
   });
 
+  test('recreated FTS5 table copies its row id once', () {
+    final rowid = column('rowid', affinity: 'INTEGER', notNull: true);
+    final oldMail =
+        table('Mail', [rowid, column('text')], primaryKey: ['rowid'], fts: 'USING fts5');
+    final newMail = table('Mail', [rowid, column('text'), column('title')],
+        primaryKey: ['rowid'], fts: 'USING fts5');
+
+    final actual =
+        SchemaDiffer(schema(1, [oldMail]), schema(2, [newMail])).diffSchemas();
+
+    expect(
+      statements(actual),
+      contains('INSERT INTO `_new_Mail` (`rowid`, `text`) '
+          'SELECT `rowid`, `text` FROM `Mail`'),
+    );
+  });
+
   test('changed duplicate foreign keys recreate the table', () {
     ForeignKeySchema foreignKey(final String onDelete) =>
         ForeignKeySchema('Person', ['ownerId'], ['id'], 'NO ACTION', onDelete);

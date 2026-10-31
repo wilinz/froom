@@ -1,6 +1,7 @@
 import 'package:code_builder/code_builder.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/value_object/auto_migration.dart';
+import 'package:froom_generator/value_object/fts.dart';
 import 'package:froom_generator/value_object/schema.dart';
 
 /// Writes the [Migration] performing an automatic migration, like Room's
@@ -150,7 +151,11 @@ class AutoMigrationWriter {
   String? _getCopiedRowid(final ComplexChangedTable table) {
     final fromTable = table.fromTable;
     final toTable = table.toTable;
-    if (fromTable.withoutRowid ||
+    // the rowid column of FTS5 tables is their row id
+    final copiesFts5Rowid = toTable.isFts5 &&
+        table.columnSources.containsKey(Fts5.rowidColumnName);
+    if (copiesFts5Rowid ||
+        fromTable.withoutRowid ||
         toTable.withoutRowid ||
         toTable.hasRowidAlias &&
             table.columnSources

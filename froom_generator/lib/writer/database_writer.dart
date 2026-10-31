@@ -215,7 +215,7 @@ class DatabaseWriter implements Writer {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return databaseFactory.openDatabase(path, options: databaseOptions);
+          return explainMissingSqliteModules(() => databaseFactory.openDatabase(path, options: databaseOptions));
           '''));
   }
 
