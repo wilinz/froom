@@ -37,6 +37,18 @@ Use the sqflite plugin to access it instead, as described below.
     The SQLite builds bundled by sqlite3, including the encrypted ones, only support FTS5, so opening databases with entities annotated with `@Fts3` or `@Fts4` fails with a `MissingSqliteModuleException`.
     Use [`@Fts5`](entities.md#fts5) instead, the SQLite of the system (`source: system`, or the sqflite plugin on Android), or a custom build enabling `SQLITE_ENABLE_FTS3`.
 
+## Web
+
+On the web, the databases are stored in IndexedDB by [sqflite_common_ffi_web](https://pub.dev/packages/sqflite_common_ffi_web), which runs SQLite compiled to WebAssembly in a shared worker.
+Its files have to be added to the `web` directory of the app once, and again after upgrading sqflite_common_ffi_web:
+
+```bash
+dart run sqflite_common_ffi_web:setup
+```
+
+This adds `sqlite3.wasm` and the worker `sqflite_sw.js`.
+Apps can be compiled both to JavaScript and to WebAssembly (`flutter build web --wasm`).
+
 ## Choosing the Database Factory
 
 Pass another factory to the builder of the database to open it with, for example the sqflite plugin on Android and iOS:
@@ -52,4 +64,4 @@ final database = await $FroomAppDatabase
 
 Any `DatabaseFactory` works, e.g. `databaseFactoryFfiNoIsolate` to run the queries on the current isolate, or the factory of another SQLite library.
 
-Changes are only reported to the streams of the database opened by the builder, not to other isolates, processes or browser tabs writing to the same database file.
+Changes are only reported to the streams of the database opened by the builder, not to other isolates, processes or browser tabs writing to the same database.

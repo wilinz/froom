@@ -37,3 +37,5 @@ hooks:
   user_defines:
     sqlite3:
       source: system
+      name:
+        windows: winsqlite3

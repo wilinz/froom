@@ -110,6 +110,39 @@ jobs:
           flags: froom
           file: ./froom_common/coverage/lcov.info
 
+  froom-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: dart pub get
+        working-directory: froom
+
+      - name: Run generator
+        run: dart run build_runner build --delete-conflicting-outputs
+        working-directory: froom
+
+      - name: Set up SQLite for the web
+        run: dart run sqflite_common_ffi_web:setup --dir test/web
+        working-directory: froom
+
+      - name: Run tests compiled to JavaScript
+        run: dart test -p chrome test/web
+        working-directory: froom
+
+      - name: Run tests compiled to WebAssembly
+        run: dart test -p chrome --compiler dart2wasm test/web
+        working-directory: froom
+
   example:
     runs-on: ubuntu-latest
     timeout-minutes: 10
