@@ -23,7 +23,7 @@ dependencies:
   meta: ^1.16.0
   path: ^1.9.1
   source_gen: ^4.0.1
-  sqlparser: ^0.41.1
+  sqlparser: ^0.45.1
   strings: ^4.0.1
   pub_semver: ^2.2.0
 

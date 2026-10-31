@@ -7,6 +7,7 @@
 - **sqlite3**: sqlite3 bundles SQLite on Android and iOS too, even for apps only using the sqflite plugin there, which can avoid it with `source: system` for these platforms, see [Platform Support](https://wilinz.github.io/froom/platform-support/#choosing-the-sqlite-library)
 - **sdk**: Minimum Dart SDK of `froom`, `froom_ffi` and the example raised to `>=3.12.0`, as required by the sqflite packages
 - **froom_generator**: Minimum Dart SDK raised to `>=3.10.0`, as required by the versions of dart_style supporting analyzer 11
+- **sqlparser**: Upgraded to `^0.45.1` in `froom_common` and `froom_generator`, raising the minimum Dart SDK of `froom_common` to `>=3.10.0`
 
 ### ✨ Features
 - **fts**: Add `@fts5`/`@Fts5()` entities stored in FTS5 tables, which the SQLite builds bundled by sqlite3 support, with `tokenizer`, `tokenizerArgs`, `prefixes` and `notIndexed`; their primary key is the `rowid`, which queries have to select explicitly, as the code generation checks

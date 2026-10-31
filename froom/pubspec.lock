@@ -554,10 +554,10 @@ packages:
     dependency: transitive
     description:
       name: sqlparser
-      sha256: "7c859c803cf7e9a84d6db918bac824545045692bbe94a6386bd3a45132235d09"
+      sha256: "8121dae2c5de4a1e39153d95c55f7fd1816e32d1232fe270bc415a4a370d6e47"
       url: "https://pub.dev"
     source: hosted
-    version: "0.41.1"
+    version: "0.45.1"
   stack_trace:
     dependency: transitive
     description:

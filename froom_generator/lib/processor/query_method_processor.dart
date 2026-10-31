@@ -118,7 +118,8 @@ class QueryMethodProcessor extends Processor<QueryMethod> {
     if (query == null || query.isEmpty) throw _processorError.noQueryDefined;
 
     // the same check fails the query at runtime otherwise
-    if (_sqlEngine.parse(query).rootNode is sql.InvalidStatement) {
+    if (_sqlEngine.parse(sql.ParserEntrypoint.statement, query).rootNode
+        is sql.InvalidStatement) {
       throw _processorError.invalidQuery(query);
     }
     return query;
