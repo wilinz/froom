@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 8.0.0
 
 ### ⬆️ Breaking Changes & Dependencies
 - **sqlite3**: Upgraded to `sqflite_common_ffi` 2.4, `sqflite_common_ffi_web` 1.2 and `sqlite3` 3, which bundle SQLite with the app by hooks and choose the SQLite library per platform by the `hooks` of the `pubspec.yaml` (bundled, system or encrypted builds) instead of `sqlite3_flutter_libs`. The bundled builds don't support FTS3 and FTS4, which `@Fts3` and `@Fts4` entities require, see [Platform Support](https://wilinz.github.io/froom/platform-support/)
