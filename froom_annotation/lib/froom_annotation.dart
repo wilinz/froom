@@ -1,5 +1,6 @@
 library froom_annotation;
 
+export 'src/auto_migration.dart';
 export 'src/column_info.dart';
 export 'src/dao.dart';
 export 'src/database.dart';

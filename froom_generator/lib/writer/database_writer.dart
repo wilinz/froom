@@ -3,6 +3,7 @@ import 'package:froom_generator/misc/annotation_expression.dart';
 import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/value_object/database.dart';
 import 'package:froom_generator/value_object/entity.dart';
+import 'package:froom_generator/writer/auto_migration_writer.dart';
 import 'package:froom_generator/writer/writer.dart';
 
 /// Takes care of generating the database implementation.
@@ -107,9 +108,15 @@ class DatabaseWriter implements Writer {
             createViewStatements,
           ].join('\n');
 
+    final databaseFactoryParameter = Parameter((builder) => builder
+      ..name = 'databaseFactory'
+      ..type = refer('sqflite.DatabaseFactory'));
     final pathParameter = Parameter((builder) => builder
       ..name = 'path'
       ..type = refer('String'));
+    final passwordParameter = Parameter((builder) => builder
+      ..name = 'password'
+      ..type = refer('String?'));
     final migrationsParameter = Parameter((builder) => builder
       ..name = 'migrations'
       ..type = refer('List<Migration>'));
@@ -121,15 +128,42 @@ class DatabaseWriter implements Writer {
           ..name = 'fallbackToDestructiveMigration'
           ..type = refer('bool')
           ..defaultTo = const Code('false'));
+    final autoMigrationSpecsParameter = Parameter((builder) => builder
+      ..name = 'autoMigrationSpecs'
+      ..type = refer('List<AutoMigrationSpec>')
+      ..defaultTo = const Code('const []'));
+
+    // migrations of the builder replace automatic ones of the same versions
+    final autoMigrations = database.autoMigrations;
+    final migrations = autoMigrations.isEmpty ? 'migrations' : 'allMigrations';
+    final allMigrationsStatement = autoMigrations.isEmpty
+        ? ''
+        : '''
+          final allMigrations = [
+            ...migrations,
+            ...${autoMigrations.writeList()}.where((autoMigration) => !migrations.any((migration) =>
+                migration.startVersion == autoMigration.startVersion &&
+                migration.endVersion == autoMigration.endVersion)),
+          ];
+          ''';
 
     return Method((builder) => builder
       ..name = 'open'
       ..returns = refer('Future<sqflite.Database>')
       ..modifier = MethodModifier.async
-      ..requiredParameters.addAll([pathParameter, migrationsParameter])
-      ..optionalParameters.addAll(
-          [callbackParameter, fallbackToDestructiveMigrationParameter])
+      ..requiredParameters.addAll([
+        databaseFactoryParameter,
+        pathParameter,
+        passwordParameter,
+        migrationsParameter,
+      ])
+      ..optionalParameters.addAll([
+        callbackParameter,
+        fallbackToDestructiveMigrationParameter,
+        if (autoMigrations.hasProvidedSpecs) autoMigrationSpecsParameter,
+      ])
       ..body = Code('''
+          $allMigrationsStatement
           Future<void> createSchema(sqflite.Database database) async {
             $createTableStatements
             $createIndexStatements
@@ -149,6 +183,8 @@ class DatabaseWriter implements Writer {
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: ${database.version},
             onConfigure: (database) async {
+              // before any other statement accesses the database
+              await EncryptionAdapter.setPassword(database, password);
               if (await MigrationAdapter.isUpgradePending(database, ${database.version})) {
                 enableForeignKeysOnOpen = true;
               } else {
@@ -164,13 +200,13 @@ class DatabaseWriter implements Writer {
             },
             onUpgrade: (database, startVersion, endVersion) async {
               if (fallbackToDestructiveMigration &&
-                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, migrations)) {
+                  !MigrationAdapter.hasMigrationPath(startVersion, endVersion, $migrations)) {
                 await recreateSchema(database);
                 return;
               }
 
               final foreignKeyViolations = await MigrationAdapter.getForeignKeyViolations(database);
-              await MigrationAdapter.runMigrations(database, startVersion, endVersion, migrations);
+              await MigrationAdapter.runMigrations(database, startVersion, endVersion, $migrations);
               $recreateViewStatements
 
               await callback?.onUpgrade?.call(database, startVersion, endVersion);
@@ -185,7 +221,8 @@ class DatabaseWriter implements Writer {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          final database = await explainMissingSqliteModules(() => databaseFactory.openDatabase(path, options: databaseOptions));
+          return EncryptionAdapter.checkPassword(database, password);
           '''));
   }
 

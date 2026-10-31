@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:build/build.dart';
 import 'package:froom_generator/generator.dart';
 import 'package:source_gen/source_gen.dart';
@@ -6,6 +9,19 @@ import 'package:test/test.dart';
 import 'test_utils.dart';
 
 void main() {
+  late Directory schemaDirectory;
+
+  setUp(() {
+    schemaDirectory = Directory.systemTemp.createTempSync('froom_schemas');
+  });
+
+  tearDown(() {
+    schemaDirectory.deleteSync(recursive: true);
+  });
+
+  FroomGenerator createGenerator() =>
+      FroomGenerator(schemaLocation: schemaDirectory.path);
+
   test('generated code suppresses lints of the consuming project', () async {
     final database = await createClassElement('''
       @Database(version: 1, entities: [Person])
@@ -22,7 +38,7 @@ void main() {
       }
     ''');
 
-    final actual = await FroomGenerator().generateForAnnotatedElement(
+    final actual = await createGenerator().generateForAnnotatedElement(
       database,
       ConstantReader(null),
       _FakeBuildStep(),
@@ -60,7 +76,7 @@ void main() {
       }
     ''');
 
-    final actual = await FroomGenerator().generateForAnnotatedElement(
+    final actual = await createGenerator().generateForAnnotatedElement(
       database,
       ConstantReader(null),
       _FakeBuildStep(),
@@ -71,9 +87,126 @@ void main() {
       startsWith('// ignore_for_file: type=lint, unused_element\n'),
     );
   });
+
+  test('exports the schema of the database version', () async {
+    final database = await createClassElement('''
+      @Database(version: 2, entities: [Person], exportSchema: true)
+      abstract class TestDatabase extends FroomDatabase {}
+      
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        final String name;
+      
+        Person(this.id, this.name);
+      }
+    ''');
+
+    await createGenerator().generateForAnnotatedElement(
+      database,
+      ConstantReader(null),
+      _FakeBuildStep(),
+    );
+
+    final file = File(
+        '${schemaDirectory.path}/lib/database/TestDatabase/2.json');
+    final schema = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
+    final entities = (schema['database'] as Map)['entities'] as List;
+    expect((entities.single as Map)['createSql'],
+        contains(r'CREATE TABLE IF NOT EXISTS `${TABLE_NAME}`'));
+  });
+
+  test('exports no schema by default without automatic migrations', () async {
+    final database = await createClassElement('''
+      @Database(version: 1, entities: [Person])
+      abstract class TestDatabase extends FroomDatabase {}
+      
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        Person(this.id);
+      }
+    ''');
+
+    await createGenerator().generateForAnnotatedElement(
+      database,
+      ConstantReader(null),
+      _FakeBuildStep(),
+    );
+
+    expect(schemaDirectory.listSync(), isEmpty);
+  });
+
+  test('invalid schema file fails with the path of the schema', () async {
+    final file = File('${schemaDirectory.path}/lib/database/TestDatabase/1.json')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+          '{"formatVersion": 1, "database": {"version": "1"}}');
+    final database = await createClassElement('''
+      @Database(
+        version: 2,
+        entities: [Person],
+        autoMigrations: [AutoMigration(from: 1, to: 2)],
+      )
+      abstract class TestDatabase extends FroomDatabase {}
+      
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        Person(this.id);
+      }
+    ''');
+
+    final actual = () => createGenerator().generateForAnnotatedElement(
+          database,
+          ConstantReader(null),
+          _FakeBuildStep(),
+        );
+
+    expect(
+      actual,
+      throwsA(isA<InvalidGenerationSourceError>().having(
+        (error) => error.message,
+        'message',
+        allOf(contains('is invalid'), contains(file.path)),
+      )),
+    );
+  });
+
+  test('exports no schema with exportSchema: false', () async {
+    final database = await createClassElement('''
+      @Database(version: 1, entities: [Person], exportSchema: false)
+      abstract class TestDatabase extends FroomDatabase {}
+      
+      @entity
+      class Person {
+        @primaryKey
+        final int id;
+      
+        Person(this.id);
+      }
+    ''');
+
+    await createGenerator().generateForAnnotatedElement(
+      database,
+      ConstantReader(null),
+      _FakeBuildStep(),
+    );
+
+    expect(schemaDirectory.listSync(), isEmpty);
+  });
 }
 
 class _FakeBuildStep implements BuildStep {
+  @override
+  AssetId get inputId => AssetId('test', 'lib/database.dart');
+
   @override
   dynamic noSuchMethod(final Invocation invocation) =>
       throw UnimplementedError();

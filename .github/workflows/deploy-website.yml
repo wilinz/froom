@@ -1,15 +1,37 @@
 name: deploy website
 
 on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/deploy-website.yml'
   workflow_dispatch:
+
+permissions:
+  # to push the site to the gh-pages branch
+  contents: write
+
+concurrency:
+  group: deploy-website
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v7
+        with:
+          # the git history of gh-pages, which gh-deploy pushes to
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
       - run: pip install mkdocs-material
-      - run: mkdocs gh-deploy --force
+      - run: mkdocs build --strict
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          mkdocs gh-deploy --force

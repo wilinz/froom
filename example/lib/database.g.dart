@@ -18,6 +18,18 @@ abstract class $FlutterDatabaseBuilderContract {
   /// from its version to the current one, deleting all of its data.
   $FlutterDatabaseBuilderContract fallbackToDestructiveMigration();
 
+  /// Opens the database with the [databaseFactory] instead of the default
+  /// one of the platform, e.g. to use another SQLite library.
+  $FlutterDatabaseBuilderContract databaseFactory(
+    sqflite.DatabaseFactory databaseFactory,
+  );
+
+  /// Encrypts the database with the [password], which requires an encrypted
+  /// build of SQLite like SQLite3MultipleCiphers or SQLCipher.
+  ///
+  /// In-memory databases are not stored and thus not encrypted.
+  $FlutterDatabaseBuilderContract password(String password);
+
   /// Creates the database and initializes it.
   Future<FlutterDatabase> build();
 }
@@ -47,6 +59,10 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
 
   bool _fallbackToDestructiveMigration = false;
 
+  sqflite.DatabaseFactory? _databaseFactory;
+
+  String? _password;
+
   @override
   $FlutterDatabaseBuilderContract addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
@@ -66,13 +82,32 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
   }
 
   @override
+  $FlutterDatabaseBuilderContract databaseFactory(
+    sqflite.DatabaseFactory databaseFactory,
+  ) {
+    _databaseFactory = databaseFactory;
+    return this;
+  }
+
+  @override
+  $FlutterDatabaseBuilderContract password(String password) {
+    EncryptionAdapter.validatePassword(password);
+    _password = password;
+    return this;
+  }
+
+  @override
   Future<FlutterDatabase> build() async {
+    final databaseFactory = _databaseFactory ?? sqfliteDatabaseFactory;
     final path = name != null
-        ? await sqfliteDatabaseFactory.getDatabasePath(name!)
+        ? await databaseFactory.getDatabasePath(name!)
         : ':memory:';
     final database = _$FlutterDatabase();
     database.database = await database.open(
+      databaseFactory,
       path,
+      // in-memory databases are not stored
+      name != null ? _password : null,
       _migrations,
       _callback,
       _fallbackToDestructiveMigration,
@@ -89,7 +124,9 @@ class _$FlutterDatabase extends FlutterDatabase {
   TaskDao? _taskDaoInstance;
 
   Future<sqflite.Database> open(
+    sqflite.DatabaseFactory databaseFactory,
     String path,
+    String? password,
     List<Migration> migrations, [
     Callback? callback,
     bool fallbackToDestructiveMigration = false,
@@ -113,6 +150,8 @@ class _$FlutterDatabase extends FlutterDatabase {
     final databaseOptions = sqflite.OpenDatabaseOptions(
       version: 1,
       onConfigure: (database) async {
+        // before any other statement accesses the database
+        await EncryptionAdapter.setPassword(database, password);
         if (await MigrationAdapter.isUpgradePending(database, 1)) {
           enableForeignKeysOnOpen = true;
         } else {
@@ -158,7 +197,10 @@ class _$FlutterDatabase extends FlutterDatabase {
         await callback?.onCreate?.call(database, version);
       },
     );
-    return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+    final database = await explainMissingSqliteModules(
+      () => databaseFactory.openDatabase(path, options: databaseOptions),
+    );
+    return EncryptionAdapter.checkPassword(database, password);
   }
 
   @override

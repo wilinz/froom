@@ -37,6 +37,8 @@ class Entity extends Queryable {
         super(classElement, name, fields, constructor);
 
   String getCreateTableStatement() {
+    if (fts case final Fts5 fts5) return _getCreateFts5TableStatement(fts5);
+
     final databaseDefinition = fields.map((field) {
       final autoIncrement =
           primaryKey.fields.contains(field) && primaryKey.autoGenerateId;
@@ -62,6 +64,22 @@ class Entity extends Queryable {
       }
       return 'CREATE VIRTUAL TABLE IF NOT EXISTS `$name` ${fts!.usingOption}(${databaseDefinition.join(', ')})';
     }
+  }
+
+  /// FTS5 columns have no types or constraints, and the row id isn't declared
+  /// as a column.
+  String _getCreateFts5TableStatement(final Fts5 fts) {
+    String define(final String columnName) => fts.notIndexed.any(
+            (notIndexed) => notIndexed.toLowerCase() == columnName.toLowerCase())
+        ? '`$columnName` UNINDEXED'
+        : '`$columnName`';
+    final definitions = [
+      for (final field in fields)
+        if (field.columnName != Fts5.rowidColumnName) define(field.columnName),
+      fts.tableCreateOption(),
+    ];
+    return 'CREATE VIRTUAL TABLE IF NOT EXISTS `$name` '
+        '${fts.usingOption}(${definitions.join(', ')})';
   }
 
   String? _createPrimaryKeyDefinition() {

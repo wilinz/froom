@@ -1,5 +1,51 @@
 # Changelog
 
+## [8.0.0] - 2026-10-31
+
+### 🔄 Breaking Changes
+- **sqlite3**: `sqflite_common_ffi` 2.4, `sqflite_common_ffi_web` 1.2 and `sqlite3` 3 bundle SQLite by hooks, chosen per platform in the `pubspec.yaml` of the app instead of `sqlite3_flutter_libs`; the bundled builds lack FTS3 and FTS4
+- **sdk**: Dart SDK `>=3.12.0` for `froom` and `froom_ffi`, `>=3.10.0` for `froom_common` and `froom_generator`
+- **sqlparser**: Bumped from `^0.41.1` to `^0.45.1` in `froom_common` and `froom_generator`
+
+### ✨ Features
+- **fts**: `Fts5` annotation (`FtsTokenizer.ascii` and `trigram` added) and value object; `Entity.getCreateTableStatement()` declares FTS5 columns without types and constraints, omitting the `rowid` primary key and appending `UNINDEXED`; `EntityProcessor` requires a single integer `rowid` primary key, another column, a single FTS annotation, prefixes from 1 to 999, no columns named `rowid`, `rank` or like the table (ignoring case), no FTS3/FTS4 tokenizers, existing `notIndexed` columns (ignoring case) and a primary key column named exactly `rowid`, the name of the row id in results, and quotes tokenizer arguments which aren't words and no indices, foreign keys or `WITHOUT ROWID`; `QueryMethodProcessor` requires the result columns of queries of FTS5 entities, resolved by sqlparser with the FTS5 extension and the tables and views of the database, to include one named exactly `rowid` (any case of `rowid`, `oid` or `_rowid_` of the table, or an alias), also of subqueries, CTEs, compound selects and table-valued functions, unless they reference unknown tables; recreated FTS5 tables copy their row id only with their `rowid` column; `Fts.hashCode` hashes the options instead of their tear-off; `Fts3` and `Fts4` reject the FTS5 tokenizers `ascii` and `trigram`
+- **database_factory_extension**: `DatabaseFactoryExtension.getDatabasePath()` used by generated builders moved from `froom` to `froom_common`, so `froom_ffi` provides it as well, which has tests of a generated database now
+- **exceptions**: `MissingSqliteModuleException` and `DatabaseEncryptionException` extend `DatabaseException`, delegating its result code to their cause
+- **sqlite_module_hint**: `explainMissingSqliteModules()` in `froom_common` wraps opening the database in the generated `open()` and turns `no such module` errors of SQLite, only `DatabaseException`s, into a `MissingSqliteModuleException`
+- **database_builder_writer**: Generate `databaseFactory(sqflite.DatabaseFactory)` in builders and their contracts; `build()` opens the database with it or the default `sqfliteDatabaseFactory`, which `open()` of the database takes as its first parameter
+- **froom**: `sqfliteDatabaseFactory` is exported by conditional imports instead of detecting the web with `_kIsWeb`: on Android and iOS the global `databaseFactory` of sqflite, which the sqflite plugin registers, failing with an explanation without it, `databaseFactoryFfi` on the other native platforms and `databaseFactoryFfiWeb` on the web; `package:froom/sqflite.dart` and `package:froom_ffi/sqflite.dart` export the sqflite API for the `sqflite` import prefix of the generated code; `sqflite_common` is a direct dependency and the unused `sqlparser` dependency is removed
+- **dependencies**: `sqflite_common` ^2.5.13, `sqflite_common_ffi` ^2.4.5 (`sqlite3` 3 with hooks), `sqflite_common_ffi_web` ^1.2.0 and `sqflite` ^2.4.5 in the example; Dart SDK `>=3.12.0` for `froom`, `froom_ffi` and the example; analyzer `>=11.0.0 <15.0.0` and build `>=4.0.0 <6.0.0` in `froom_generator`, whose test fakes implement `displayString({includePositionalParameterNames})` and `constantInitializer2` of analyzer 14, with build_runner 2.17 in `froom`, `froom_ffi` and the example, which no longer depend on the unused `mockito` and `build_web_compilers` (`mockito` keeps `froom_common` at build 4 until its release allowing build 5); `>=3.10.0` for `froom_generator`, as dart_style supports analyzer 11 from 3.1.6, which requires it, with the `dart:3.10.0` image in CI, and for `froom_common`, as required by `sqlparser` ^0.45.1, whose `SqlEngine.parse()` takes a `ParserEntrypoint`; `path` only in the tests of `froom` and no longer in `froom_ffi`; the integration tests of `froom_common` use the system SQLite (`hooks.user_defines.sqlite3.source: system`), as the bundled one lacks FTS3 and FTS4
+- **encryption**: `EncryptionAdapter.setPassword()` in `froom_common` rejects empty passwords, which SQLite3MultipleCiphers ignores, runs `PRAGMA key`, checks `PRAGMA cipher` (SQLite3MultipleCiphers) or `PRAGMA cipher_version` (SQLCipher) and reads the schema to detect wrong passwords; builders get `password()`, and `open()` takes the password after the path and sets it first in `onConfigure`, except for in-memory databases; `EncryptionAdapter.checkPassword()` compares the password with the one the open single instance, which sqflite returns without `onConfigure`, was configured with (an `Expando` of the database); `password()` of builders rejects empty passwords with `EncryptionAdapter.validatePassword()`; databases opened without password fail with a `DatabaseEncryptionException` if SQLite can't read them; builds without encryption on the web fail like native ones; the tests of `froom` use `sqlite3mc`
+- **web**: Browser tests of a generated database in `froom/test/web` (`dart test -p chrome`, with dart2js and dart2wasm in the new `froom-web` CI job), using the `sqlite3.wasm` set up by `dart run sqflite_common_ffi_web:setup --dir test/web`; the example contains the web setup; the integration tests of `froom_common` use `winsqlite3` on Windows
+- **froom_ffi**: Rename the library to `froom_ffi.dart`, keeping the misspelled `froon_ffi.dart` as a deprecated export
+- **auto_migration**: Add `AutoMigration`, `RenameTable`, `RenameColumn`, `DeleteTable`, `DeleteColumn` and `providedAutoMigrationSpec` annotations, `Database.autoMigrations` and `Database.exportSchema` (exported by default only with automatic migrations), and `AutoMigrationSpec` in `froom_common`
+- **schema**: Export the `DatabaseSchema` of the current version to `<schema_location>/<library path>/<database>/<version>.json` (`FileSchemaStore`, builder option `schema_location`, default `froom_schemas`); entity and index statements use the `${TABLE_NAME}` placeholder like Room
+- **auto_migration_processor, schema_differ**: Port Room's `SchemaDiffer`, detecting added, renamed and deleted tables, added columns and complex changes (primary key, foreign keys, indices, `WITHOUT ROWID`, FTS, changed, renamed and deleted columns, foreign keys to renamed tables), requiring specs for deleted or renamed tables and columns and default values for new `NOT NULL` columns
+- **auto_migration_writer**: Generate migrations dropping views, deleting, renaming and adding tables, adding columns, recreating tables with complex changes (FTS tables last) and recreating views, calling `onPostMigrate` of the spec; builder migrations replace automatic ones of the same versions, and builders of databases with provided specs get `addAutoMigrationSpecs()`
+- **froom_generator**: `path` is a regular dependency
+
+### 📝 All Commits Since v7.0.0
+- c71a38a: ➖ chore(froom): remove the unused mockito, upgrading to build_runner 2.17
+- e745861: ➖ chore(example): remove the unused build_web_compilers, upgrading to build_runner 2.17
+- ce1a8c3: ⬆️ chore(deps): support analyzer 14 and build 5 in the generator
+- dfbc362: ⬆️ chore(deps): upgrade sqlparser to 0.45.1
+- 4354189: 👷 ci: install gpg for codecov-action in the froom-generator container
+- 9234baa: 👷 ci: test the generator on Dart 3.10 and upgrade codecov-action
+- cb38291: ⬆️ ci: use actions/checkout@v7 and actions/setup-python@v7, which run on Node.js 24
+- 4badccd: 👷 ci: deploy the website when the docs change on develop
+- 3481fda: 👷 ci: analyze and test all packages and build the example for the web
+- 09845e2: 📝 docs: document platforms, encryption, the web and new features
+- e7c6b70: ✨ feat(encryption): encrypt databases with a password
+- 8c79e47: ✅ test(web): run a generated database in the browser
+- 7c1f8b8: ✨ feat(fts): add FTS5 entities and explain missing SQLite modules
+- e64e180: ✨ feat(database): choose the database factory and bundle SQLite by hooks
+- 0c8aec0: 🐛 fix(migrations): keep row ids, sequences and NOT NULL data of recreated tables
+- ec2a23c: 🐛 fix(migrations): validate more spec mistakes of automatic migrations
+- 7102177: ♻️ refactor(migrations): only export schemas of databases with automatic migrations
+- 60e8f78: 🐛 fix(migrations): move renamed and recreated tables via temporary names
+- 10af284: 🐛 fix(migrations): handle renames, deletions and defaults of automatic migrations
+- 32caea4: ✨ feat(migrations): add automatic migrations like Room
+
 ## [7.0.0] - 2026-10-30
 
 ### 🔄 Breaking Changes

@@ -15,7 +15,7 @@ Froom 提供内存对象与数据库行之间的自动映射，同时仍然通�
 - 以 SQL 为中心
 - 无隐藏逻辑
 - 无隐藏成本
-- 支持 iOS、Android、Linux、macOS、Windows
+- 支持 iOS、Android、Linux、macOS、Windows、Web
 
 ⚠️ 该库欢迎贡献！
 如有问题、想法和讨论，请参阅 [GitHub Discussions](https://github.com/wilinz/froom/discussions)。
@@ -32,14 +32,14 @@ Froom 基于 **Floor 1.5.0**，因为 Floor 不再积极维护。**Froom** 旨�
 
 > **Froom** 旨在提供 Floor 无法提供的一切，通过解决其局限性并提供与新版本 Flutter 更好的兼容性。
 
-## 计划功能
+## Floor 之外的功能
 
-以下功能计划在 **Froom** 的未来版本中推出，以增强其功能并回应用户反馈：
-
-- **自动 SQL 迁移**：计划添加自动数据库迁移以平滑处理模式更改。
-- **改进的错误处理**：增强错误报告和调试功能，确保开发者在开发过程中获得更多可操作的洞察。
-
-> 这些功能正在**积极规划**中，将根据社区贡献和持续开发而添加。
+- **[自动迁移](https://wilinz.github.io/froom/migrations/#automatic-migrations)**：根据导出的 schema 生成迁移，类似 Room 的 `@AutoMigration`
+- **[Upsert](https://wilinz.github.io/froom/daos/#upsert)**：使用 `@upsert`，支持部分实体
+- **[加密](https://wilinz.github.io/froom/platform-support/#encryption)**：使用密码加密数据库，基于 SQLite3MultipleCiphers 或 SQLCipher
+- **[Web 支持](https://wilinz.github.io/froom/platform-support/#web)**：数据库存储在 IndexedDB 中
+- **[自选 SQLite](https://wilinz.github.io/froom/platform-support/#choosing-the-sqlite-library)**：按平台选择自动打包的 SQLite、系统 SQLite、加密版 SQLite，或任意 sqflite `DatabaseFactory`（如 sqflite 插件）
+- **[FTS5](https://wilinz.github.io/froom/entities/#fts5)**：除 FTS3 和 FTS4 外，还支持 FTS5 全文检索实体
 
 [![pub package](https://img.shields.io/pub/v/froom.svg)](https://pub.dartlang.org/packages/froom)
 [![build status](https://github.com/wilinz/froom/workflows/CI/badge.svg)](https://github.com/wilinz/froom/actions)
@@ -49,11 +49,11 @@ Froom 基于 **Floor 1.5.0**，因为 Floor 不再积极维护。**Froom** 旨�
 
 请根据您的 `source_gen` 依赖选择合适的版本：
 
-| source_gen Version | Froom Version |
-|--------------------|---------------|
-| 4.x.x             | 4.x.x         |
-| 3.x.x             | 3.x.x         |
-| 2.x.x             | 2.0.4         |
+| source_gen Version | Froom Version    |
+|--------------------|------------------|
+| 4.x.x              | 4.0.0 及之后      |
+| 3.x.x              | 3.x.x            |
+| 2.x.x              | 2.0.4            |
 
 ## 从 Floor 迁移
 
@@ -163,7 +163,7 @@ abstract class PersonDao {
 // 必需的包导入
 import 'dart:async';
 import 'package:froom/froom.dart';
-import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:froom/sqflite.dart' as sqflite;
 
 import 'dao/person_dao.dart';
 import 'entity/person.dart';
@@ -178,8 +178,8 @@ abstract class AppDatabase extends FroomDatabase {
 
 ### 5. 运行代码生成器
 
-使用 `flutter packages pub run build_runner build` 运行生成器。
-要在文件更改时自动运行它，请使用 `flutter packages pub run build_runner watch`。
+使用 `dart run build_runner build` 运行生成器。
+要在文件更改时自动运行它，请使用 `dart run build_runner watch`。
 
 ### 6. 使用生成的代码
 
@@ -200,6 +200,9 @@ final person = Person(1, 'Frank');
 await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
+
+在 Android 和 iOS 上，添加 [sqflite](https://pub.dev/packages/sqflite) 插件即可使用系统 SQLite，与 Floor 相同。
+Web 平台的配置、选择 SQLite 库以及数据库加密，请参阅[平台支持](https://wilinz.github.io/froom/platform-support/)。
 
 更多示例请查看 [example](https://github.com/wilinz/froom/tree/develop/example) 和 [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) 目录。
 

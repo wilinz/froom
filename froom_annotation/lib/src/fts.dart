@@ -78,7 +78,66 @@ class Fts4 {
 /// It uses the [FtsTokenizer.simple] with no additional [Fts4.tokenizerArgs].
 const fts4 = Fts4();
 
-/// Available option values that can be used with [Fts3] & [Fts4].
+/// Marks an Entity annotated class as an FTS5 entity.
+/// This class will have a mapping SQLite FTS5 table in the database.
+///
+/// Unlike FTS3 and FTS4, FTS5 is supported by the SQLite builds bundled by
+/// `package:sqlite3`, including the encrypted ones. The SQLite of Android
+/// used by the sqflite plugin lacks it, though, so FTS5 entities require the
+/// FFI database factory there.
+///
+/// The primary key of the entity has to be an integer field of the column
+/// `rowid`, which is the row id of the table. As `SELECT *` doesn't return the
+/// row id of FTS5 tables, queries of the entity have to select it explicitly,
+/// e.g. `SELECT rowid, * FROM mail WHERE mail MATCH :query`.
+///
+/// [SQLite FTS5 documentation](https://www.sqlite.org/fts5.html)
+class Fts5 {
+  /// The tokenizer to be used in the FTS table.
+  /// The default value is [FtsTokenizer.unicode61]. Tokenizer arguments can be
+  /// defined with [tokenizerArgs].
+  ///
+  /// The built-in tokenizers of FTS5 are [FtsTokenizer.unicode61],
+  /// [FtsTokenizer.ascii], [FtsTokenizer.porter] and [FtsTokenizer.trigram].
+  ///
+  /// [SQLite FTS5 tokenizers documentation](https://www.sqlite.org/fts5.html#tokenizers)
+  final String tokenizer;
+
+  /// Optional arguments to configure the defined tokenizer.
+  ///
+  /// Each argument is an item of the list, e.g. `remove_diacritics` and `2`
+  /// or `tokenchars` and `-_` for the [FtsTokenizer.unicode61] tokenizer, or
+  /// the tokenizer wrapped by the [FtsTokenizer.porter] tokenizer, e.g.
+  /// `unicode61`. Arguments which aren't words are quoted.
+  final List<String> tokenizerArgs;
+
+  /// The lengths of prefixes to index for faster prefix queries, e.g. `[2, 3]`.
+  ///
+  /// [SQLite FTS5 prefix indexes documentation](https://www.sqlite.org/fts5.html#prefix_indexes)
+  final List<int> prefixes;
+
+  /// The names of the columns which are stored but not indexed for full-text
+  /// queries.
+  final List<String> notIndexed;
+
+  /// Creates an [Fts5] constant which can be used to mark an Entity annotated
+  /// class as an FTS5 entity.
+  const Fts5({
+    this.tokenizer = FtsTokenizer.unicode61,
+    this.tokenizerArgs = const [],
+    this.prefixes = const [],
+    this.notIndexed = const [],
+  });
+}
+
+/// Marks an Entity annotated class as an FTS5 entity.
+/// This class will have a mapping SQLite FTS5 table in the database.
+///
+/// It uses the [FtsTokenizer.unicode61] with no additional
+/// [Fts5.tokenizerArgs].
+const fts5 = Fts5();
+
+/// Available option values that can be used with [Fts3], [Fts4] & [Fts5].
 abstract class FtsTokenizer {
   /// The name of the default tokenizer used on FTS tables.
   ///
@@ -105,4 +164,16 @@ abstract class FtsTokenizer {
   /// [Fts3.tokenizer]
   /// [Fts4.tokenizer]
   static const unicode61 = 'unicode61';
+
+  /// The name of the FTS5 tokenizer which only treats ASCII characters other
+  /// than letters and digits as separators.
+  ///
+  /// [Fts5.tokenizer]
+  static const ascii = 'ascii';
+
+  /// The name of the FTS5 tokenizer which indexes all sequences of three
+  /// characters, supporting substring queries.
+  ///
+  /// [Fts5.tokenizer]
+  static const trigram = 'trigram';
 }

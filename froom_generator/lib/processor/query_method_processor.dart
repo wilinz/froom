@@ -11,15 +11,21 @@ import 'package:froom_generator/misc/type_utils.dart';
 import 'package:froom_generator/processor/error/query_method_processor_error.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/processor/query_processor.dart';
+import 'package:froom_generator/value_object/entity.dart';
+import 'package:froom_generator/value_object/fts.dart';
 import 'package:froom_generator/value_object/query_method.dart';
 import 'package:froom_generator/value_object/queryable.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
+import 'package:froom_generator/value_object/view.dart';
 import 'package:sqlparser/sqlparser.dart' as sql;
 
 // The migration is complete
 class QueryMethodProcessor extends Processor<QueryMethod> {
   /// Shared by all query methods, as it's only used for parsing.
   static final _sqlEngine = sql.SqlEngine();
+
+  /// Engines knowing the tables and views of the queryables of databases.
+  static final _analysisEngines = Expando<sql.SqlEngine>();
 
   final QueryMethodProcessorError _processorError;
 
@@ -42,7 +48,8 @@ class QueryMethodProcessor extends Processor<QueryMethod> {
     final parameters = _methodElement.formalParameters;
     final rawReturnType = _methodElement.returnType;
 
-    final query = QueryProcessor(_methodElement, _getQuery()).process();
+    final rawQuery = _getQuery();
+    final query = QueryProcessor(_methodElement, rawQuery).process();
 
     final returnsStream = rawReturnType.isStream;
 
@@ -69,6 +76,10 @@ class QueryMethodProcessor extends Processor<QueryMethod> {
     final queryable = _queryables.firstWhereOrNull((queryable) =>
         queryable.classElement.displayName ==
         flattenedReturnType.getDisplayStringCompat(withNullability: false));
+
+    if (queryable is Entity && queryable.fts is Fts5) {
+      _assertSelectsFts5Rowid(rawQuery);
+    }
 
     final parameterTypeConverters = parameters
         .expand((parameter) =>
@@ -107,10 +118,70 @@ class QueryMethodProcessor extends Processor<QueryMethod> {
     if (query == null || query.isEmpty) throw _processorError.noQueryDefined;
 
     // the same check fails the query at runtime otherwise
-    if (_sqlEngine.parse(query).rootNode is sql.InvalidStatement) {
+    if (_sqlEngine.parse(sql.ParserEntrypoint.statement, query).rootNode
+        is sql.InvalidStatement) {
       throw _processorError.invalidQuery(query);
     }
     return query;
+  }
+
+  /// FTS5 tables don't return their row id, the primary key of their
+  /// entities, for `*`, so it's checked with the result columns resolved by
+  /// sqlparser.
+  void _assertSelectsFts5Rowid(final String query) {
+    final engine = _analysisEngines[_queryables] ??= _createAnalysisEngine();
+    final context = engine.analyze(query);
+    // * of unknown tables may include a selected rowid
+    if (context.errors.any((error) =>
+        error.type == sql.AnalysisErrorType.referencedUnknownTable)) {
+      return;
+    }
+    final root = context.root;
+    final columns = root is sql.ResultSet
+        ? (root as sql.ResultSet).resolvedColumns
+        : null;
+    // e.g. of subqueries, CTEs and compound selects, and named exactly rowid
+    // for any case and alias of the row id, e.g. oid, unless aliased
+    if (columns != null &&
+        !columns.any((column) => column.name == Fts5.rowidColumnName)) {
+      throw _processorError.fts5RowidNotSelected;
+    }
+  }
+
+  /// Creates an engine knowing the tables and views of the [_queryables].
+  sql.SqlEngine _createAnalysisEngine() {
+    final engine = sql.SqlEngine(
+        sql.EngineOptions(enabledExtensions: const [sql.Fts5Extension()]));
+    var pending = _queryables;
+    // views are registered after the tables and views they select from,
+    // others never, e.g. of FTS3 and FTS4 tables, which aren't supported
+    while (pending.isNotEmpty) {
+      final unresolved = <Queryable>[];
+      for (final queryable in pending) {
+        final statement = queryable is Entity
+            ? queryable.getCreateTableStatement()
+            : (queryable as View).getCreateViewStatement();
+        final context = engine.analyze(statement);
+        final root = context.root;
+        try {
+          if (root is sql.CreateViewStatement) {
+            if (context.errors.any((error) =>
+                error.type == sql.AnalysisErrorType.referencedUnknownTable)) {
+              unresolved.add(queryable);
+            } else {
+              engine.registerView(engine.schemaReader.readView(context, root));
+            }
+          } else if (root is sql.TableInducingStatement) {
+            engine.registerTable(engine.schemaReader.read(root));
+          }
+        } on Object {
+          continue;
+        }
+      }
+      if (unresolved.length == pending.length) break;
+      pending = unresolved;
+    }
+    return engine;
   }
 
   DartType _getFlattenedReturnType(

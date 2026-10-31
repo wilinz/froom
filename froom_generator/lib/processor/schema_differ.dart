@@ -1,0 +1,577 @@
+import 'package:froom_generator/value_object/auto_migration.dart';
+import 'package:froom_generator/value_object/schema.dart';
+
+/// Thrown when an automatic migration can't be generated.
+class SchemaDiffException implements Exception {
+  final String message;
+
+  SchemaDiffException(this.message);
+
+  @override
+  String toString() => message;
+}
+
+/// Detects the changes between two schema versions of a database, like
+/// Room's `SchemaDiffer`.
+///
+/// Renamed and deleted tables and columns have to be declared by the
+/// [renamedTables], [renamedColumns], [deletedTables] and [deletedColumns]
+/// of the spec named [specName], as they can't be distinguished otherwise.
+class SchemaDiffer {
+  final DatabaseSchema _fromSchema;
+  final DatabaseSchema _toSchema;
+  final String? _specName;
+  final List<RenamedTable> _renamedTableEntries;
+  final List<RenamedColumn> _renamedColumnEntries;
+  final Set<String> _deletedTables;
+  final List<DeletedColumn> _deletedColumns;
+
+  final _potentiallyDeletedTables = <String>{};
+  final _addedTables = <EntitySchema>[];
+
+  // tables which are only renamed, without complex changes
+  final _renamedTables = <String, String>{};
+
+  // keyed by the table name in the from version
+  final _complexChangedTables = <String, ComplexChangedTable>{};
+  final _addedColumns = <AddedColumn>[];
+
+  // the tables of the new version by their names in the old version
+  final _matchedTables = <String, EntitySchema>{};
+
+  SchemaDiffer(
+    this._fromSchema,
+    this._toSchema, {
+    final String? specName,
+    final List<RenamedTable> renamedTables = const [],
+    final List<RenamedColumn> renamedColumns = const [],
+    final List<DeletedTable> deletedTables = const [],
+    final List<DeletedColumn> deletedColumns = const [],
+  })  : _specName = specName,
+        _renamedTableEntries = renamedTables,
+        _renamedColumnEntries = renamedColumns,
+        _deletedTables = deletedTables.map((table) => table.tableName).toSet(),
+        _deletedColumns = deletedColumns;
+
+  SchemaDiff diffSchemas() {
+    _validateSpec();
+    final processedColumnsByNewTable = <String, List<String>>{};
+
+    // from the old to the new version for changed and deleted tables and
+    // columns
+    for (final fromTable in _fromSchema.entities) {
+      final toTable = _detectTableLevelChanges(fromTable);
+      if (toTable == null) continue;
+
+      processedColumnsByNewTable[toTable.tableName] = fromTable.fields
+          .map((fromColumn) =>
+              _detectColumnLevelChanges(fromTable, toTable, fromColumn))
+          .whereType<String>()
+          .toList();
+    }
+
+    for (final tableName in _potentiallyDeletedTables) {
+      throw SchemaDiffException(_deletedOrRenamedTableFound(tableName));
+    }
+    // before adding columns, as tables with deleted columns are recreated
+    _processDeletedColumns();
+
+    // from the new to the old version for added tables and columns
+    for (final toTable in _toSchema.entities) {
+      _processAddedTableAndColumns(toTable, processedColumnsByNewTable);
+    }
+
+    _complexChangedTables.values.forEach(_addColumnSources);
+    _checkTemporaryTableNames();
+
+    // the indices of recreated tables are recreated as well
+    final indexChanges = [
+      for (final entry in _matchedTables.entries)
+        if (!_complexChangedTables.containsKey(entry.key))
+          _getIndexChange(
+            _fromSchema.entitiesByTableName[entry.key]!,
+            entry.value,
+          ),
+    ].where((change) =>
+        change.droppedIndices.isNotEmpty || change.createdIndices.isNotEmpty);
+
+    return SchemaDiff(
+      addedTables: _addedTables,
+      renamedTables: _renamedTables,
+      deletedTables: _deletedTables.toList(),
+      addedColumns: _addedColumns,
+      complexChangedTables: _complexChangedTables.values.toList(),
+      indexChanges: indexChanges.toList(),
+      fromViews: _fromSchema.views,
+      toViews: _toSchema.views,
+    );
+  }
+
+  /// Checks that the tables and columns of the spec exist, as mistakes would
+  /// lose data or fail the migration at runtime otherwise.
+  void _validateSpec() {
+    void check(final bool exists, final String description) {
+      if (!exists) {
+        throw SchemaDiffException(
+          'AutoMigration failure in $_specName: $description',
+        );
+      }
+    }
+
+    final fromTables = _fromSchema.entitiesByTableName;
+    final toTables = _toSchema.entitiesByTableName;
+    for (final table in _renamedTableEntries) {
+      check(
+        fromTables.containsKey(table.fromTableName),
+        'The renamed table ${table.fromTableName} is not found in the old '
+        'version of the database.',
+      );
+      check(
+        toTables.containsKey(table.toTableName),
+        'The table renamed from ${table.fromTableName} to '
+        '${table.toTableName} is not found in the new version of the '
+        'database.',
+      );
+      check(
+        _renamedTableEntries
+                .where((other) => other.toTableName == table.toTableName)
+                .length ==
+            1,
+        'Multiple tables are renamed to ${table.toTableName}.',
+      );
+      final existingTable = fromTables[table.toTableName];
+      check(
+        existingTable == null ||
+            _deletedTables.contains(existingTable.tableName) ||
+            _getRenamedTable(existingTable.tableName) != null,
+        'The table ${table.fromTableName} is renamed to the existing table '
+        '${table.toTableName}, which is neither deleted nor renamed.',
+      );
+    }
+    for (final tableName in _deletedTables) {
+      check(
+        fromTables.containsKey(tableName),
+        'The deleted table $tableName is not found in the old version of the '
+        'database.',
+      );
+      check(
+        _getRenamedTable(tableName) == null,
+        'The table $tableName is both deleted and renamed.',
+      );
+    }
+    for (final column in _renamedColumnEntries) {
+      check(
+        !_deletedTables.contains(column.tableName),
+        'The column ${column.fromColumnName} of the deleted table '
+        '${column.tableName} is renamed.',
+      );
+      final fromTable = fromTables[column.tableName];
+      check(
+        fromTable?.fieldsByColumnName.containsKey(column.fromColumnName) ??
+            false,
+        'The renamed column ${column.fromColumnName} of the table '
+        '${column.tableName} is not found in the old version of the database.',
+      );
+      final toTable = toTables[_getNewTableName(column.tableName)];
+      check(
+        toTable?.fieldsByColumnName.containsKey(column.toColumnName) ?? false,
+        'The column renamed from ${column.fromColumnName} to '
+        '${column.toColumnName} of the table ${column.tableName} is not found '
+        'in the new version of the database.',
+      );
+      // the data of the existing column would be overwritten otherwise
+      final isExistingColumnKept = (fromTable?.fieldsByColumnName
+                  .containsKey(column.toColumnName) ??
+              false) &&
+          !_isColumnDeleted(column.tableName, column.toColumnName) &&
+          !_renamedColumnEntries.any((other) =>
+              other.tableName == column.tableName &&
+              other.fromColumnName == column.toColumnName);
+      check(
+        !isExistingColumnKept,
+        'The column ${column.fromColumnName} of the table ${column.tableName} '
+        'is renamed to the existing column ${column.toColumnName}, which is '
+        'neither deleted nor renamed.',
+      );
+      check(
+        _renamedColumnEntries
+                .where((other) =>
+                    other.tableName == column.tableName &&
+                    other.toColumnName == column.toColumnName)
+                .length ==
+            1,
+        'Multiple columns of the table ${column.tableName} are renamed to '
+        '${column.toColumnName}.',
+      );
+    }
+    for (final column in _deletedColumns) {
+      check(
+        fromTables[column.tableName]
+                ?.fieldsByColumnName
+                .containsKey(column.columnName) ??
+            false,
+        'The deleted column ${column.columnName} of the table '
+        '${column.tableName} is not found in the old version of the database.',
+      );
+      check(
+        !_deletedTables.contains(column.tableName),
+        'The column ${column.columnName} of the deleted table '
+        '${column.tableName} is deleted as well.',
+      );
+      check(
+        _getRenamedColumn(column.tableName, column.columnName) == null,
+        'The column ${column.columnName} of the table ${column.tableName} is '
+        'both deleted and renamed.',
+      );
+    }
+  }
+
+  /// Returns the table in the new version, or null if it was deleted.
+  EntitySchema? _detectTableLevelChanges(final EntitySchema fromTable) {
+    final renamedTable = _getRenamedTable(fromTable.tableName);
+    if (renamedTable != null) {
+      final toTable = _toSchema.entitiesByTableName[renamedTable.toTableName]!;
+      _matchedTables[fromTable.tableName] = toTable;
+      if (_containsComplexChanges(fromTable, toTable)) {
+        _addComplexChangedTable(fromTable, toTable);
+      } else {
+        _renamedTables[fromTable.tableName] = toTable.tableName;
+      }
+      return toTable;
+    }
+
+    // a table of the same name in the new version is a new table then
+    if (_deletedTables.contains(fromTable.tableName)) return null;
+
+    final toTable = _toSchema.entitiesByTableName[fromTable.tableName];
+    if (toTable == null) {
+      _potentiallyDeletedTables.add(fromTable.tableName);
+      return null;
+    }
+    _matchedTables[fromTable.tableName] = toTable;
+    if (_containsComplexChanges(fromTable, toTable)) {
+      _addComplexChangedTable(fromTable, toTable);
+    }
+    return toTable;
+  }
+
+  /// Returns the name of the column in the new version, or null if it was
+  /// deleted.
+  String? _detectColumnLevelChanges(
+    final EntitySchema fromTable,
+    final EntitySchema toTable,
+    final FieldSchema fromColumn,
+  ) {
+    final renamedColumn =
+        _getRenamedColumn(fromTable.tableName, fromColumn.columnName);
+    if (renamedColumn != null) {
+      _addComplexChangedTable(fromTable, toTable);
+      return renamedColumn.toColumnName;
+    }
+
+    // a column of the same name in the new version is a new column then
+    if (_isColumnDeleted(fromTable.tableName, fromColumn.columnName)) {
+      return null;
+    }
+
+    final match = toTable.fieldsByColumnName[fromColumn.columnName];
+    if (match == null) {
+      throw SchemaDiffException(_deletedOrRenamedColumnFound(
+        fromTable.tableName,
+        fromColumn.columnName,
+      ));
+    }
+    if (!match.isSchemaEqual(fromColumn)) {
+      _addComplexChangedTable(fromTable, toTable);
+    }
+    return match.columnName;
+  }
+
+  void _processAddedTableAndColumns(
+    final EntitySchema toTable,
+    final Map<String, List<String>> processedColumnsByNewTable,
+  ) {
+    final fromTable = _getOldTable(toTable.tableName);
+    if (fromTable == null) {
+      _addedTables.add(toTable);
+      return;
+    }
+
+    final processedColumns = processedColumnsByNewTable[toTable.tableName];
+    final addedColumns = toTable.fields
+        .where((toColumn) =>
+            !(processedColumns?.contains(toColumn.columnName) ?? false) &&
+            _getColumnSource(fromTable, toColumn.columnName) == null)
+        .toList();
+    for (final toColumn in addedColumns) {
+      if (toTable.enforcesNotNull(toColumn.columnName) &&
+          toColumn.defaultValue == null) {
+        throw _missingDefaultValue(
+          'The new NOT NULL column ${toColumn.columnName} of the table '
+          '${toTable.tableName} has no default value.',
+        );
+      }
+    }
+
+    // tables with complex changes get recreated with the new columns
+    if (_complexChangedTables.containsKey(fromTable.tableName)) return;
+    if (addedColumns.any((column) => !_canBeAdded(column))) {
+      _addComplexChangedTable(fromTable, toTable);
+    } else {
+      _addedColumns.addAll(addedColumns
+          .map((column) => AddedColumn(toTable.tableName, column)));
+    }
+  }
+
+  /// Whether `ALTER TABLE ADD COLUMN` can add the [column], whose default
+  /// value has to be constant.
+  bool _canBeAdded(final FieldSchema column) {
+    final defaultValue = column.defaultValue?.trim().toUpperCase();
+    return defaultValue == null ||
+        !(defaultValue.startsWith('(') ||
+            const {'CURRENT_TIME', 'CURRENT_DATE', 'CURRENT_TIMESTAMP'}
+                .contains(defaultValue));
+  }
+
+  void _processDeletedColumns() {
+    for (final deletedColumn in _deletedColumns) {
+      final fromTable = _fromSchema.entitiesByTableName[deletedColumn.tableName]!;
+      final toTable = _toSchema
+          .entitiesByTableName[_getNewTableName(deletedColumn.tableName)];
+      if (toTable == null) {
+        throw SchemaDiffException(
+          'AutoMigration failure in $_specName: The table '
+          '${deletedColumn.tableName} of the deleted column '
+          '${deletedColumn.columnName} is not found in the new version of the '
+          'database.',
+        );
+      }
+      // the columns are deleted by recreating the table
+      _addComplexChangedTable(fromTable, toTable);
+    }
+  }
+
+  /// Adds the columns of the old table the data of the columns of the
+  /// recreated [table] is copied from.
+  void _addColumnSources(final ComplexChangedTable table) {
+    for (final toColumn in table.toTable.fields) {
+      final source = _getColumnSource(table.fromTable, toColumn.columnName);
+      if (source == null) continue;
+
+      table.columnSources[toColumn.columnName] = source;
+
+      // NULL values are replaced by the default value when copied, except
+      // for old row ids, which are never NULL
+      final fromTable = table.fromTable;
+      if (fromTable.fieldsByColumnName[source]!.notNull ||
+          fromTable.enforcesNotNull(source) ||
+          fromTable.isRowidAlias(source) ||
+          !table.toTable.enforcesNotNull(toColumn.columnName)) {
+        continue;
+      }
+      final defaultValue = toColumn.defaultValue;
+      if (defaultValue == null) {
+        throw _missingDefaultValue(
+          'The column ${toColumn.columnName} of the table '
+          '${table.toTable.tableName} became NOT NULL without a default value '
+          'for its existing NULL values.',
+        );
+      }
+      table.nullReplacements[toColumn.columnName] = defaultValue;
+    }
+  }
+
+  /// The column of [fromTable] which became the column [toColumnName], or
+  /// null for a new column.
+  String? _getColumnSource(
+    final EntitySchema fromTable,
+    final String toColumnName,
+  ) {
+    final renamedColumn = _renamedColumnEntries
+        .where((column) =>
+            column.tableName == fromTable.tableName &&
+            column.toColumnName == toColumnName)
+        .firstOrNull;
+    if (renamedColumn != null) return renamedColumn.fromColumnName;
+
+    final isRenamed = _renamedColumnEntries.any((column) =>
+        column.tableName == fromTable.tableName &&
+        column.fromColumnName == toColumnName);
+    if (!fromTable.fieldsByColumnName.containsKey(toColumnName) ||
+        isRenamed ||
+        _isColumnDeleted(fromTable.tableName, toColumnName)) {
+      return null;
+    }
+    return toColumnName;
+  }
+
+  /// The table of the old version which became the table [toTableName], or
+  /// null for a new table.
+  EntitySchema? _getOldTable(final String toTableName) {
+    final renamedTable = _renamedTableEntries
+        .where((table) => table.toTableName == toTableName)
+        .firstOrNull;
+    if (renamedTable != null) {
+      return _fromSchema.entitiesByTableName[renamedTable.fromTableName];
+    }
+    final fromTable = _fromSchema.entitiesByTableName[toTableName];
+    if (fromTable == null ||
+        _deletedTables.contains(toTableName) ||
+        _getRenamedTable(toTableName) != null) {
+      return null;
+    }
+    return fromTable;
+  }
+
+  /// The name of the table [fromTableName] in the new version.
+  String _getNewTableName(final String fromTableName) =>
+      _getRenamedTable(fromTableName)?.toTableName ?? fromTableName;
+
+  bool _isColumnDeleted(final String tableName, final String columnName) =>
+      _deletedColumns.any((column) =>
+          column.tableName == tableName && column.columnName == columnName);
+
+  bool _containsComplexChanges(
+    final EntitySchema fromTable,
+    final EntitySchema toTable,
+  ) {
+    if (fromTable.isFts || toTable.isFts) {
+      // virtual tables can't be altered
+      return fromTable.createTable(toTable.tableName) !=
+              toTable.createTable(toTable.tableName) ||
+          fromTable.tableName != toTable.tableName;
+    }
+    if (!fromTable.primaryKey.isSchemaEqual(toTable.primaryKey) ||
+        fromTable.withoutRowid != toTable.withoutRowid ||
+        !_areForeignKeysEqual(fromTable.foreignKeys, toTable.foreignKeys)) {
+      return true;
+    }
+    // the foreign keys have to reference the new name of the table
+    return fromTable.foreignKeys.any((foreignKey) => _renamedTableEntries
+        .any((table) => table.fromTableName == foreignKey.table));
+  }
+
+  bool _areForeignKeysEqual(
+    final List<ForeignKeySchema> fromForeignKeys,
+    final List<ForeignKeySchema> toForeignKeys,
+  ) {
+    if (fromForeignKeys.length != toForeignKeys.length) return false;
+    // each foreign key matches another one, even if some are duplicated
+    final unmatchedForeignKeys = [...toForeignKeys];
+    for (final fromForeignKey in fromForeignKeys) {
+      final index = unmatchedForeignKeys.indexWhere(
+          (toForeignKey) => fromForeignKey.isSchemaEqual(toForeignKey));
+      if (index == -1) return false;
+      unmatchedForeignKeys.removeAt(index);
+    }
+    return true;
+  }
+
+  /// The indices to drop and create instead of recreating the table, if
+  /// only its indices changed.
+  IndexChange _getIndexChange(
+    final EntitySchema fromTable,
+    final EntitySchema toTable,
+  ) {
+    final droppedIndices = fromTable.indices.where((fromIndex) =>
+        !toTable.indices.any((toIndex) => toIndex.isSchemaEqual(fromIndex)));
+    final createdIndices = toTable.indices.where((toIndex) =>
+        !fromTable.indices.any((fromIndex) => fromIndex.isSchemaEqual(toIndex)));
+    return IndexChange(
+      droppedIndices.map((index) => index.name).toList(),
+      createdIndices
+          .map((index) => index.createSql.replaceFirst(
+              EntitySchema.tableNamePlaceholder, toTable.tableName))
+          .toList(),
+    );
+  }
+
+  ComplexChangedTable _addComplexChangedTable(
+    final EntitySchema fromTable,
+    final EntitySchema toTable,
+  ) {
+    _renamedTables.remove(fromTable.tableName);
+    return _complexChangedTables.putIfAbsent(
+      fromTable.tableName,
+      () => ComplexChangedTable(fromTable, toTable, {}),
+    );
+  }
+
+  /// Checks that the temporary names of renamed and recreated tables are
+  /// free in both versions.
+  void _checkTemporaryTableNames() {
+    final temporaryNames = [
+      ..._renamedTables.values,
+      ..._complexChangedTables.values.map((table) => table.toTable.tableName),
+    ].map((tableName) => '${EntitySchema.newTableNamePrefix}$tableName');
+    for (final temporaryName in temporaryNames) {
+      if (_fromSchema.entitiesByTableName.containsKey(temporaryName) ||
+          _toSchema.entitiesByTableName.containsKey(temporaryName)) {
+        throw SchemaDiffException(
+          'The database contains the table $temporaryName, whose name is '
+          'used temporarily for renaming or recreating a table in the '
+          'automatic migration. Use another name.',
+        );
+      }
+    }
+  }
+
+  RenamedTable? _getRenamedTable(final String tableName) {
+    final renamedTables = _renamedTableEntries
+        .where((table) => table.fromTableName == tableName)
+        .toList();
+    if (renamedTables.length > 1) {
+      throw SchemaDiffException(
+        'AutoMigration failure in $_specName: The table $tableName is renamed '
+        'by multiple @RenameTable annotations.',
+      );
+    }
+    return renamedTables.firstOrNull;
+  }
+
+  RenamedColumn? _getRenamedColumn(
+    final String tableName,
+    final String columnName,
+  ) {
+    final renamedColumns = _renamedColumnEntries
+        .where((column) =>
+            column.tableName == tableName && column.fromColumnName == columnName)
+        .toList();
+    if (renamedColumns.length > 1) {
+      throw SchemaDiffException(
+        'AutoMigration failure in $_specName: The column $columnName of the '
+        'table $tableName is renamed by multiple @RenameColumn annotations.',
+      );
+    }
+    return renamedColumns.firstOrNull;
+  }
+
+  SchemaDiffException _missingDefaultValue(final String description) =>
+      SchemaDiffException(
+        '$description Specify it with @ColumnInfo(defaultValue: ...).',
+      );
+
+  String _deletedOrRenamedTableFound(final String tableName) {
+    return '${_failurePrefix()}The table $tableName has been either deleted '
+        'or renamed. Annotate the spec with @DeleteTable or @RenameTable:\n'
+        "  @DeleteTable(tableName: '$tableName')\n"
+        "  @RenameTable(fromTableName: '$tableName', toTableName: <new name>)";
+  }
+
+  String _deletedOrRenamedColumnFound(
+    final String tableName,
+    final String columnName,
+  ) {
+    return '${_failurePrefix()}The column $columnName of the table '
+        '$tableName has been either deleted or renamed. Annotate the spec '
+        'with @DeleteColumn or @RenameColumn:\n'
+        "  @DeleteColumn(tableName: '$tableName', columnName: '$columnName')\n"
+        "  @RenameColumn(tableName: '$tableName', fromColumnName: "
+        "'$columnName', toColumnName: <new name>)";
+  }
+
+  String _failurePrefix() => _specName == null
+      ? 'AutoMigration failure: Add a spec extending AutoMigrationSpec to '
+          'the AutoMigration. '
+      : 'AutoMigration failure in $_specName: ';
+}

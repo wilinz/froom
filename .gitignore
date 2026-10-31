@@ -1,5 +1,12 @@
 # Miscellaneous
 froom_common/**/*.g.dart
+froom/test/**/*.g.dart
+froom_ffi/test/**/*.g.dart
+# set up by `dart run sqflite_common_ffi_web:setup --dir test/web`
+froom/test/web/sqlite3.wasm
+froom/test/web/sqflite_sw.js
+example/web/sqlite3.wasm
+example/web/sqflite_sw.js
 *.class
 *.log
 *.pyc

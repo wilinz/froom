@@ -49,6 +49,11 @@ extension AnnotationChecker on Element {
   DartObject? getAnnotation(final Type type) {
     return _typeChecker(type).firstAnnotationOfExact(this);
   }
+
+  /// Returns all annotation objects of [type], e.g. of repeated annotations.
+  Iterable<DartObject> getAnnotations(final Type type) {
+    return _typeChecker(type).annotationsOfExact(this);
+  }
 }
 
 TypeChecker _typeChecker(final Type type) => TypeChecker.typeNamed(type);

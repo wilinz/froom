@@ -3,16 +3,20 @@ import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/extension/iterable_extension.dart';
 import 'package:froom_generator/misc/extension/set_extension.dart';
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
+import 'package:froom_generator/misc/schema_store.dart';
 import 'package:froom_generator/misc/type_utils.dart';
+import 'package:froom_generator/processor/auto_migration_processor.dart';
 import 'package:froom_generator/processor/dao_processor.dart';
 import 'package:froom_generator/processor/entity_processor.dart';
 import 'package:froom_generator/processor/error/database_processor_error.dart';
 import 'package:froom_generator/processor/processor.dart';
 import 'package:froom_generator/processor/view_processor.dart';
+import 'package:froom_generator/value_object/auto_migration.dart';
 import 'package:froom_generator/value_object/dao_getter.dart';
 import 'package:froom_generator/value_object/database.dart';
 import 'package:froom_generator/value_object/entity.dart';
 import 'package:froom_generator/value_object/queryable.dart';
+import 'package:froom_generator/value_object/schema.dart';
 import 'package:froom_generator/value_object/type_converter.dart';
 import 'package:froom_generator/value_object/view.dart';
 
@@ -24,8 +28,15 @@ class DatabaseProcessor extends Processor<Database> {
 
   final ClassElement _classElement;
 
-  DatabaseProcessor(final ClassElement classElement)
-      : _classElement = classElement,
+  /// The exported schemas of the versions of the database, or null for not
+  /// exporting the schema and processing automatic migrations.
+  final SchemaStore? _schemaStore;
+
+  DatabaseProcessor(
+    final ClassElement classElement, {
+    final SchemaStore? schemaStore,
+  })  : _classElement = classElement,
+        _schemaStore = schemaStore,
         _processorError = DatabaseProcessorError(classElement);
 
   @override
@@ -47,6 +58,36 @@ class DatabaseProcessor extends Processor<Database> {
       [...entities, ...views],
     );
 
+    final autoMigrations = <AutoMigration>[];
+    final schemaStore = _schemaStore;
+    final annotation = _classElement.getAnnotation(annotations.Database);
+    final autoMigrationObjects = annotation
+            ?.getField(AnnotationField.databaseAutoMigrations)
+            ?.toListValue() ??
+        [];
+    // by default, only databases with automatic migrations export it
+    final exportsSchema = annotation
+            ?.getField(AnnotationField.databaseExportSchema)
+            ?.toBoolValue() ??
+        autoMigrationObjects.isNotEmpty;
+    // the schema is only built when it's used
+    if (schemaStore != null &&
+        (exportsSchema || autoMigrationObjects.isNotEmpty)) {
+      final schema = DatabaseSchema(
+        version,
+        entities.map(EntitySchema.fromEntity).toList(),
+        views.map(ViewSchema.fromView).toList(),
+      );
+      if (exportsSchema) schemaStore.write(schema);
+      autoMigrations.addAll(AutoMigrationProcessor(
+        _classElement,
+        autoMigrationObjects,
+        schema,
+        schemaStore,
+        exportsSchema,
+      ).process());
+    }
+
     return Database(
       _classElement,
       databaseName,
@@ -56,6 +97,7 @@ class DatabaseProcessor extends Processor<Database> {
       version,
       databaseTypeConverters,
       allTypeConverters,
+      autoMigrations: autoMigrations,
     );
   }
 

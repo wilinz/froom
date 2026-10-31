@@ -4,6 +4,7 @@ import 'package:froom_annotation/froom_annotation.dart' as annotations;
 import 'package:froom_generator/misc/constants.dart';
 import 'package:froom_generator/misc/extension/dart_type_extension.dart';
 import 'package:froom_generator/misc/extension/field_element_extension.dart';
+import 'package:froom_generator/misc/extension/string_extension.dart';
 import 'package:froom_generator/misc/extension/type_converter_element_extension.dart';
 import 'package:froom_generator/misc/extension/type_converters_extension.dart';
 import 'package:froom_generator/misc/type_utils.dart';
@@ -73,7 +74,7 @@ class FieldProcessor extends Processor<Field> {
     final trimmedValue = value.trim();
     if (RegExp(r"^'([^']|'')*'$").hasMatch(trimmedValue)) return trimmedValue;
     final unquotedValue = trimmedValue.replaceAll(RegExp(r"^'+|'+$"), '');
-    return "'${unquotedValue.replaceAll("'", "''")}'";
+    return unquotedValue.toSqlLiteral();
   }
 
   static const _sqliteValueConstants = {

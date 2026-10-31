@@ -1,0 +1,217 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "entities": [
+      {
+        "tableName": "Person",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `fullName` TEXT NOT NULL, `age` INTEGER NOT NULL DEFAULT 0)",
+        "fields": [
+          {
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false,
+            "defaultValue": null
+          },
+          {
+            "columnName": "fullName",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": null
+          },
+          {
+            "columnName": "age",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_Person_fullName",
+            "unique": false,
+            "columnNames": [
+              "fullName"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Person_fullName` ON `${TABLE_NAME}` (`fullName`)"
+          }
+        ],
+        "foreignKeys": [],
+        "withoutRowid": false,
+        "fts": null
+      },
+      {
+        "tableName": "Pet",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `ownerId` INTEGER NOT NULL, `name` TEXT NOT NULL, `species` TEXT, FOREIGN KEY (`ownerId`) REFERENCES `Person` (`id`) ON UPDATE NO ACTION ON DELETE RESTRICT, PRIMARY KEY (`id`))",
+        "fields": [
+          {
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": null
+          },
+          {
+            "columnName": "ownerId",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": null
+          },
+          {
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": null
+          },
+          {
+            "columnName": "species",
+            "affinity": "TEXT",
+            "notNull": false,
+            "defaultValue": null
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "index_Pet_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Pet_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Person",
+            "columns": [
+              "ownerId"
+            ],
+            "referencedColumns": [
+              "id"
+            ],
+            "onUpdate": "NO ACTION",
+            "onDelete": "RESTRICT"
+          }
+        ],
+        "withoutRowid": false,
+        "fts": null
+      },
+      {
+        "tableName": "Artist",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `country` TEXT, PRIMARY KEY (`id`))",
+        "fields": [
+          {
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": null
+          },
+          {
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": null
+          },
+          {
+            "columnName": "country",
+            "affinity": "TEXT",
+            "notNull": false,
+            "defaultValue": null
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": [],
+        "withoutRowid": false,
+        "fts": null
+      },
+      {
+        "tableName": "Song",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, PRIMARY KEY (`id`))",
+        "fields": [
+          {
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": null
+          },
+          {
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": null
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "index_Song_title",
+            "unique": false,
+            "columnNames": [
+              "title"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Song_title` ON `${TABLE_NAME}` (`title`)"
+          }
+        ],
+        "foreignKeys": [],
+        "withoutRowid": false,
+        "fts": null
+      },
+      {
+        "tableName": "note",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING fts4(`rowid` INTEGER NOT NULL, `text` TEXT NOT NULL, PRIMARY KEY (`rowid`), tokenize=unicode61 )",
+        "fields": [
+          {
+            "columnName": "rowid",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": null
+          },
+          {
+            "columnName": "text",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": null
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "rowid"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": [],
+        "withoutRowid": false,
+        "fts": "USING fts4 tokenize=unicode61 "
+      }
+    ],
+    "views": [
+      {
+        "viewName": "PersonName",
+        "createSql": "CREATE VIEW IF NOT EXISTS `PersonName` AS SELECT fullName AS name FROM Person"
+      }
+    ]
+  }
+}

@@ -4,7 +4,8 @@ Simply instantiate an in-memory database and run the database tests on your loca
 For more test references, check out the [project's tests](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration).
 They test the pure Dart package `froom_common` with `package:test`; in a Flutter project, import `package:froom/froom.dart` and use `flutter_test` as shown below.
 
-In case you're running Linux, make sure to have sqlite3 and libsqlite3-dev installed.
+Tests on the development machine use the FFI database factory, whose SQLite is bundled automatically, so they run without further setup.
+Entities annotated with `@Fts3` or `@Fts4` require the SQLite of the system, see [Platform Support](platform-support.md#choosing-the-sqlite-library), which has to be installed on Linux, e.g. with `sudo apt-get install libsqlite3-dev`.
 
 ```dart
 import 'package:froom/froom.dart';

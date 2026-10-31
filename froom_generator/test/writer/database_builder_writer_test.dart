@@ -23,6 +23,10 @@ void main() {
         Callback? _callback;
 
         bool _fallbackToDestructiveMigration = false;
+
+        sqflite.DatabaseFactory? _databaseFactory;
+
+        String? _password;
       
         @override
         $FooBarBuilderContract addMigrations(List<Migration> migrations) {
@@ -43,13 +47,31 @@ void main() {
         }
 
         @override
+        $FooBarBuilderContract databaseFactory(
+            sqflite.DatabaseFactory databaseFactory) {
+          _databaseFactory = databaseFactory;
+          return this;
+        }
+
+        @override
+        $FooBarBuilderContract password(String password) {
+          EncryptionAdapter.validatePassword(password);
+          _password = password;
+          return this;
+        }
+
+        @override
         Future<FooBar> build() async {
+          final databaseFactory = _databaseFactory ?? sqfliteDatabaseFactory;
           final path = name != null
-            ? await sqfliteDatabaseFactory.getDatabasePath(name!)
+            ? await databaseFactory.getDatabasePath(name!)
             : ':memory:'; 
           final database = _$FooBar();
           database.database = await database.open(
+            databaseFactory,
             path,
+            // in-memory databases are not stored
+            name != null ? _password : null,
             _migrations,
             _callback,
             _fallbackToDestructiveMigration,

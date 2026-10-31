@@ -52,6 +52,154 @@ void main() {
     );
   });
 
+  group('FTS5 entities', () {
+    for (final query in [
+      'SELECT rowid, * FROM Mail',
+      'SELECT Mail.rowid, text FROM Mail WHERE Mail MATCH :text',
+      'SELECT _rowid_ AS "rowid", text FROM Mail',
+      'SELECT * FROM (SELECT rowid, * FROM Mail) LIMIT 10',
+      'WITH found AS (SELECT rowid, * FROM Mail) SELECT * FROM found',
+      'SELECT ROWID, * FROM Mail',
+      // also named rowid in results
+      'SELECT oid, * FROM Mail',
+      'SELECT rowid, * FROM Mail(:text)',
+      'SELECT sub.*, 1 AS score FROM (SELECT rowid, * FROM Mail) sub',
+      'SELECT rowid, *, bm25(Mail) FROM Mail WHERE Mail MATCH :text ORDER BY rank',
+      'SELECT m._rowid_, m.* FROM Mail m',
+      'SELECT rowid, * FROM Mail WHERE Mail MATCH :text UNION SELECT rowid, * FROM Mail',
+    ]) {
+      test('query selecting the rowid: $query', () async {
+        final methodElement = await _createQueryMethodElement('''
+          @Query('$query')
+          Future<List<Mail>> findMails(String text);
+        '''.replaceFirst(
+            query.contains(':text') ? '' : '(String text)',
+            query.contains(':text') ? '' : '()'));
+
+        final actual =
+            QueryMethodProcessor(methodElement, [...entities, ...views], {})
+                .process();
+
+        expect(actual.queryable, isA<Entity>());
+      });
+    }
+
+    test('query selecting * of the table in a join fails', () async {
+      final methodElement = await _createQueryMethodElement('''
+        @Query('SELECT Mail.* FROM Mail JOIN Person ON Person.name = Mail.text')
+        Future<List<Mail>> findAllMails();
+      ''');
+
+      final actual = () =>
+          QueryMethodProcessor(methodElement, [...entities, ...views], {})
+              .process();
+
+      expect(
+        actual,
+        throwsInvalidGenerationSourceError(
+            QueryMethodProcessorError(methodElement).fts5RowidNotSelected),
+      );
+    });
+
+    for (final query in [
+      'SELECT _rowid_ AS "ROWID", * FROM Mail',
+      'SELECT Person.rowid, Mail.* FROM Mail JOIN Person ON Person.name = Mail.text',
+      'SELECT m.* FROM Mail m',
+      'SELECT * FROM Mail JOIN Person ON Person.name = Mail.text',
+      'SELECT * FROM Mail UNION SELECT rowid, * FROM Mail',
+      'SELECT * FROM (SELECT * FROM Mail)',
+      'WITH found AS (SELECT * FROM Mail) SELECT * FROM found',
+      // escaped in the source of the query
+      "SELECT * FROM Mail(\\'text\\')",
+    ]) {
+      test('query selecting * of the table without the rowid fails: $query',
+          () async {
+        final methodElement = await _createQueryMethodElement('''
+          @Query('$query')
+          Future<List<Mail>> findAllMails();
+        ''');
+
+        final actual = () =>
+            QueryMethodProcessor(methodElement, [...entities, ...views], {})
+                .process();
+
+        expect(
+          actual,
+          throwsInvalidGenerationSourceError(
+              QueryMethodProcessorError(methodElement).fts5RowidNotSelected),
+        );
+      });
+    }
+
+    test('query of views selecting from later views checks the rowid',
+        () async {
+      // the first view selects from the second one
+      final mailViews = await _getViews('''
+        @DatabaseView('SELECT * FROM found_mail', viewName: 'shown_mail')
+        class ShownMail {
+          final String text;
+
+          ShownMail(this.text);
+        }
+
+        @DatabaseView('SELECT * FROM Mail', viewName: 'found_mail')
+        class FoundMail {
+          final String text;
+
+          FoundMail(this.text);
+        }
+      ''');
+      final methodElement = await _createQueryMethodElement('''
+        @Query('SELECT * FROM shown_mail')
+        Future<List<Mail>> findAllMails();
+      ''');
+
+      final actual = () => QueryMethodProcessor(
+              methodElement, [...entities, ...mailViews], {})
+          .process();
+
+      expect(
+        actual,
+        throwsInvalidGenerationSourceError(
+            QueryMethodProcessorError(methodElement).fts5RowidNotSelected),
+      );
+    });
+
+    test('query selecting columns without the rowid fails', () async {
+      final methodElement = await _createQueryMethodElement('''
+        @Query('SELECT text FROM Mail')
+        Future<List<Mail>> findAllMails();
+      ''');
+
+      final actual = () =>
+          QueryMethodProcessor(methodElement, [...entities, ...views], {})
+              .process();
+
+      expect(
+        actual,
+        throwsInvalidGenerationSourceError(
+            QueryMethodProcessorError(methodElement).fts5RowidNotSelected),
+      );
+    });
+
+    test('query not selecting the rowid fails', () async {
+      final methodElement = await _createQueryMethodElement('''
+        @Query('SELECT * FROM Mail')
+        Future<List<Mail>> findAllMails();
+      ''');
+
+      final actual = () =>
+          QueryMethodProcessor(methodElement, [...entities, ...views], {})
+              .process();
+
+      expect(
+        actual,
+        throwsInvalidGenerationSourceError(
+            QueryMethodProcessorError(methodElement).fts5RowidNotSelected),
+      );
+    });
+  });
+
   test('create query method for a view', () async {
     final methodElement = await _createQueryMethodElement('''
       @Query('SELECT * FROM name')
@@ -534,6 +682,18 @@ Future<MethodElement> _createQueryMethodElement(
       
         Person(this.id, this.name);
       }
+
+      @entity
+      @fts5
+      class Mail {
+        @primaryKey
+        @ColumnInfo(name: 'rowid')
+        final int id;
+
+        final String text;
+
+        Mail(this.id, this.text);
+      }
       
       @DatabaseView("SELECT DISTINCT(name) AS name from person")
       class Name {
@@ -566,6 +726,18 @@ Future<List<Entity>> _getEntities() async {
       
         Person(this.id, this.name);
       }
+
+      @entity
+      @fts5
+      class Mail {
+        @primaryKey
+        @ColumnInfo(name: 'rowid')
+        final int id;
+
+        final String text;
+
+        Mail(this.id, this.text);
+      }
     ''', (resolver) async {
     return resolver
         .findLibraryByName('test')
@@ -579,18 +751,22 @@ Future<List<Entity>> _getEntities() async {
       .toList();
 }
 
-Future<List<View>> _getViews() async {
-  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
-      library test;
-      
-      import 'package:froom_annotation/froom_annotation.dart';
-      
+Future<List<View>> _getViews([
+  final String views = '''
       @DatabaseView("SELECT DISTINCT(name) AS name from person")
       class Name {
         final String name;
       
         Name(this.name);
       }
+  ''',
+]) async {
+  final library = await resolveSource(readAllSourcesFromFilesystem: true, '''
+      library test;
+      
+      import 'package:froom_annotation/froom_annotation.dart';
+      
+      $views
     ''', (resolver) async {
     return resolver
         .findLibraryByName('test')

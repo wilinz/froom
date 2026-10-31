@@ -4,11 +4,11 @@
 
 Please choose the appropriate version based on your `source_gen` dependency:
 
-| source_gen Version | Froom Version |
-|--------------------|---------------|
-| 4.x.x             | 4.x.x         |
-| 3.x.x             | 3.x.x         |
-| 2.x.x             | 2.0.4         |
+| source_gen Version | Froom Version    |
+|--------------------|------------------|
+| 4.x.x              | 4.0.0 and later  |
+| 3.x.x              | 3.x.x            |
+| 2.x.x              | 2.0.4            |
 
 ## Migrating from Floor
 
@@ -113,7 +113,7 @@ In this case, the file is named `database.dart`.
 // required package imports
 import 'dart:async';
 import 'package:froom/froom.dart';
-import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:froom/sqflite.dart' as sqflite;
 
 import 'dao/person_dao.dart';
 import 'entity/person.dart';
@@ -128,8 +128,8 @@ abstract class AppDatabase extends FroomDatabase {
 
 ## 5. Run the Code Generator
 
-Run the generator with `flutter packages pub run build_runner build`.
-To automatically run it, whenever a file changes, use `flutter packages pub run build_runner watch`.
+Run the generator with `dart run build_runner build`.
+To automatically run it, whenever a file changes, use `dart run build_runner watch`.
 
 ## 6. Use the Generated Code
 
@@ -159,5 +159,8 @@ It deletes the rows of all entity tables in a single transaction, resets the `AU
 ```dart
 await database.clearAllTables();
 ```
+
+On Android and iOS, add the [sqflite](https://pub.dev/packages/sqflite) plugin to use the SQLite of the system, like Floor.
+For the web, and for choosing the SQLite library or encrypting the database, see [Platform Support](platform-support.md).
 
 For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) directories.

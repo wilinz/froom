@@ -36,18 +36,25 @@ class EntityProcessor extends QueryableProcessor<Entity> {
     if (primaryKey.autoGenerateId && withoutRowid) {
       throw _processorError.autoIncrementInWithoutRowid;
     }
+    final foreignKeys = _getForeignKeys();
+    final indices = _getIndices(fields, name);
+    final fts = _getFts();
+    if (fts is Fts5) {
+      _validateFts5(
+          fts, name, fields, primaryKey, foreignKeys, indices, withoutRowid);
+    }
 
     return Entity(
       classElement,
       name,
       fields,
-      _getPrimaryKey(fields),
-      _getForeignKeys(),
-      _getIndices(fields, name),
-      _getWithoutRowid(),
+      primaryKey,
+      foreignKeys,
+      indices,
+      withoutRowid,
       getConstructor(fields),
       getValueMapping(fields),
-      _getFts(),
+      fts,
       insertionValueMapping: getValueMapping(
         fields,
         unsetPrimaryKey: _getUnsetPrimaryKey(primaryKey),
@@ -124,12 +131,24 @@ class EntityProcessor extends QueryableProcessor<Entity> {
   }
 
   Fts? _getFts() {
-    if (classElement.hasAnnotation(annotations.Fts3)) {
-      return _getFts3();
-    } else if (classElement.hasAnnotation(annotations.Fts4)) {
-      return _getFts4();
-    } else {
-      return null;
+    final ftsAnnotations = [
+      annotations.Fts3,
+      annotations.Fts4,
+      annotations.Fts5,
+    ].where(classElement.hasAnnotation).toList();
+    if (ftsAnnotations.length > 1) throw _processorError.multipleFts;
+    final ftsAnnotation = ftsAnnotations.singleOrNull;
+    if (ftsAnnotation == annotations.Fts3) return _getFts3();
+    if (ftsAnnotation == annotations.Fts4) return _getFts4();
+    if (ftsAnnotation == annotations.Fts5) return _getFts5();
+    return null;
+  }
+
+  /// Rejects the tokenizers of FTS5 only in FTS3 and FTS4 tables.
+  void _assertFts3Or4Tokenizer(final String tokenizer) {
+    if (const {annotations.FtsTokenizer.ascii, annotations.FtsTokenizer.trigram}
+        .contains(tokenizer.toLowerCase())) {
+      throw _processorError.ftsUnsupportedTokenizer(tokenizer);
     }
   }
 
@@ -139,6 +158,7 @@ class EntityProcessor extends QueryableProcessor<Entity> {
     final tokenizer =
         ftsObject?.getField(Fts3Field.tokenizer)?.toStringValue() ??
             annotations.FtsTokenizer.simple;
+    _assertFts3Or4Tokenizer(tokenizer);
 
     final tokenizerArgs = ftsObject
             ?.getField(Fts3Field.tokenizerArgs)
@@ -156,6 +176,7 @@ class EntityProcessor extends QueryableProcessor<Entity> {
     final tokenizer =
         ftsObject?.getField(Fts4Field.tokenizer)?.toStringValue() ??
             annotations.FtsTokenizer.simple;
+    _assertFts3Or4Tokenizer(tokenizer);
 
     final tokenizerArgs = ftsObject
             ?.getField(Fts4Field.tokenizerArgs)
@@ -165,6 +186,93 @@ class EntityProcessor extends QueryableProcessor<Entity> {
         [];
 
     return Fts4(tokenizer, tokenizerArgs);
+  }
+
+  Fts _getFts5() {
+    final ftsObject = classElement.getAnnotation(annotations.Fts5);
+
+    final tokenizer =
+        ftsObject?.getField(Fts5Field.tokenizer)?.toStringValue() ??
+            annotations.FtsTokenizer.unicode61;
+
+    List<T> getList<T>(final String field, T? Function(DartObject) toValue) =>
+        ftsObject
+            ?.getField(field)
+            ?.toListValue()
+            ?.mapNotNull(toValue)
+            .toList() ??
+        [];
+
+    return Fts5(
+      tokenizer,
+      getList(Fts5Field.tokenizerArgs, (object) => object.toStringValue()),
+      getList(Fts5Field.prefixes, (object) => object.toIntValue()),
+      getList(Fts5Field.notIndexed, (object) => object.toStringValue()),
+    );
+  }
+
+  /// FTS5 tables have the row id as primary key and no constraints.
+  void _validateFts5(
+    final Fts5 fts,
+    final String tableName,
+    final List<Field> fields,
+    final PrimaryKey primaryKey,
+    final List<ForeignKey> foreignKeys,
+    final List<Index> indices,
+    final bool withoutRowid,
+  ) {
+    final primaryKeyFields = primaryKey.fields;
+    if (primaryKeyFields.length != 1 ||
+        // exactly, as the row id is returned as rowid regardless of its case
+        primaryKeyFields.single.columnName != Fts5.rowidColumnName ||
+        primaryKeyFields.single.sqlType != SqlType.integer) {
+      throw _processorError.fts5PrimaryKeyIsNotRowid;
+    }
+
+    // the primary key, which isn't a column of the FTS5 table
+    final columnNames = fields
+        .map((field) => field.columnName)
+        .where((columnName) => columnName != Fts5.rowidColumnName)
+        .toList();
+    if (columnNames.isEmpty) throw _processorError.fts5WithoutColumns;
+
+    // FTS5 tables have hidden columns of these names
+    final reservedColumns = columnNames
+        .where((columnName) => {
+              Fts5.rowidColumnName,
+              'rank',
+              tableName.toLowerCase(),
+            }
+            .contains(columnName.toLowerCase()))
+        .toList();
+    if (reservedColumns.isNotEmpty) {
+      throw _processorError.fts5ReservedColumns(reservedColumns);
+    }
+
+    // tokenizers of FTS3 and FTS4 only
+    if (const {annotations.FtsTokenizer.simple, annotations.FtsTokenizer.icu}
+        .contains(fts.tokenizer.toLowerCase())) {
+      throw _processorError.fts5UnsupportedTokenizer(fts.tokenizer);
+    }
+
+    // https://www.sqlite.org/fts5.html#prefix_indexes
+    if (fts.prefixes.any((prefix) => prefix < 1 || prefix > 999)) {
+      throw _processorError.fts5InvalidPrefixes(fts.prefixes);
+    }
+
+    final lowerCaseColumnNames =
+        columnNames.map((columnName) => columnName.toLowerCase()).toSet();
+    final unknownColumns = fts.notIndexed
+        .where((columnName) =>
+            !lowerCaseColumnNames.contains(columnName.toLowerCase()))
+        .toList();
+    if (unknownColumns.isNotEmpty) {
+      throw _processorError.fts5UnknownNotIndexedColumns(unknownColumns);
+    }
+
+    if (foreignKeys.isNotEmpty || indices.isNotEmpty || withoutRowid) {
+      throw _processorError.fts5TableConstraints;
+    }
   }
 
   List<Index> _getIndices(final List<Field> fields, final String tableName) {

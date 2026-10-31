@@ -36,7 +36,9 @@ void main() {
         }
       
         Future<sqflite.Database> open(
+          sqflite.DatabaseFactory databaseFactory,
           String path,
+          String? password,
           List<Migration> migrations, [
           Callback? callback,
           bool fallbackToDestructiveMigration = false,
@@ -59,6 +61,8 @@ void main() {
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
+              // before any other statement accesses the database
+              await EncryptionAdapter.setPassword(database, password);
               if (await MigrationAdapter.isUpgradePending(database, 1)) {
                 enableForeignKeysOnOpen = true;
               } else {
@@ -95,7 +99,9 @@ void main() {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          final database = await explainMissingSqliteModules(() =>
+              databaseFactory.openDatabase(path, options: databaseOptions));
+          return EncryptionAdapter.checkPassword(database, password);
         }
 
         @override
@@ -139,7 +145,9 @@ void main() {
         TestDao? _testDaoInstance;
         
         Future<sqflite.Database> open(
+          sqflite.DatabaseFactory databaseFactory,
           String path,
+          String? password,
           List<Migration> migrations, [
           Callback? callback,
           bool fallbackToDestructiveMigration = false,
@@ -162,6 +170,8 @@ void main() {
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
+              // before any other statement accesses the database
+              await EncryptionAdapter.setPassword(database, password);
               if (await MigrationAdapter.isUpgradePending(database, 1)) {
                 enableForeignKeysOnOpen = true;
               } else {
@@ -198,7 +208,9 @@ void main() {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          final database = await explainMissingSqliteModules(() =>
+              databaseFactory.openDatabase(path, options: databaseOptions));
+          return EncryptionAdapter.checkPassword(database, password);
         }
 
         @override
@@ -238,7 +250,9 @@ void main() {
         }
         
         Future<sqflite.Database> open(
+          sqflite.DatabaseFactory databaseFactory,
           String path,
+          String? password,
           List<Migration> migrations, [
           Callback? callback,
           bool fallbackToDestructiveMigration = false,
@@ -261,6 +275,8 @@ void main() {
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
+              // before any other statement accesses the database
+              await EncryptionAdapter.setPassword(database, password);
               if (await MigrationAdapter.isUpgradePending(database, 1)) {
                 enableForeignKeysOnOpen = true;
               } else {
@@ -297,7 +313,9 @@ void main() {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          final database = await explainMissingSqliteModules(() =>
+              databaseFactory.openDatabase(path, options: databaseOptions));
+          return EncryptionAdapter.checkPassword(database, password);
         }
 
         @override
@@ -340,7 +358,9 @@ void main() {
         }
       
         Future<sqflite.Database> open(
+          sqflite.DatabaseFactory databaseFactory,
           String path,
+          String? password,
           List<Migration> migrations, [
           Callback? callback,
           bool fallbackToDestructiveMigration = false,
@@ -366,6 +386,8 @@ void main() {
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: 1,
             onConfigure: (database) async {
+              // before any other statement accesses the database
+              await EncryptionAdapter.setPassword(database, password);
               if (await MigrationAdapter.isUpgradePending(database, 1)) {
                 enableForeignKeysOnOpen = true;
               } else {
@@ -405,7 +427,9 @@ void main() {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          final database = await explainMissingSqliteModules(() =>
+              databaseFactory.openDatabase(path, options: databaseOptions));
+          return EncryptionAdapter.checkPassword(database, password);
         }
 
         @override

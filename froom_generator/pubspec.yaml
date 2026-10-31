@@ -2,18 +2,18 @@ name: froom_generator
 description: >
   The typesafe, reactive, and lightweight SQLite abstraction for your Flutter applications.
   This library is the dev dependency.
-version: 7.0.0
+version: 8.0.0
 homepage: https://wilinz.github.io/froom/
 repository: https://github.com/wilinz/froom
 documentation: https://wilinz.github.io/froom
 issue_tracker: https://github.com/wilinz/froom/issues
 
 environment:
-  sdk: '>=3.9.0 <4.0.0'
+  sdk: '>=3.10.0 <4.0.0'
 
 dependencies:
-  analyzer: ^11.0.0
-  build: ^4.0.0
+  analyzer: '>=11.0.0 <15.0.0'
+  build: '>=4.0.0 <6.0.0'
   build_config: ^1.2.0
   code_builder: ^4.10.1
   collection: ^1.19.1
@@ -21,8 +21,9 @@ dependencies:
   froom_annotation:
     path: ../froom_annotation/
   meta: ^1.16.0
+  path: ^1.9.1
   source_gen: ^4.0.1
-  sqlparser: ^0.41.1
+  sqlparser: ^0.45.1
   strings: ^4.0.1
   pub_semver: ^2.2.0
 
@@ -30,7 +31,6 @@ dev_dependencies:
   build_test: ^3.3.2
   dart_style: ^3.1.1
   mockito: ^5.5.1
-  path: ^1.9.1
   test: ^1.26.3
   test_cov:
     git:

@@ -4,8 +4,14 @@ import 'package:froom_generator/writer/writer.dart';
 class DatabaseBuilderContractWriter extends Writer {
   final String _databaseName;
 
-  DatabaseBuilderContractWriter(final String databaseName)
-      : _databaseName = databaseName;
+  /// Whether specs of automatic migrations are provided to the builder.
+  final bool _hasProvidedAutoMigrationSpecs;
+
+  DatabaseBuilderContractWriter(
+    final String databaseName, {
+    final bool hasProvidedAutoMigrationSpecs = false,
+  })  : _databaseName = databaseName,
+        _hasProvidedAutoMigrationSpecs = hasProvidedAutoMigrationSpecs;
 
   @override
   Class write() {
@@ -18,6 +24,17 @@ class DatabaseBuilderContractWriter extends Writer {
       ..requiredParameters.add(Parameter((builder) => builder
         ..name = 'migrations'
         ..type = refer('List<Migration>'))));
+
+    final addAutoMigrationSpecsMethod = Method((builder) => builder
+      ..name = 'addAutoMigrationSpecs'
+      ..returns = refer(databaseBuilderName)
+      ..docs.addAll([
+        '/// Adds the specs of automatic migrations annotated with',
+        '/// `@providedAutoMigrationSpec` to the builder.',
+      ])
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'autoMigrationSpecs'
+        ..type = refer('List<AutoMigrationSpec>'))));
 
     final addCallbackMethod = Method((builder) => builder
       ..name = 'addCallback'
@@ -35,6 +52,30 @@ class DatabaseBuilderContractWriter extends Writer {
         '/// from its version to the current one, deleting all of its data.',
       ]));
 
+    final databaseFactoryMethod = Method((builder) => builder
+      ..name = 'databaseFactory'
+      ..returns = refer(databaseBuilderName)
+      ..docs.addAll([
+        '/// Opens the database with the [databaseFactory] instead of the default',
+        '/// one of the platform, e.g. to use another SQLite library.',
+      ])
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'databaseFactory'
+        ..type = refer('sqflite.DatabaseFactory'))));
+
+    final passwordMethod = Method((builder) => builder
+      ..name = 'password'
+      ..returns = refer(databaseBuilderName)
+      ..docs.addAll([
+        '/// Encrypts the database with the [password], which requires an encrypted',
+        '/// build of SQLite like SQLite3MultipleCiphers or SQLCipher.',
+        '///',
+        '/// In-memory databases are not stored and thus not encrypted.',
+      ])
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'password'
+        ..type = refer('String'))));
+
     final buildMethod = Method((builder) => builder
       ..returns = refer('Future<$_databaseName>')
       ..name = 'build'
@@ -46,8 +87,11 @@ class DatabaseBuilderContractWriter extends Writer {
       ..abstract = true
       ..methods.addAll([
         addMigrationsMethod,
+        if (_hasProvidedAutoMigrationSpecs) addAutoMigrationSpecsMethod,
         addCallbackMethod,
         fallbackToDestructiveMigrationMethod,
+        databaseFactoryMethod,
+        passwordMethod,
         buildMethod,
       ]));
   }

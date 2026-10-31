@@ -23,6 +23,17 @@ void main() {
         /// Recreates the database instead of crashing when there is no migration
         /// from its version to the current one, deleting all of its data.
         $FooBarBuilderContract fallbackToDestructiveMigration();
+
+        /// Opens the database with the [databaseFactory] instead of the default
+        /// one of the platform, e.g. to use another SQLite library.
+        $FooBarBuilderContract databaseFactory(
+            sqflite.DatabaseFactory databaseFactory);
+
+        /// Encrypts the database with the [password], which requires an encrypted
+        /// build of SQLite like SQLite3MultipleCiphers or SQLCipher.
+        ///
+        /// In-memory databases are not stored and thus not encrypted.
+        $FooBarBuilderContract password(String password);
       
         /// Creates the database and initializes it.
         Future<FooBar> build();
