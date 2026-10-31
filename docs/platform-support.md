@@ -37,6 +37,28 @@ Use the sqflite plugin to access it instead, as described below.
     The SQLite builds bundled by sqlite3, including the encrypted ones, only support FTS5, so opening databases with entities annotated with `@Fts3` or `@Fts4` fails with a `MissingSqliteModuleException`.
     Use [`@Fts5`](entities.md#fts5) instead, the SQLite of the system (`source: system`, or the sqflite plugin on Android), or a custom build enabling `SQLITE_ENABLE_FTS3`.
 
+## Encryption
+
+Databases are encrypted with a password passed to their builder, which requires an encrypted build of SQLite like [SQLite3MultipleCiphers](https://utelle.github.io/SQLite3MultipleCiphers/) or [SQLCipher](https://www.zetetic.net/sqlcipher/):
+
+```yaml
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc # or sqlcipher
+```
+
+```dart
+final database = await $FroomAppDatabase
+    .databaseBuilder('app_database.db')
+    .password(password)
+    .build();
+```
+
+Opening the database fails with a `DatabaseEncryptionException` if the password is wrong, the database isn't encrypted, or SQLite doesn't support encryption, instead of storing the database unencrypted.
+In-memory databases aren't stored and thus not encrypted.
+Encryption isn't supported on the web, as the storage of sqflite_common_ffi_web doesn't support it.
+
 ## Web
 
 On the web, the databases are stored in IndexedDB by [sqflite_common_ffi_web](https://pub.dev/packages/sqflite_common_ffi_web), which runs SQLite compiled to WebAssembly in a shared worker.

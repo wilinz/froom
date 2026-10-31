@@ -114,6 +114,9 @@ class DatabaseWriter implements Writer {
     final pathParameter = Parameter((builder) => builder
       ..name = 'path'
       ..type = refer('String'));
+    final passwordParameter = Parameter((builder) => builder
+      ..name = 'password'
+      ..type = refer('String?'));
     final migrationsParameter = Parameter((builder) => builder
       ..name = 'migrations'
       ..type = refer('List<Migration>'));
@@ -151,6 +154,7 @@ class DatabaseWriter implements Writer {
       ..requiredParameters.addAll([
         databaseFactoryParameter,
         pathParameter,
+        passwordParameter,
         migrationsParameter,
       ])
       ..optionalParameters.addAll([
@@ -179,6 +183,8 @@ class DatabaseWriter implements Writer {
           final databaseOptions = sqflite.OpenDatabaseOptions(
             version: ${database.version},
             onConfigure: (database) async {
+              // before any other statement accesses the database
+              await EncryptionAdapter.setPassword(database, password);
               if (await MigrationAdapter.isUpgradePending(database, ${database.version})) {
                 enableForeignKeysOnOpen = true;
               } else {
@@ -215,7 +221,8 @@ class DatabaseWriter implements Writer {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return explainMissingSqliteModules(() => databaseFactory.openDatabase(path, options: databaseOptions));
+          final database = await explainMissingSqliteModules(() => databaseFactory.openDatabase(path, options: databaseOptions));
+          return EncryptionAdapter.checkPassword(database, password);
           '''));
   }
 

@@ -10,6 +10,7 @@
 ### ✨ Features
 - **fts**: Add `@fts5`/`@Fts5()` entities stored in FTS5 tables, which the SQLite builds bundled by sqlite3 support, with `tokenizer`, `tokenizerArgs`, `prefixes` and `notIndexed`; their primary key is the `rowid`, which queries have to select explicitly
 - **database**: Opening a database fails with a `MissingSqliteModuleException` explaining how to fix it when the SQLite library lacks a module like FTS4
+- **encryption**: Encrypt databases with `password()` of their builder, using encrypted builds of SQLite like SQLite3MultipleCiphers or SQLCipher; opening fails with a `DatabaseEncryptionException` for wrong passwords, unencrypted databases and SQLite builds without encryption, which would store the database unencrypted
 - **database**: Choose the sqflite `DatabaseFactory` of a database with `databaseFactory()` of its builder
 - **web**: Support Flutter for the web, storing databases in IndexedDB with sqflite_common_ffi_web, compiled to JavaScript or WebAssembly; the default database factory is chosen by conditional imports instead of `dart:io`
 - **migrations**: Add automatic migrations like Room's `@AutoMigration`, generated from the schemas exported to `froom_schemas` (with automatic migrations or `@Database(exportSchema: true)`), including `@RenameTable`, `@RenameColumn`, `@DeleteTable` and `@DeleteColumn` specs, `AutoMigrationSpec.onPostMigrate` and `@providedAutoMigrationSpec`

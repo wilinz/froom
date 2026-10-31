@@ -24,6 +24,12 @@ abstract class $FlutterDatabaseBuilderContract {
     sqflite.DatabaseFactory databaseFactory,
   );
 
+  /// Encrypts the database with the [password], which requires an encrypted
+  /// build of SQLite like SQLite3MultipleCiphers or SQLCipher.
+  ///
+  /// In-memory databases are not stored and thus not encrypted.
+  $FlutterDatabaseBuilderContract password(String password);
+
   /// Creates the database and initializes it.
   Future<FlutterDatabase> build();
 }
@@ -55,6 +61,8 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
 
   sqflite.DatabaseFactory? _databaseFactory;
 
+  String? _password;
+
   @override
   $FlutterDatabaseBuilderContract addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
@@ -82,6 +90,13 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
   }
 
   @override
+  $FlutterDatabaseBuilderContract password(String password) {
+    EncryptionAdapter.validatePassword(password);
+    _password = password;
+    return this;
+  }
+
+  @override
   Future<FlutterDatabase> build() async {
     final databaseFactory = _databaseFactory ?? sqfliteDatabaseFactory;
     final path = name != null
@@ -91,6 +106,8 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
     database.database = await database.open(
       databaseFactory,
       path,
+      // in-memory databases are not stored
+      name != null ? _password : null,
       _migrations,
       _callback,
       _fallbackToDestructiveMigration,
@@ -109,6 +126,7 @@ class _$FlutterDatabase extends FlutterDatabase {
   Future<sqflite.Database> open(
     sqflite.DatabaseFactory databaseFactory,
     String path,
+    String? password,
     List<Migration> migrations, [
     Callback? callback,
     bool fallbackToDestructiveMigration = false,
@@ -132,6 +150,8 @@ class _$FlutterDatabase extends FlutterDatabase {
     final databaseOptions = sqflite.OpenDatabaseOptions(
       version: 1,
       onConfigure: (database) async {
+        // before any other statement accesses the database
+        await EncryptionAdapter.setPassword(database, password);
         if (await MigrationAdapter.isUpgradePending(database, 1)) {
           enableForeignKeysOnOpen = true;
         } else {
@@ -177,9 +197,10 @@ class _$FlutterDatabase extends FlutterDatabase {
         await callback?.onCreate?.call(database, version);
       },
     );
-    return explainMissingSqliteModules(
+    final database = await explainMissingSqliteModules(
       () => databaseFactory.openDatabase(path, options: databaseOptions),
     );
+    return EncryptionAdapter.checkPassword(database, password);
   }
 
   @override

@@ -103,6 +103,12 @@ jobs:
         run: flutter test --coverage --coverage-path coverage/lcov.info
         working-directory: froom_common
 
+      - name: Run encryption tests
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart test
+        working-directory: froom
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

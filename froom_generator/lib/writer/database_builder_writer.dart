@@ -51,6 +51,10 @@ class DatabaseBuilderWriter extends Writer {
       ..name = '_databaseFactory'
       ..type = refer('sqflite.DatabaseFactory?'));
 
+    final passwordField = Field((builder) => builder
+      ..name = '_password'
+      ..type = refer('String?'));
+
     final constructor = Constructor((builder) => builder
       ..requiredParameters.add(Parameter((builder) => builder
         ..toThis = true
@@ -113,6 +117,19 @@ class DatabaseBuilderWriter extends Writer {
         ..name = 'databaseFactory'
         ..type = refer('sqflite.DatabaseFactory'))));
 
+    final passwordMethod = Method((builder) => builder
+      ..annotations.add(overrideAnnotationExpression)
+      ..name = 'password'
+      ..returns = databaseBuilderContractRefer
+      ..body = const Code('''
+        EncryptionAdapter.validatePassword(password);
+        _password = password;
+        return this;
+      ''')
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'password'
+        ..type = refer('String'))));
+
     final buildMethod = Method((builder) => builder
       ..annotations.add(overrideAnnotationExpression)
       ..returns = refer('Future<$_databaseName>')
@@ -127,6 +144,8 @@ class DatabaseBuilderWriter extends Writer {
         database.database = await database.open(
           databaseFactory,
           path,
+          // in-memory databases are not stored
+          name != null ? _password : null,
           _migrations,
           _callback,
           _fallbackToDestructiveMigration,
@@ -147,6 +166,7 @@ class DatabaseBuilderWriter extends Writer {
         callbackField,
         fallbackToDestructiveMigrationField,
         databaseFactoryField,
+        passwordField,
       ])
       ..constructors.add(constructor)
       ..methods.addAll([
@@ -155,6 +175,7 @@ class DatabaseBuilderWriter extends Writer {
         addCallbackMethod,
         fallbackToDestructiveMigrationMethod,
         databaseFactoryMethod,
+        passwordMethod,
         buildMethod,
       ]));
   }

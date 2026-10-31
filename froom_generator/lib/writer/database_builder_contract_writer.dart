@@ -63,6 +63,19 @@ class DatabaseBuilderContractWriter extends Writer {
         ..name = 'databaseFactory'
         ..type = refer('sqflite.DatabaseFactory'))));
 
+    final passwordMethod = Method((builder) => builder
+      ..name = 'password'
+      ..returns = refer(databaseBuilderName)
+      ..docs.addAll([
+        '/// Encrypts the database with the [password], which requires an encrypted',
+        '/// build of SQLite like SQLite3MultipleCiphers or SQLCipher.',
+        '///',
+        '/// In-memory databases are not stored and thus not encrypted.',
+      ])
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'password'
+        ..type = refer('String'))));
+
     final buildMethod = Method((builder) => builder
       ..returns = refer('Future<$_databaseName>')
       ..name = 'build'
@@ -78,6 +91,7 @@ class DatabaseBuilderContractWriter extends Writer {
         addCallbackMethod,
         fallbackToDestructiveMigrationMethod,
         databaseFactoryMethod,
+        passwordMethod,
         buildMethod,
       ]));
   }

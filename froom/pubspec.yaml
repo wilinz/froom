@@ -18,7 +18,6 @@ dependencies:
   froom_common:
     path: ../froom_common/
   meta: ^1.16.0
-  path: ^1.9.1
   sqflite_common: ^2.5.13
   sqflite_common_ffi: ^2.4.5
   sqflite_common_ffi_web: ^1.2.0
@@ -29,6 +28,7 @@ dev_dependencies:
     path: ../froom_generator
   matcher: ^0.12.17
   mockito: ^5.5.0
+  path: ^1.9.1
   test: ^1.26.3
 
 # This package supports all platforms listed below.
@@ -39,3 +39,10 @@ platforms:
   macos:
   windows:
   web:
+
+# the encryption tests use SQLite3MultipleCiphers, which doesn't affect apps
+# depending on this package
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
