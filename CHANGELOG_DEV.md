@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### ✨ Features
+- **database_builder_writer**: Generate `databaseFactory(sqflite.DatabaseFactory)` in builders and their contracts; `build()` opens the database with it or the default `sqfliteDatabaseFactory`, which `open()` of the database takes as its first parameter
+- **froom**: `sqfliteDatabaseFactory` is exported by conditional imports (`databaseFactoryFfi` on native platforms, `databaseFactoryFfiWeb` on the web) instead of using `dart:io` and the sqflite plugin's global factory; `sqflite_common` is a direct dependency and the unused `sqlparser` dependency is removed
+- **dependencies**: `sqflite_common` ^2.5.13, `sqflite_common_ffi` ^2.4.5 (`sqlite3` 3 with hooks), `sqflite_common_ffi_web` ^1.2.0 and `sqflite` ^2.4.5 in the example; Dart SDK `>=3.12.0` for `froom`, `froom_ffi` and the example; the integration tests of `froom_common` use the system SQLite (`hooks.user_defines.sqlite3.source: system`), as the bundled one lacks FTS3 and FTS4
+- **froom_ffi**: Rename the library to `froom_ffi.dart`, keeping the misspelled `froon_ffi.dart` as a deprecated export
 - **auto_migration**: Add `AutoMigration`, `RenameTable`, `RenameColumn`, `DeleteTable`, `DeleteColumn` and `providedAutoMigrationSpec` annotations, `Database.autoMigrations` and `Database.exportSchema` (exported by default only with automatic migrations), and `AutoMigrationSpec` in `froom_common`
 - **schema**: Export the `DatabaseSchema` of the current version to `<schema_location>/<library path>/<database>/<version>.json` (`FileSchemaStore`, builder option `schema_location`, default `froom_schemas`); entity and index statements use the `${TABLE_NAME}` placeholder like Room
 - **auto_migration_processor, schema_differ**: Port Room's `SchemaDiffer`, detecting added, renamed and deleted tables, added columns and complex changes (primary key, foreign keys, indices, `WITHOUT ROWID`, FTS, changed, renamed and deleted columns, foreign keys to renamed tables), requiring specs for deleted or renamed tables and columns and default values for new `NOT NULL` columns

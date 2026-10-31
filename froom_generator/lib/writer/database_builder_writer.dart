@@ -47,6 +47,10 @@ class DatabaseBuilderWriter extends Writer {
       ..type = refer('bool')
       ..assignment = const Code('false'));
 
+    final databaseFactoryField = Field((builder) => builder
+      ..name = '_databaseFactory'
+      ..type = refer('sqflite.DatabaseFactory?'));
+
     final constructor = Constructor((builder) => builder
       ..requiredParameters.add(Parameter((builder) => builder
         ..toThis = true
@@ -97,17 +101,31 @@ class DatabaseBuilderWriter extends Writer {
         return this;
       '''));
 
+    final databaseFactoryMethod = Method((builder) => builder
+      ..annotations.add(overrideAnnotationExpression)
+      ..name = 'databaseFactory'
+      ..returns = databaseBuilderContractRefer
+      ..body = const Code('''
+        _databaseFactory = databaseFactory;
+        return this;
+      ''')
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'databaseFactory'
+        ..type = refer('sqflite.DatabaseFactory'))));
+
     final buildMethod = Method((builder) => builder
       ..annotations.add(overrideAnnotationExpression)
       ..returns = refer('Future<$_databaseName>')
       ..name = 'build'
       ..modifier = MethodModifier.async
       ..body = Code('''
+        final databaseFactory = _databaseFactory ?? sqfliteDatabaseFactory;
         final path = name != null
-          ? await sqfliteDatabaseFactory.getDatabasePath(name!)
+          ? await databaseFactory.getDatabasePath(name!)
           : ':memory:';
         final database = _\$$_databaseName();
         database.database = await database.open(
+          databaseFactory,
           path,
           _migrations,
           _callback,
@@ -128,6 +146,7 @@ class DatabaseBuilderWriter extends Writer {
         if (_hasProvidedAutoMigrationSpecs) autoMigrationSpecsField,
         callbackField,
         fallbackToDestructiveMigrationField,
+        databaseFactoryField,
       ])
       ..constructors.add(constructor)
       ..methods.addAll([
@@ -135,6 +154,7 @@ class DatabaseBuilderWriter extends Writer {
         if (_hasProvidedAutoMigrationSpecs) addAutoMigrationSpecsMethod,
         addCallbackMethod,
         fallbackToDestructiveMigrationMethod,
+        databaseFactoryMethod,
         buildMethod,
       ]));
   }

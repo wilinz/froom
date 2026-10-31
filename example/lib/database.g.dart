@@ -18,6 +18,12 @@ abstract class $FlutterDatabaseBuilderContract {
   /// from its version to the current one, deleting all of its data.
   $FlutterDatabaseBuilderContract fallbackToDestructiveMigration();
 
+  /// Opens the database with the [databaseFactory] instead of the default
+  /// one of the platform, e.g. to use another SQLite library.
+  $FlutterDatabaseBuilderContract databaseFactory(
+    sqflite.DatabaseFactory databaseFactory,
+  );
+
   /// Creates the database and initializes it.
   Future<FlutterDatabase> build();
 }
@@ -47,6 +53,8 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
 
   bool _fallbackToDestructiveMigration = false;
 
+  sqflite.DatabaseFactory? _databaseFactory;
+
   @override
   $FlutterDatabaseBuilderContract addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
@@ -66,12 +74,22 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
   }
 
   @override
+  $FlutterDatabaseBuilderContract databaseFactory(
+    sqflite.DatabaseFactory databaseFactory,
+  ) {
+    _databaseFactory = databaseFactory;
+    return this;
+  }
+
+  @override
   Future<FlutterDatabase> build() async {
+    final databaseFactory = _databaseFactory ?? sqfliteDatabaseFactory;
     final path = name != null
-        ? await sqfliteDatabaseFactory.getDatabasePath(name!)
+        ? await databaseFactory.getDatabasePath(name!)
         : ':memory:';
     final database = _$FlutterDatabase();
     database.database = await database.open(
+      databaseFactory,
       path,
       _migrations,
       _callback,
@@ -89,6 +107,7 @@ class _$FlutterDatabase extends FlutterDatabase {
   TaskDao? _taskDaoInstance;
 
   Future<sqflite.Database> open(
+    sqflite.DatabaseFactory databaseFactory,
     String path,
     List<Migration> migrations, [
     Callback? callback,
@@ -158,7 +177,7 @@ class _$FlutterDatabase extends FlutterDatabase {
         await callback?.onCreate?.call(database, version);
       },
     );
-    return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+    return databaseFactory.openDatabase(path, options: databaseOptions);
   }
 
   @override

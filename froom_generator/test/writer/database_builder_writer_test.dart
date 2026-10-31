@@ -23,6 +23,8 @@ void main() {
         Callback? _callback;
 
         bool _fallbackToDestructiveMigration = false;
+
+        sqflite.DatabaseFactory? _databaseFactory;
       
         @override
         $FooBarBuilderContract addMigrations(List<Migration> migrations) {
@@ -43,12 +45,21 @@ void main() {
         }
 
         @override
+        $FooBarBuilderContract databaseFactory(
+            sqflite.DatabaseFactory databaseFactory) {
+          _databaseFactory = databaseFactory;
+          return this;
+        }
+
+        @override
         Future<FooBar> build() async {
+          final databaseFactory = _databaseFactory ?? sqfliteDatabaseFactory;
           final path = name != null
-            ? await sqfliteDatabaseFactory.getDatabasePath(name!)
+            ? await databaseFactory.getDatabasePath(name!)
             : ':memory:'; 
           final database = _$FooBar();
           database.database = await database.open(
+            databaseFactory,
             path,
             _migrations,
             _callback,

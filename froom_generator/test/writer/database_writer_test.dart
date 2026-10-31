@@ -36,6 +36,7 @@ void main() {
         }
       
         Future<sqflite.Database> open(
+          sqflite.DatabaseFactory databaseFactory,
           String path,
           List<Migration> migrations, [
           Callback? callback,
@@ -95,7 +96,7 @@ void main() {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          return databaseFactory.openDatabase(path, options: databaseOptions);
         }
 
         @override
@@ -139,6 +140,7 @@ void main() {
         TestDao? _testDaoInstance;
         
         Future<sqflite.Database> open(
+          sqflite.DatabaseFactory databaseFactory,
           String path,
           List<Migration> migrations, [
           Callback? callback,
@@ -198,7 +200,7 @@ void main() {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          return databaseFactory.openDatabase(path, options: databaseOptions);
         }
 
         @override
@@ -238,6 +240,7 @@ void main() {
         }
         
         Future<sqflite.Database> open(
+          sqflite.DatabaseFactory databaseFactory,
           String path,
           List<Migration> migrations, [
           Callback? callback,
@@ -297,7 +300,7 @@ void main() {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          return databaseFactory.openDatabase(path, options: databaseOptions);
         }
 
         @override
@@ -340,6 +343,7 @@ void main() {
         }
       
         Future<sqflite.Database> open(
+          sqflite.DatabaseFactory databaseFactory,
           String path,
           List<Migration> migrations, [
           Callback? callback,
@@ -405,7 +409,7 @@ void main() {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          return databaseFactory.openDatabase(path, options: databaseOptions);
         }
 
         @override

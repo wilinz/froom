@@ -2,7 +2,14 @@
 
 ## [Unreleased]
 
+### ⬆️ Breaking Changes & Dependencies
+- **database**: Databases are opened with the FFI implementation of sqflite on all native platforms by default, which bundles SQLite with the app by hooks; use the sqflite plugin with `.databaseFactory(databaseFactorySqflitePlugin)`. Previously, Android and iOS failed with `databaseFactory not initialized` unless the global factory of sqflite was set
+- **sqlite3**: Upgraded to `sqflite_common_ffi` 2.4, `sqflite_common_ffi_web` 1.2 and `sqlite3` 3, which choose the SQLite library per platform by the `hooks` of the `pubspec.yaml` (bundled, system or encrypted builds) instead of `sqlite3_flutter_libs`. The bundled builds don't support FTS3 and FTS4, which `@Fts3` and `@Fts4` entities require, see [Platform Support](https://wilinz.github.io/froom/platform-support/)
+- **sdk**: Minimum Dart SDK of `froom`, `froom_ffi` and the example raised to `>=3.12.0`, as required by the sqflite packages
+
 ### ✨ Features
+- **database**: Choose the sqflite `DatabaseFactory` of a database with `databaseFactory()` of its builder
+- **web**: The default database factory is chosen by conditional imports instead of `dart:io`, and `froom` declares web support
 - **migrations**: Add automatic migrations like Room's `@AutoMigration`, generated from the schemas exported to `froom_schemas` (with automatic migrations or `@Database(exportSchema: true)`), including `@RenameTable`, `@RenameColumn`, `@DeleteTable` and `@DeleteColumn` specs, `AutoMigrationSpec.onPostMigrate` and `@providedAutoMigrationSpec`
 
 ## 7.0.0

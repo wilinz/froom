@@ -108,6 +108,9 @@ class DatabaseWriter implements Writer {
             createViewStatements,
           ].join('\n');
 
+    final databaseFactoryParameter = Parameter((builder) => builder
+      ..name = 'databaseFactory'
+      ..type = refer('sqflite.DatabaseFactory'));
     final pathParameter = Parameter((builder) => builder
       ..name = 'path'
       ..type = refer('String'));
@@ -145,7 +148,11 @@ class DatabaseWriter implements Writer {
       ..name = 'open'
       ..returns = refer('Future<sqflite.Database>')
       ..modifier = MethodModifier.async
-      ..requiredParameters.addAll([pathParameter, migrationsParameter])
+      ..requiredParameters.addAll([
+        databaseFactoryParameter,
+        pathParameter,
+        migrationsParameter,
+      ])
       ..optionalParameters.addAll([
         callbackParameter,
         fallbackToDestructiveMigrationParameter,
@@ -208,7 +215,7 @@ class DatabaseWriter implements Writer {
               await callback?.onCreate?.call(database, version);
             },
           );
-          return sqfliteDatabaseFactory.openDatabase(path, options: databaseOptions);
+          return databaseFactory.openDatabase(path, options: databaseOptions);
           '''));
   }
 

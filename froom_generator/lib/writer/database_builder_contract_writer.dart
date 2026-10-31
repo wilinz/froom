@@ -52,6 +52,17 @@ class DatabaseBuilderContractWriter extends Writer {
         '/// from its version to the current one, deleting all of its data.',
       ]));
 
+    final databaseFactoryMethod = Method((builder) => builder
+      ..name = 'databaseFactory'
+      ..returns = refer(databaseBuilderName)
+      ..docs.addAll([
+        '/// Opens the database with the [databaseFactory] instead of the default',
+        '/// one of the platform, e.g. to use another SQLite library.',
+      ])
+      ..requiredParameters.add(Parameter((builder) => builder
+        ..name = 'databaseFactory'
+        ..type = refer('sqflite.DatabaseFactory'))));
+
     final buildMethod = Method((builder) => builder
       ..returns = refer('Future<$_databaseName>')
       ..name = 'build'
@@ -66,6 +77,7 @@ class DatabaseBuilderContractWriter extends Writer {
         if (_hasProvidedAutoMigrationSpecs) addAutoMigrationSpecsMethod,
         addCallbackMethod,
         fallbackToDestructiveMigrationMethod,
+        databaseFactoryMethod,
         buildMethod,
       ]));
   }
