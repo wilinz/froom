@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         working-directory: froom_annotation
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         working-directory: froom_generator
@@ -67,47 +67,65 @@ jobs:
   froom:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          architecture: x64
 
-      - name: Install dependencies
-        run: flutter packages get
-        working-directory: froom
-
-      - name: Run generator
-        run: flutter packages pub run build_runner build --delete-conflicting-outputs
-        working-directory: froom_common
-
-      - name: Analyze
-        run: flutter analyze --no-fatal-warnings .
-        working-directory: froom
-
+      # the integration tests of froom_common use the system SQLite for FTS3
+      # and FTS4, see its pubspec.yaml
       - name: Install SQLite
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get -y update
           sudo apt-get -y install sqlite3 libsqlite3-dev
 
+      - name: Install dependencies
+        run: |
+          dart pub get --directory froom_common
+          dart pub get --directory froom
+          dart pub get --directory froom_ffi
+
+      - name: Run generator
+        run: |
+          cd froom_common && dart run build_runner build --delete-conflicting-outputs
+          cd ../froom && dart run build_runner build --delete-conflicting-outputs
+          cd ../froom_ffi && dart run build_runner build --delete-conflicting-outputs
+        shell: bash
+
+      - name: Analyze froom_common
+        run: dart analyze --no-fatal-warnings .
+        working-directory: froom_common
+
+      - name: Analyze froom
+        run: dart analyze --no-fatal-warnings .
+        working-directory: froom
+
+      - name: Analyze froom_ffi
+        run: dart analyze --no-fatal-warnings .
+        working-directory: froom_ffi
+
       - name: Run tests
         run: flutter test --coverage --coverage-path coverage/lcov.info
         working-directory: froom_common
 
+      # with SQLite3MultipleCiphers, see the pubspec.yaml of froom
       - name: Run encryption tests
-        run: |
-          dart run build_runner build --delete-conflicting-outputs
-          dart test
+        run: dart test
         working-directory: froom
+
+      - name: Run froom_ffi tests
+        run: dart test
+        working-directory: froom_ffi
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -118,11 +136,11 @@ jobs:
 
   froom-web:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
@@ -151,11 +169,11 @@ jobs:
 
   example:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
@@ -163,18 +181,25 @@ jobs:
           channel: stable
 
       - name: Install dependencies
-        run: flutter packages get
+        run: flutter pub get
+        working-directory: example
+
+      - name: Check generated code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code -- lib
         working-directory: example
 
       - name: Analyze
         run: flutter analyze --no-fatal-warnings .
         working-directory: example
 
-      - name: Install SQLite
-        run: |
-          sudo apt-get -y update
-          sudo apt-get -y install sqlite3 libsqlite3-dev
-
       - name: Run tests
         run: flutter test
+        working-directory: example
+
+      - name: Build for the web
+        run: |
+          dart run sqflite_common_ffi_web:setup
+          flutter build web
         working-directory: example
