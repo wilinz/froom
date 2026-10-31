@@ -40,7 +40,11 @@ class FakeClassElement implements ClassElement {
   String get displayName => throw UnimplementedError();
 
   @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool includePositionalParameterNames = false,
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
     throw UnimplementedError();
   }
 
@@ -468,11 +472,19 @@ class FakeFieldElement implements FieldElement {
   @override
   Expression? get constantInitializer => throw UnimplementedError();
 
+  // since analyzer 14
+  @override
+  Expression? get constantInitializer2 => throw UnimplementedError();
+
   @override
   String get displayName => throw UnimplementedError();
 
   @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool includePositionalParameterNames = false,
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
     throw UnimplementedError();
   }
 
