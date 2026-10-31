@@ -34,8 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    # the lowest SDK of dart_style versions supporting analyzer 11
     container:
-      image: dart:3.9.0
+      image: dart:3.10.0
 
     steps:
       - name: Check out code
@@ -58,11 +59,11 @@ jobs:
         run: dart run test_cov
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: froom_generator
-          file: ./froom_generator/coverage/lcov.info
+          files: ./froom_generator/coverage/lcov.info
 
   froom:
     runs-on: ${{ matrix.os }}
@@ -128,11 +129,11 @@ jobs:
         working-directory: froom_ffi
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: froom
-          file: ./froom_common/coverage/lcov.info
+          files: ./froom_common/coverage/lcov.info
 
   froom-web:
     runs-on: ubuntu-latest
