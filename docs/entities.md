@@ -189,6 +189,7 @@ await mailDao.findMails('flut*'); // contains a word starting with "flut"
 
 #### FTS5
 Unlike Room, Froom supports [FTS5](https://www.sqlite.org/fts5.html) tables with `@fts5`/`@Fts5()`, which all SQLite builds bundled by sqlite3 support, including the encrypted ones.
+The SQLite of Android, which the sqflite plugin uses, lacks FTS5, so pass the FFI database factory to the builder for FTS5 entities on Android, see [Platform Support](platform-support.md#choosing-the-database-factory).
 Besides `tokenizer` (`FtsTokenizer.unicode61` by default, or `ascii`, `porter` and `trigram`) and `tokenizerArgs`, `@Fts5()` takes the lengths of `prefixes` to index for faster prefix queries, and the columns which are stored but `notIndexed`.
 
 The primary key of FTS5 entities has to be an integer field of the column `rowid`, which is the row id of the table.

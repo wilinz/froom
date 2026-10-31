@@ -1,7 +1,14 @@
 # Froom
-**The typesafe, reactive and lightweight SQLite abstraction for your Flutter applications (iOS, Android, Linux, macOS, Windows)**
+**The typesafe, reactive and lightweight SQLite abstraction for your Flutter applications (iOS, Android, Linux, macOS, Windows, web)**
 
 This is an example on how to use the library.
+
+To run it on the web, add the SQLite WebAssembly binary and worker to the `web` directory first:
+
+```shell
+dart run sqflite_common_ffi_web:setup
+flutter run -d chrome
+```
 
 ---
 

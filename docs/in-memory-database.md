@@ -5,3 +5,5 @@ To instantiate an in-memory database, use the static `inMemoryDatabaseBuilder()`
 ```dart
 final database = await $FroomAppDatabase.inMemoryDatabaseBuilder().build();
 ```
+
+In-memory databases are not stored, so they aren't encrypted with a [password](platform-support.md#encryption) of their builder.

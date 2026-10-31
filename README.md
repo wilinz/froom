@@ -15,7 +15,7 @@ Froom provides automatic mapping between in-memory objects and database rows, wh
 - SQL centric
 - no hidden magic
 - no hidden costs
-- iOS, Android, Linux, macOS, Windows
+- iOS, Android, Linux, macOS, Windows, web
 
 ⚠️ The library is open to contributions!
 Refer to [GitHub Discussions](https://github.com/wilinz/froom/discussions) for questions, ideas, and discussions.
@@ -32,14 +32,14 @@ Froom is based on **Floor 1.5.0**, as Floor is no longer actively maintained. **
 
 > **Froom** was designed to provide everything that Floor could not, by addressing its limitations and offering better compatibility with newer versions of Flutter.
 
-## Planned Features
+## Features Beyond Floor
 
-The following features are planned for future releases of **Froom** to enhance its capabilities and address user feedback:
-
-- **Automatic SQL Migration**: Plan to add automatic database migrations to handle schema changes smoothly.
-- **Improved Error Handling**: Enhance error reporting and debugging capabilities, ensuring that developers get more actionable insights during development.
-
-> These features are under **active planning** and will be added based on community contributions and ongoing development.
+- **[Automatic migrations](https://wilinz.github.io/froom/migrations/#automatic-migrations)** generated from exported schemas, like Room's `@AutoMigration`
+- **[Upsert](https://wilinz.github.io/froom/daos/#upsert)** with `@upsert`, including partial entities
+- **[Encryption](https://wilinz.github.io/froom/platform-support/#encryption)** with a password, using SQLite3MultipleCiphers or SQLCipher
+- **[Web support](https://wilinz.github.io/froom/platform-support/#web)**, storing databases in IndexedDB
+- **[SQLite of your choice](https://wilinz.github.io/froom/platform-support/#choosing-the-sqlite-library)** per platform: bundled automatically, the system one, an encrypted one, or any sqflite `DatabaseFactory` like the sqflite plugin
+- **[FTS5](https://wilinz.github.io/froom/entities/#fts5)** full-text search entities besides FTS3 and FTS4
 
 
 [![pub package](https://img.shields.io/pub/v/froom.svg)](https://pub.dartlang.org/packages/froom)
@@ -50,11 +50,11 @@ The following features are planned for future releases of **Froom** to enhance i
 
 Please choose the appropriate version based on your `source_gen` dependency:
 
-| source_gen Version | Froom Version |
-|--------------------|---------------|
-| 4.x.x             | 4.x.x         |
-| 3.x.x             | 3.x.x         |
-| 2.x.x             | 2.0.4         |
+| source_gen Version | Froom Version    |
+|--------------------|------------------|
+| 4.x.x              | 4.0.0 and later  |
+| 3.x.x              | 3.x.x            |
+| 2.x.x              | 2.0.4            |
 
 ## Migrating from Floor
 
@@ -164,7 +164,7 @@ In this case, the file is named `database.dart`.
 // required package imports
 import 'dart:async';
 import 'package:froom/froom.dart';
-import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:froom/sqflite.dart' as sqflite;
 
 import 'dao/person_dao.dart';
 import 'entity/person.dart';
@@ -179,8 +179,8 @@ abstract class AppDatabase extends FroomDatabase {
 
 ### 5. Run the Code Generator
 
-Run the generator with `flutter packages pub run build_runner build`.
-To automatically run it, whenever a file changes, use `flutter packages pub run build_runner watch`.
+Run the generator with `dart run build_runner build`.
+To automatically run it, whenever a file changes, use `dart run build_runner watch`.
 
 ### 6. Use the Generated Code
 
@@ -201,6 +201,9 @@ final person = Person(1, 'Frank');
 await personDao.insertPerson(person);
 final result = await personDao.findPersonById(1);
 ```
+
+On Android and iOS, add the [sqflite](https://pub.dev/packages/sqflite) plugin to use the SQLite of the system, like Floor.
+For the web, and for choosing the SQLite library or encrypting the database, see [Platform Support](https://wilinz.github.io/froom/platform-support/).
 
 For further examples take a look at the [example](https://github.com/wilinz/froom/tree/develop/example) and [test](https://github.com/wilinz/froom/tree/develop/froom_common/test/integration) directories.
 

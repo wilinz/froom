@@ -3,16 +3,19 @@
 ## [Unreleased]
 
 ### ⬆️ Breaking Changes & Dependencies
-- **database**: Databases are opened with the FFI implementation of sqflite on all native platforms by default, which bundles SQLite with the app by hooks; use the sqflite plugin with `.databaseFactory(databaseFactorySqflitePlugin)`. Previously, Android and iOS failed with `databaseFactory not initialized` unless the global factory of sqflite was set
-- **sqlite3**: Upgraded to `sqflite_common_ffi` 2.4, `sqflite_common_ffi_web` 1.2 and `sqlite3` 3, which choose the SQLite library per platform by the `hooks` of the `pubspec.yaml` (bundled, system or encrypted builds) instead of `sqlite3_flutter_libs`. The bundled builds don't support FTS3 and FTS4, which `@Fts3` and `@Fts4` entities require, see [Platform Support](https://wilinz.github.io/froom/platform-support/)
+- **sqlite3**: Upgraded to `sqflite_common_ffi` 2.4, `sqflite_common_ffi_web` 1.2 and `sqlite3` 3, which bundle SQLite with the app by hooks and choose the SQLite library per platform by the `hooks` of the `pubspec.yaml` (bundled, system or encrypted builds) instead of `sqlite3_flutter_libs`. The bundled builds don't support FTS3 and FTS4, which `@Fts3` and `@Fts4` entities require, see [Platform Support](https://wilinz.github.io/froom/platform-support/)
+- **sqlite3**: sqlite3 bundles SQLite on Android and iOS too, even for apps only using the sqflite plugin there, which can avoid it with `source: system` for these platforms, see [Platform Support](https://wilinz.github.io/froom/platform-support/#choosing-the-sqlite-library)
 - **sdk**: Minimum Dart SDK of `froom`, `froom_ffi` and the example raised to `>=3.12.0`, as required by the sqflite packages
 
 ### ✨ Features
-- **fts**: Add `@fts5`/`@Fts5()` entities stored in FTS5 tables, which the SQLite builds bundled by sqlite3 support, with `tokenizer`, `tokenizerArgs`, `prefixes` and `notIndexed`; their primary key is the `rowid`, which queries have to select explicitly
+- **fts**: Add `@fts5`/`@Fts5()` entities stored in FTS5 tables, which the SQLite builds bundled by sqlite3 support, with `tokenizer`, `tokenizerArgs`, `prefixes` and `notIndexed`; their primary key is the `rowid`, which queries have to select explicitly, as the code generation checks
+- **froom_ffi**: Databases generated with `froom_ffi` compile, as `getDatabasePath()` of their builders moved to `froom_common`
 - **database**: Opening a database fails with a `MissingSqliteModuleException` explaining how to fix it when the SQLite library lacks a module like FTS4
-- **encryption**: Encrypt databases with `password()` of their builder, using encrypted builds of SQLite like SQLite3MultipleCiphers or SQLCipher; opening fails with a `DatabaseEncryptionException` for wrong passwords, unencrypted databases and SQLite builds without encryption, which would store the database unencrypted
-- **database**: Choose the sqflite `DatabaseFactory` of a database with `databaseFactory()` of its builder
-- **web**: Support Flutter for the web, storing databases in IndexedDB with sqflite_common_ffi_web, compiled to JavaScript or WebAssembly; the default database factory is chosen by conditional imports instead of `dart:io`
+- **encryption**: Encrypt databases with `password()` of their builder, using encrypted builds of SQLite like SQLite3MultipleCiphers or SQLCipher; opening fails with a `DatabaseEncryptionException` for wrong passwords, unencrypted databases and SQLite builds without encryption, and with an `ArgumentError` for empty passwords, which would store the database unencrypted
+- **database**: Choose the sqflite `DatabaseFactory` of a database with `databaseFactory()` of its builder, e.g. the FFI one on Android and iOS instead of the sqflite plugin
+- **database**: Opening a database on Android and iOS without the sqflite plugin or another database factory fails with a message explaining how to fix it instead of `databaseFactory not initialized`
+- **database**: Import the sqflite API of the generated code with `import 'package:froom/sqflite.dart' as sqflite;` instead of depending on `sqflite`
+- **web**: Support Flutter for the web, storing databases in IndexedDB with sqflite_common_ffi_web, compiled to JavaScript or WebAssembly; the default database factory is chosen by conditional imports instead of `dart:io`, so `froom` compiles for the web
 - **migrations**: Add automatic migrations like Room's `@AutoMigration`, generated from the schemas exported to `froom_schemas` (with automatic migrations or `@Database(exportSchema: true)`), including `@RenameTable`, `@RenameColumn`, `@DeleteTable` and `@DeleteColumn` specs, `AutoMigrationSpec.onPostMigrate` and `@providedAutoMigrationSpec`
 
 ## 7.0.0

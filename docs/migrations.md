@@ -85,7 +85,7 @@ Deleted and renamed tables and columns can't be distinguished, so the code gener
 Its `onPostMigrate` method runs within the transaction of the migration afterwards, e.g. for migrating data.
 
 ```dart
-import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:froom/sqflite.dart' as sqflite;
 
 @Database(
   version: 3,
